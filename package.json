@@ -1,0 +1,19 @@
+{
+  "name": "gov-edu-fci",
+  "version": "1.0.0",
+  "description": "生徒会活動資金見える化プロジェクト",
+  "scripts": {
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "student-council",
+    "finance",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}
+
