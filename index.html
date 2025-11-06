@@ -183,5 +183,34 @@
             <p>&copy; 2025 生徒会活動資金見える化プロジェクト Created by Ryoichiro Onoe</p>
         </div>
     </footer>
+
+    <!-- スクロールトップボタン -->
+    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="ページの先頭に戻る">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </button>
+
+    <script>
+        // スクロールトップボタンの制御
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
+        
+        // スクロール位置を監視してボタンの表示/非表示を制御
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+        
+        // ボタンをクリックしたらページの最上部にスムーズにスクロール
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
 </body>
 </html>
