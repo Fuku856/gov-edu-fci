@@ -106,18 +106,20 @@ nav {
     border-radius: 3px;
     transition: all 0.3s ease;
     transform-origin: center;
+    position: relative;
 }
 
 .hamburger[aria-expanded="true"] .hamburger-line:nth-child(1) {
-    transform: rotate(45deg) translate(8px, 8px);
+    transform: translateY(10px) rotate(45deg);
 }
 
 .hamburger[aria-expanded="true"] .hamburger-line:nth-child(2) {
     opacity: 0;
+    transform: scaleX(0);
 }
 
 .hamburger[aria-expanded="true"] .hamburger-line:nth-child(3) {
-    transform: rotate(-45deg) translate(8px, -8px);
+    transform: translateY(-10px) rotate(-45deg);
 }
 
 /* モバイルメニューオーバーレイ */
