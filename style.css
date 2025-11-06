@@ -602,7 +602,7 @@ footer {
 
 /* スクロールトップボタン */
 .scroll-top-btn {
-    position: fixed;
+    position: fixed !important;
     bottom: 2rem;
     right: 2rem;
     width: 56px;
@@ -616,17 +616,20 @@ footer {
     align-items: center;
     justify-content: center;
     box-shadow: 0 8px 24px rgba(0, 102, 255, 0.4);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(20px);
-    z-index: 1000;
+    transform: translate3d(0, 20px, 0);
+    z-index: 9999;
+    pointer-events: none;
+    will-change: transform, opacity;
 }
 
 .scroll-top-btn.visible {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
+    pointer-events: auto;
 }
 
 .scroll-top-btn:hover {
