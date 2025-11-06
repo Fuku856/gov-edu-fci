@@ -17,7 +17,21 @@
                 <li><a href="members.html">メンバー紹介</a></li>
                 <li><a href="#dashboard">ダッシュボード</a></li>
             </ul>
+            <button class="hamburger" aria-label="メニューを開く" aria-expanded="false">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
         </nav>
+        <!-- モバイルメニューオーバーレイ -->
+        <div class="mobile-menu-overlay">
+            <ul class="mobile-nav-links">
+                <li><a href="#features" class="mobile-nav-link">特徴</a></li>
+                <li><a href="#goals" class="mobile-nav-link">目標</a></li>
+                <li><a href="members.html" class="mobile-nav-link">メンバー紹介</a></li>
+                <li><a href="#dashboard" class="mobile-nav-link">ダッシュボード</a></li>
+            </ul>
+        </div>
     </header>
 
     <!-- ヒーローセクション -->
@@ -55,9 +69,9 @@
                     <p>スマートフォンからもアクセス可能。いつでもどこでも生徒会の活動をチェックできます。</p>
                 </div>
                 <div class="feature-card">
-                    <div class="feature-icon">🗳️</div>
-                    <h3>民主的な運営</h3>
-                    <p>予算案への意見提出や質問機能を搭載。すべての生徒が生徒会運営に参加できます。</p>
+                    <div class="feature-icon">👁️</div>
+                    <h3>透明性を確保</h3>
+                    <p>すべての会計情報と議案内容を公開し、予算の執行過程や意思決定の流れを明らかにします。隠すことのない、信頼できる生徒会運営を実現します。</p>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🔒</div>
@@ -210,6 +224,38 @@
                 top: 0,
                 behavior: 'smooth'
             });
+        });
+
+        // ハンバーガーメニューの制御
+        const hamburger = document.querySelector('.hamburger');
+        const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+        const body = document.body;
+
+        // ハンバーガーボタンのクリックイベント
+        hamburger.addEventListener('click', () => {
+            const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
+            hamburger.setAttribute('aria-expanded', !isExpanded);
+            mobileMenuOverlay.classList.toggle('active');
+            body.classList.toggle('menu-open');
+        });
+
+        // モバイルメニューのリンクをクリックしたらメニューを閉じる
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.setAttribute('aria-expanded', 'false');
+                mobileMenuOverlay.classList.remove('active');
+                body.classList.remove('menu-open');
+            });
+        });
+
+        // オーバーレイの背景をクリックしたらメニューを閉じる
+        mobileMenuOverlay.addEventListener('click', (e) => {
+            if (e.target === mobileMenuOverlay) {
+                hamburger.setAttribute('aria-expanded', 'false');
+                mobileMenuOverlay.classList.remove('active');
+                body.classList.remove('menu-open');
+            }
         });
     </script>
 </body>
