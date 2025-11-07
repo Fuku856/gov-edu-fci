@@ -61,6 +61,31 @@
 
 詳細は[プロジェクトメンバーページ](https://gov-edu-fci.pages.dev/project-members)をご覧ください。
 
+## 🔐 Basic認証の設定
+
+このサイトは学校関係者のみがアクセスできるよう、Basic認証が設定されています。
+
+### 認証情報の取得
+
+アクセスにはユーザー名とパスワードが必要です。認証情報は生徒会執行部またはプロジェクト管理者から提供されます。
+
+### アクセス方法
+
+1. サイトにアクセスすると、認証ダイアログが表示されます
+2. 提供されたユーザー名とパスワードを入力してください
+3. 認証が成功すると、サイトを閲覧できます
+
+### 管理者向け: 認証設定方法
+
+Basic認証は、**Cloudflare Pages Functions**を使用して実装されています。
+
+**設定手順:**
+1. このリポジトリにはすでに `functions/_middleware.js` が含まれています
+2. Cloudflareダッシュボードで環境変数を設定（`AUTH_USERNAME` と `AUTH_PASSWORD`）
+3. 変更をGitにコミット＆プッシュしてデプロイ
+
+詳細な手順については、[BASIC_AUTH_SETUP.md](./BASIC_AUTH_SETUP.md)または[QUICK_START.md](./QUICK_START.md)を参照してください。
+
 ## Credit
 
 - **開発**: Ryoichiro Onoe
