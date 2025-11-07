@@ -54,6 +54,14 @@ nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 2rem;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex: 1;
 }
 
 .logo {
@@ -84,13 +92,18 @@ nav {
     transform: translateY(-2px);
 }
 
+/* ナビゲーション右側エリア */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
 /* ユーザー情報エリア（ヘッダー） */
 #user-info {
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin-left: auto;
-    margin-right: 1rem;
 }
 
 #user-info span {
@@ -100,9 +113,9 @@ nav {
 }
 
 #user-info button {
-    background: rgba(255, 255, 255, 0.2);
+    background: #dc3545;
     color: white;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid #c82333;
     padding: 0.5rem 1rem;
     border-radius: 5px;
     cursor: pointer;
@@ -112,7 +125,8 @@ nav {
 }
 
 #user-info button:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: #c82333;
+    border-color: #bd2130;
     transform: translateY(-2px);
 }
 
@@ -1107,6 +1121,10 @@ body.toc-open .scroll-top-btn {
         display: flex;
     }
 
+    .nav-left {
+        gap: 1rem;
+    }
+
     body.menu-open .logo {
         display: none !important;
     }
@@ -1118,6 +1136,10 @@ body.toc-open .scroll-top-btn {
     /* モバイル表示時のユーザー情報 */
     #user-info {
         display: none;
+    }
+
+    .nav-right {
+        gap: 0.5rem;
     }
 
     /* モバイルメニューにユーザー情報を表示 */

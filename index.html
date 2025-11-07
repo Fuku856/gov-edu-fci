@@ -44,20 +44,24 @@
     <!-- ヘッダー -->
     <header>
         <nav>
-            <a href="index.html" class="logo">🏫 生徒会 見える化</a>
-            <ul class="nav-links">
-                <li><a href="#features">特徴</a></li>
-                <li><a href="#goals">目標</a></li>
-                <li><a href="members.html">メンバー紹介</a></li>
-                <li><a href="#dashboard">ダッシュボード</a></li>
-            </ul>
-            <!-- ユーザー情報とログアウトボタン（ログイン中のみ表示） -->
-            <div id="user-info" style="display: none; margin-left: auto; margin-right: 1rem;"></div>
-            <button class="hamburger" aria-label="メニューを開く" aria-expanded="false">
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-            </button>
+            <div class="nav-left">
+                <a href="index.html" class="logo">🏫 生徒会 見える化</a>
+                <ul class="nav-links">
+                    <li><a href="#features">特徴</a></li>
+                    <li><a href="#goals">目標</a></li>
+                    <li><a href="members.html">メンバー紹介</a></li>
+                    <li><a href="#dashboard">ダッシュボード</a></li>
+                </ul>
+            </div>
+            <div class="nav-right">
+                <!-- ユーザー情報とログアウトボタン（ログイン中のみ表示） -->
+                <div id="user-info" style="display: none;"></div>
+                <button class="hamburger" aria-label="メニューを開く" aria-expanded="false">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+            </div>
         </nav>
         <!-- モバイルメニューオーバーレイ -->
         <div class="mobile-menu-overlay">

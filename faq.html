@@ -5,23 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>よくある質問（FAQ） - 生徒会活動資金見える化プロジェクト</title>
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <!-- Firebase設定と認証スクリプト -->
+    <script src="firebase-config.js"></script>
+    <!-- 開発用設定ファイル（存在する場合のみ読み込む、.gitignoreで除外されているためGitHubに公開されない） -->
+    <script src="auth.local.js" onerror="console.log('auth.local.js が見つかりません（開発用ファイルです）')"></script>
+    <script src="auth.js"></script>
 </head>
 <body>
+    <!-- ログインページ（認証されていない場合に表示） -->
+    <div id="login-page" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 10000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
+        <div style="background: white; border-radius: 20px; padding: 3rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); max-width: 400px; width: 90%; text-align: center;">
+            <h1 style="color: #333; margin-bottom: 1rem; font-size: 1.8rem;">🏫 生徒会 見える化</h1>
+            <p style="color: #666; margin-bottom: 2rem; line-height: 1.6;">学校のGoogleアカウントでログインしてください</p>
+            
+            <button id="google-login-btn" onclick="signInWithGoogle()" style="background: #4285f4; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <svg style="width: 20px; height: 20px;" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Googleでログイン
+            </button>
+            
+            <div style="margin-top: 2rem; padding: 1rem; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0052cc;">
+                <p style="color: #0052cc; font-size: 0.9rem; margin: 0;">⚠️ このサイトは学校関係者のみがアクセスできます。<br>学校のGoogleアカウントが必要です。</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- メインコンテンツ（認証されている場合に表示） -->
+    <div id="main-content" style="visibility: hidden;">
     <!-- ヘッダー -->
     <header>
         <nav>
-            <a href="index.html" class="logo">🏫 生徒会 見える化</a>
-            <ul class="nav-links">
-                <li><a href="index.html#features">特徴</a></li>
-                <li><a href="index.html#goals">目標</a></li>
-                <li><a href="members.html">メンバー紹介</a></li>
-                <li><a href="index.html#dashboard">ダッシュボード</a></li>
-            </ul>
-            <button class="hamburger" aria-label="メニューを開く" aria-expanded="false">
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-            </button>
+            <div class="nav-left">
+                <a href="index.html" class="logo">🏫 生徒会 見える化</a>
+                <ul class="nav-links">
+                    <li><a href="index.html#features">特徴</a></li>
+                    <li><a href="index.html#goals">目標</a></li>
+                    <li><a href="members.html">メンバー紹介</a></li>
+                    <li><a href="index.html#dashboard">ダッシュボード</a></li>
+                </ul>
+            </div>
+            <div class="nav-right">
+                <!-- ユーザー情報とログアウトボタン（ログイン中のみ表示） -->
+                <div id="user-info" style="display: none;"></div>
+                <button class="hamburger" aria-label="メニューを開く" aria-expanded="false">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+            </div>
         </nav>
         <!-- モバイルメニューオーバーレイ -->
         <div class="mobile-menu-overlay">
@@ -30,6 +70,8 @@
                 <li><a href="index.html#goals" class="mobile-nav-link">目標</a></li>
                 <li><a href="members.html" class="mobile-nav-link">メンバー紹介</a></li>
                 <li><a href="index.html#dashboard" class="mobile-nav-link">ダッシュボード</a></li>
+                <!-- モバイルメニューにユーザー情報を表示（ログイン中のみ） -->
+                <li id="mobile-user-info" style="display: none; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.2);"></li>
             </ul>
         </div>
     </header>
@@ -234,6 +276,77 @@
                 mobileMenuOverlay.classList.remove('active');
                 body.classList.remove('menu-open');
             }
+        });
+    </script>
+    </div> <!-- main-content の終了 -->
+
+    <!-- フッター -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>プロジェクトについて</h3>
+                <ul>
+                    <li><a href="index.html#goals">目的</a></li>
+                    <li><a href="members.html">メンバー</a></li>
+                    <li><a href="project-members.html">プロジェクトメンバー</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>情報公開</h3>
+                <ul>
+                    <li><a href="#">予算・決算</a></li>
+                    <li><a href="#">月次レポート</a></li>
+                    <li><a href="#">活動記録</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>参加する</h3>
+                <ul>
+                    <li><a href="contact.html">意見を送る</a></li>
+                    <li><a href="contact.html">質問する</a></li>
+                    <li><a href="contact.html">改善提案</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>技術情報</h3>
+                <ul>
+                    <li><a href="https://github.com/Fuku856/gov-edu-fci" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li><a href="documents.html">ドキュメント</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                    <li><a href="glossary.html">用語集</a></li>
+                    <li><a href="contact.html">お問い合わせ</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 生徒会活動資金見える化プロジェクト Created by Ryoichiro Onoe</p>
+        </div>
+    </footer>
+
+    <!-- スクロールトップボタン -->
+    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="ページの先頭に戻る">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </button>
+
+    <script>
+        // スクロールトップボタンの制御
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+        
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         });
     </script>
 </body>

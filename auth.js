@@ -52,7 +52,7 @@ function initializeAuth() {
       // メールドメインをチェック
       const isAllowed = isAllowedEmailDomain(email);
       console.log('メールアドレスのチェック結果:', isAllowed);
-      console.log('許可されたメールドメイン:', ALLOWED_EMAIL_DOMAINS);
+      console.log('許可されたメールドメイン:', typeof ALLOWED_EMAIL_DOMAINS !== 'undefined' ? ALLOWED_EMAIL_DOMAINS : '未定義（firebase-config.jsを確認してください）');
       
       if (isAllowed) {
         // 許可されたドメインの場合、サイトを表示
@@ -154,9 +154,10 @@ function isAllowedEmailDomain(email) {
   }
   
   // 動作確認用: 特定のメールアドレスを許可する場合は、ここに追加
-  // 注意: 個人のメールアドレスを追加する場合は、GitHubに公開する前に削除してください
+  // 注意: 個人のメールアドレスを追加する場合は、auth.local.js を使用してください
+  // auth.local.js は .gitignore に含まれているため、GitHubに公開されません
   let ALLOWED_EMAILS = [
-    'hachi56kiku56@gmail.com',
+    // 個人のメールアドレスは auth.local.js に追加してください
     // 'your-email@gmail.com',  // 動作確認用: コメントアウトを外してメールアドレスを追加
   ];
   
@@ -179,9 +180,16 @@ function isAllowedEmailDomain(email) {
   // メールドメインをチェック
   const emailDomain = email.split('@')[1];
   console.log('isAllowedEmailDomain: メールドメイン:', emailDomain);
-  console.log('isAllowedEmailDomain: 許可されたドメイン:', ALLOWED_EMAIL_DOMAINS);
   
-  const domainAllowed = ALLOWED_EMAIL_DOMAINS.includes(emailDomain);
+  // ALLOWED_EMAIL_DOMAINSが定義されているか確認（firebase-config.jsから読み込まれる）
+  // 未定義の場合は空配列を使用（セキュリティのため、すべて拒否）
+  const allowedDomains = typeof ALLOWED_EMAIL_DOMAINS !== 'undefined' 
+    ? ALLOWED_EMAIL_DOMAINS 
+    : [];
+  
+  console.log('isAllowedEmailDomain: 許可されたドメイン:', allowedDomains);
+  
+  const domainAllowed = allowedDomains.includes(emailDomain);
   console.log('isAllowedEmailDomain: ドメインチェック結果:', domainAllowed);
   
   return domainAllowed;
@@ -280,7 +288,7 @@ function updateUserInfo(user) {
     userInfo.style.gap = '1rem';
     userInfo.innerHTML = `
       <span style="color: white; font-size: 0.9rem;">${userName}</span>
-      <button onclick="signOut()" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">ログアウト</button>
+      <button onclick="signOut()" style="background: #dc3545; color: white; border: 1px solid #c82333; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; font-weight: 500;" onmouseover="this.style.background='#c82333'; this.style.borderColor='#bd2130'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#dc3545'; this.style.borderColor='#c82333'; this.style.transform='translateY(0)'">ログアウト</button>
     `;
     console.log('ユーザー情報を更新しました（デスクトップ）:', userName);
   }
@@ -291,7 +299,7 @@ function updateUserInfo(user) {
     mobileUserInfo.innerHTML = `
       <div style="text-align: center; color: white;">
         <p style="margin-bottom: 1rem; font-size: 0.9rem; opacity: 0.9;">${userName}</p>
-        <button onclick="signOut()" class="mobile-nav-link" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 0.75rem 1.5rem; border-radius: 8px;">ログアウト</button>
+        <button onclick="signOut()" class="mobile-nav-link" style="width: 100%; background: #dc3545; color: white; border: 1px solid #c82333; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 500; transition: all 0.3s;" onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">ログアウト</button>
       </div>
     `;
     console.log('ユーザー情報を更新しました（モバイル）:', userName);
