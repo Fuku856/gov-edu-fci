@@ -95,7 +95,7 @@ nav {
     border: none;
     cursor: pointer;
     padding: 0;
-    z-index: 10001;
+    z-index: 10002;
     position: relative;
 }
 
@@ -132,7 +132,7 @@ nav {
     background: rgba(0, 26, 77, 0.98);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    z-index: 10000;
+    z-index: 10001;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -176,6 +176,15 @@ nav {
 
 body.menu-open {
     overflow: hidden;
+}
+
+/* ハンバーガーメニューが開いている時はボタンを非表示 */
+body.menu-open .toc-toggle-btn,
+body.menu-open .scroll-top-btn {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 /* ヒーローセクション */
@@ -942,6 +951,15 @@ footer {
 
 body.toc-open {
     overflow: hidden;
+}
+
+/* 目次サイドバーが開いている時もボタンを非表示 */
+body.toc-open .toc-toggle-btn,
+body.toc-open .scroll-top-btn {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 /* レスポンシブ対応 */
