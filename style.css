@@ -348,6 +348,32 @@ section {
     z-index: 1;
 }
 
+/* カード全体をリンクにする */
+.feature-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    cursor: pointer;
+}
+
+.feature-card-link:hover .feature-card {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(0, 102, 255, 0.2);
+    border-color: rgba(0, 180, 255, 0.5);
+}
+
+.feature-card-link:hover .feature-card::before {
+    opacity: 1;
+}
+
+.feature-card-link:hover .feature-card h3 {
+    color: var(--primary-blue);
+}
+
+.feature-card-link:hover .feature-card p {
+    color: var(--text-dark);
+}
+
 /* 統計セクション */
 .stats {
     background: linear-gradient(135deg, rgba(0, 102, 255, 0.9) 0%, rgba(0, 26, 77, 0.9) 100%);
@@ -705,7 +731,7 @@ footer {
     padding: 0;
 }
 
-.toc-list li {
+.toc-list > li {
     margin-bottom: 0.75rem;
 }
 
@@ -721,6 +747,33 @@ footer {
     color: var(--accent-cyan);
     text-decoration: underline;
     transform: translateX(5px);
+}
+
+.toc-list ul {
+    list-style: none;
+    margin-top: 0.5rem;
+    margin-left: 1.5rem;
+    padding: 0;
+}
+
+.toc-list ul li {
+    margin-bottom: 0.5rem;
+}
+
+.toc-list ul a {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    opacity: 0.9;
+}
+
+.toc-list ul a:hover {
+    color: var(--primary-blue);
+    opacity: 1;
+}
+
+.toc-number {
+    font-weight: 700;
+    margin-right: 0.5rem;
 }
 
 /* スクロールトップボタン */
