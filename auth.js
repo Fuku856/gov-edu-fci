@@ -163,8 +163,15 @@ function isAllowedEmailDomain(email) {
   
   // 開発用設定ファイルから読み込む（存在する場合）
   // auth.local.js は .gitignore に含まれているため、GitHubに公開されません
+  // ローカル環境でのテストに使用します
   if (typeof DEV_ALLOWED_EMAILS !== 'undefined') {
     ALLOWED_EMAILS = ALLOWED_EMAILS.concat(DEV_ALLOWED_EMAILS);
+  }
+  
+  // 本番環境で許可する特定のメールアドレス（firebase-config.jsから読み込む）
+  // ⚠️ 注意: このリストはGitHubに公開されます。テストが完了したら削除してください
+  if (typeof PROD_ALLOWED_EMAILS !== 'undefined' && PROD_ALLOWED_EMAILS.length > 0) {
+    ALLOWED_EMAILS = ALLOWED_EMAILS.concat(PROD_ALLOWED_EMAILS);
   }
   
   const emailLower = email.toLowerCase().trim();
