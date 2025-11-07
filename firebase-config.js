@@ -16,7 +16,13 @@ const firebaseConfig = {
 
 // 許可されたメールドメイン（学校のメールアドレスのドメイン）
 // 例: ['your-school.edu', 'example.edu']
-const ALLOWED_EMAIL_DOMAINS = ['fcihs-satoyama.ed.jp'];
+// 動作確認用に個人のメールアドレスを追加する場合は、ここにドメインを追加
+// 例: Gmailの場合は 'gmail.com' を追加
+const ALLOWED_EMAIL_DOMAINS = [
+  'fcihs-satoyama.ed.jp',  // 学校のメールドメイン
+  // 'gmail.com',  // 動作確認用: コメントアウトを外して有効化
+  // 'yahoo.co.jp',  // 動作確認用: 必要に応じて追加
+];
 
 // Firebase初期化
 if (typeof firebase !== 'undefined') {

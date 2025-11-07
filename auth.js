@@ -97,6 +97,18 @@ async function signOut() {
 function isAllowedEmailDomain(email) {
   if (!email) return false;
   
+  // 動作確認用: 特定のメールアドレスを許可する場合は、ここに追加
+  const ALLOWED_EMAILS = [
+    'hachi56kiku56@gmail.com',
+    // 'your-email@gmail.com',  // 動作確認用: コメントアウトを外してメールアドレスを追加
+  ];
+  
+  // 許可されたメールアドレスのリストをチェック
+  if (ALLOWED_EMAILS.includes(email.toLowerCase())) {
+    return true;
+  }
+  
+  // メールドメインをチェック
   const emailDomain = email.split('@')[1];
   return ALLOWED_EMAIL_DOMAINS.includes(emailDomain);
 }
