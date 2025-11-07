@@ -770,10 +770,7 @@ footer {
     }
 
     body.menu-open .logo {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transition: opacity 0.3s ease, visibility 0.3s ease;
+        display: none !important;
     }
 
     section {
