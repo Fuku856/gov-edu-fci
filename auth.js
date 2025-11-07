@@ -7,36 +7,54 @@
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof firebase === 'undefined') {
     console.error('Firebase SDKが読み込まれていません');
+    // Firebase SDKが読み込まれていない場合でも、初期状態を設定
+    showLoginPage();
+    hideMainContent();
     return;
   }
   
+  // 初期状態を設定（ログイン前はログインページを表示）
+  console.log('初期状態を設定: ログインページを表示');
+  showLoginPage();
+  hideMainContent();
+  
   // 認証状態の監視
   firebase.auth().onAuthStateChanged((user) => {
-  if (user) {
-    // ユーザーがログインしている
-    const email = user.email;
+    console.log('認証状態が変更されました:', user ? user.email : 'ログアウト');
     
-    // メールドメインをチェック
-    if (isAllowedEmailDomain(email)) {
-      // 許可されたドメインの場合、サイトを表示
-      hideLoginPage();
-      showMainContent();
+    if (user) {
+      // ユーザーがログインしている
+      const email = user.email;
+      console.log('ログイン中のメールアドレス:', email);
       
-      // ユーザー情報を表示（オプション）
-      updateUserInfo(user);
+      // メールドメインをチェック
+      const isAllowed = isAllowedEmailDomain(email);
+      console.log('メールアドレスのチェック結果:', isAllowed);
+      console.log('許可されたメールドメイン:', ALLOWED_EMAIL_DOMAINS);
+      
+      if (isAllowed) {
+        // 許可されたドメインの場合、サイトを表示
+        console.log('認証成功: サイトを表示します');
+        hideLoginPage();
+        showMainContent();
+        
+        // ユーザー情報を表示（オプション）
+        updateUserInfo(user);
+      } else {
+        // 許可されていないドメインの場合、ログアウト
+        console.log('認証失敗: 許可されていないメールアドレス');
+        alert('このサイトは学校関係者のみがアクセスできます。\n許可されていないメールアドレスです。\nメールアドレス: ' + email);
+        firebase.auth().signOut().then(() => {
+          showLoginPage();
+          hideMainContent();
+        });
+      }
     } else {
-      // 許可されていないドメインの場合、ログアウト
-      alert('このサイトは学校関係者のみがアクセスできます。\n許可されていないメールアドレスです。');
-      firebase.auth().signOut().then(() => {
-        showLoginPage();
-        hideMainContent();
-      });
+      // ユーザーがログインしていない
+      console.log('ユーザーがログインしていません');
+      showLoginPage();
+      hideMainContent();
     }
-  } else {
-    // ユーザーがログインしていない
-    showLoginPage();
-    hideMainContent();
-  }
   });
 });
 
@@ -95,7 +113,10 @@ async function signOut() {
  * メールドメインが許可されているかチェック
  */
 function isAllowedEmailDomain(email) {
-  if (!email) return false;
+  if (!email) {
+    console.log('isAllowedEmailDomain: メールアドレスが空です');
+    return false;
+  }
   
   // 動作確認用: 特定のメールアドレスを許可する場合は、ここに追加
   const ALLOWED_EMAILS = [
@@ -103,14 +124,25 @@ function isAllowedEmailDomain(email) {
     // 'your-email@gmail.com',  // 動作確認用: コメントアウトを外してメールアドレスを追加
   ];
   
+  const emailLower = email.toLowerCase().trim();
+  console.log('isAllowedEmailDomain: チェック中のメールアドレス:', emailLower);
+  console.log('isAllowedEmailDomain: 許可されたメールアドレス:', ALLOWED_EMAILS);
+  
   // 許可されたメールアドレスのリストをチェック
-  if (ALLOWED_EMAILS.includes(email.toLowerCase())) {
+  if (ALLOWED_EMAILS.includes(emailLower)) {
+    console.log('isAllowedEmailDomain: メールアドレスが許可リストに一致しました');
     return true;
   }
   
   // メールドメインをチェック
   const emailDomain = email.split('@')[1];
-  return ALLOWED_EMAIL_DOMAINS.includes(emailDomain);
+  console.log('isAllowedEmailDomain: メールドメイン:', emailDomain);
+  console.log('isAllowedEmailDomain: 許可されたドメイン:', ALLOWED_EMAIL_DOMAINS);
+  
+  const domainAllowed = ALLOWED_EMAIL_DOMAINS.includes(emailDomain);
+  console.log('isAllowedEmailDomain: ドメインチェック結果:', domainAllowed);
+  
+  return domainAllowed;
 }
 
 /**
@@ -118,8 +150,12 @@ function isAllowedEmailDomain(email) {
  */
 function showLoginPage() {
   const loginPage = document.getElementById('login-page');
+  console.log('showLoginPage: ログインページを表示', loginPage);
   if (loginPage) {
     loginPage.style.display = 'flex';
+    console.log('showLoginPage: ログインページを表示しました');
+  } else {
+    console.error('showLoginPage: ログインページの要素が見つかりません');
   }
 }
 
@@ -128,8 +164,12 @@ function showLoginPage() {
  */
 function hideLoginPage() {
   const loginPage = document.getElementById('login-page');
+  console.log('hideLoginPage: ログインページを非表示', loginPage);
   if (loginPage) {
     loginPage.style.display = 'none';
+    console.log('hideLoginPage: ログインページを非表示にしました');
+  } else {
+    console.error('hideLoginPage: ログインページの要素が見つかりません');
   }
 }
 
@@ -138,8 +178,12 @@ function hideLoginPage() {
  */
 function showMainContent() {
   const mainContent = document.getElementById('main-content');
+  console.log('showMainContent: メインコンテンツを表示', mainContent);
   if (mainContent) {
     mainContent.style.display = 'block';
+    console.log('showMainContent: メインコンテンツを表示しました');
+  } else {
+    console.error('showMainContent: メインコンテンツの要素が見つかりません');
   }
   
   // body要素のクラスを削除（ログイン状態のスタイルを適用）
@@ -152,8 +196,12 @@ function showMainContent() {
  */
 function hideMainContent() {
   const mainContent = document.getElementById('main-content');
+  console.log('hideMainContent: メインコンテンツを非表示', mainContent);
   if (mainContent) {
     mainContent.style.display = 'none';
+    console.log('hideMainContent: メインコンテンツを非表示にしました');
+  } else {
+    console.error('hideMainContent: メインコンテンツの要素が見つかりません');
   }
   
   // body要素のクラスを追加（ログアウト状態のスタイルを適用）
