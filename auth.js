@@ -34,11 +34,21 @@ function initializeAuth() {
   waitForElement('login-page', () => {
     waitForElement('main-content', () => {
       // 初期状態: 認証状態をチェックするまで何も表示しない
-      // これにより、リロード時の一瞬のログイン画面のちらつきを防ぐ
+      // これにより、リロード時の一瞬のコンテンツ表示を防ぐ
       const loginPage = document.getElementById('login-page');
       const mainContent = document.getElementById('main-content');
-      if (loginPage) loginPage.style.visibility = 'hidden';
-      if (mainContent) mainContent.style.visibility = 'hidden';
+      if (loginPage) {
+        loginPage.style.display = 'none';
+        loginPage.style.visibility = 'hidden';
+        loginPage.style.opacity = '0';
+      }
+      if (mainContent) {
+        mainContent.style.display = 'none';
+        mainContent.style.visibility = 'hidden';
+      }
+      
+      // 認証状態確認済みフラグを設定
+      document.body.classList.add('auth-checked');
       
       // 認証状態の監視
       firebase.auth().onAuthStateChanged((user) => {
@@ -208,8 +218,8 @@ function isAllowedEmailDomain(email) {
 function showLoginPage() {
   const loginPage = document.getElementById('login-page');
   if (loginPage) {
-    loginPage.style.visibility = 'visible';
     loginPage.style.display = 'flex';
+    loginPage.style.visibility = 'visible';
     // トランジション効果のため、少し遅延してopacityを変更
     setTimeout(() => {
       loginPage.style.opacity = '1';
@@ -244,8 +254,11 @@ function hideLoginPage() {
 function showMainContent() {
   const mainContent = document.getElementById('main-content');
   if (mainContent) {
-    mainContent.style.visibility = 'visible';
     mainContent.style.display = 'block';
+    // 表示を確実にするため、少し遅延してvisibilityを変更
+    setTimeout(() => {
+      mainContent.style.visibility = 'visible';
+    }, 10);
     console.log('showMainContent: メインコンテンツを表示しました');
   } else {
     console.warn('showMainContent: メインコンテンツの要素が見つかりません（login.htmlを使用している可能性があります）');
@@ -288,19 +301,8 @@ function updateUserInfo(user) {
   const mobileUserInfo = document.getElementById('mobile-user-info');
   const userName = user.displayName || user.email.split('@')[0];
   
-  // デスクトップ表示用（ヘッダー）
-  if (userInfo) {
-    userInfo.style.display = 'flex';
-    userInfo.style.alignItems = 'center';
-    userInfo.style.gap = '1rem';
-    userInfo.innerHTML = `
-      <span style="color: white; font-size: 0.9rem;">${userName}</span>
-      <button onclick="signOut()" style="background: #dc3545; color: white; border: 1px solid #c82333; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; font-weight: 500;" onmouseover="this.style.background='#c82333'; this.style.borderColor='#bd2130'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#dc3545'; this.style.borderColor='#c82333'; this.style.transform='translateY(0)'">ログアウト</button>
-    `;
-    console.log('ユーザー情報を更新しました（デスクトップ）:', userName);
-  }
-  
-  // モバイル表示用（モバイルメニュー）
+  // モバイル表示用（モバイルメニュー内に表示）
+  // モバイルでは常にモバイルメニュー内に表示
   if (mobileUserInfo) {
     mobileUserInfo.style.display = 'block';
     mobileUserInfo.innerHTML = `
@@ -310,6 +312,22 @@ function updateUserInfo(user) {
       </div>
     `;
     console.log('ユーザー情報を更新しました（モバイル）:', userName);
+  }
+  
+  // デスクトップ表示用（ヘッダー）
+  // モバイル（768px以下）では非表示にする（CSSで制御）
+  if (userInfo && window.innerWidth > 768) {
+    userInfo.style.display = 'flex';
+    userInfo.style.alignItems = 'center';
+    userInfo.style.gap = '1rem';
+    userInfo.innerHTML = `
+      <span style="color: white; font-size: 0.9rem;">${userName}</span>
+      <button onclick="signOut()" style="background: #dc3545; color: white; border: 1px solid #c82333; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; font-weight: 500;" onmouseover="this.style.background='#c82333'; this.style.borderColor='#bd2130'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#dc3545'; this.style.borderColor='#c82333'; this.style.transform='translateY(0)'">ログアウト</button>
+    `;
+    console.log('ユーザー情報を更新しました（デスクトップ）:', userName);
+  } else if (userInfo) {
+    // モバイルの場合は非表示にする
+    userInfo.style.display = 'none';
   }
 }
 

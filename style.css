@@ -24,6 +24,15 @@ body {
     overflow-x: hidden;
 }
 
+/* 認証状態が確認されるまで、すべてのコンテンツを非表示 */
+/* これにより、ページ読み込み時の一瞬のコンテンツ表示を防ぐ */
+body:not(.auth-checked) #main-content,
+body:not(.auth-checked) #login-page {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
 /* グラスモーフィズム効果 */
 .glass {
     background: rgba(255, 255, 255, 0.7);
@@ -1122,7 +1131,17 @@ body.toc-open .scroll-top-btn {
     }
 
     .nav-left {
-        gap: 1rem;
+        gap: 0.5rem;
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+
+    .logo {
+        font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
     }
 
     body.menu-open .logo {
@@ -1133,9 +1152,9 @@ body.toc-open .scroll-top-btn {
         justify-content: flex-end;
     }
 
-    /* モバイル表示時のユーザー情報 */
+    /* モバイル表示時のユーザー情報 - ヘッダーからは完全に非表示 */
     #user-info {
-        display: none;
+        display: none !important;
     }
 
     .nav-right {
