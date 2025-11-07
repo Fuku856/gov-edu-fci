@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>メンバー紹介 - 生徒会活動資金見える化プロジェクト</title>
+    <title>用語集 - 生徒会活動資金見える化プロジェクト</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
             <ul class="nav-links">
                 <li><a href="index.html#features">特徴</a></li>
                 <li><a href="index.html#goals">目標</a></li>
-                <li><a href="members.html" class="active">メンバー紹介</a></li>
+                <li><a href="members.html">メンバー紹介</a></li>
                 <li><a href="index.html#dashboard">ダッシュボード</a></li>
             </ul>
             <button class="hamburger" aria-label="メニューを開く" aria-expanded="false">
@@ -28,117 +28,84 @@
             <ul class="mobile-nav-links">
                 <li><a href="index.html#features" class="mobile-nav-link">特徴</a></li>
                 <li><a href="index.html#goals" class="mobile-nav-link">目標</a></li>
-                <li><a href="members.html" class="mobile-nav-link active">メンバー紹介</a></li>
+                <li><a href="members.html" class="mobile-nav-link">メンバー紹介</a></li>
                 <li><a href="index.html#dashboard" class="mobile-nav-link">ダッシュボード</a></li>
             </ul>
         </div>
     </header>
 
-    <!-- メンバー紹介セクション -->
+    <!-- ヒーローセクション -->
     <section class="hero">
         <div class="hero-content">
-            <h1>生徒会メンバー紹介</h1>
-            <p>プロジェクトを推進するメンバーをご紹介します</p>
+            <h1>用語集</h1>
+            <p>プロジェクトで使用される用語の説明</p>
         </div>
     </section>
 
-    <!-- 執行部 -->
-    <section id="executive">
+    <!-- 用語集セクション -->
+    <section id="glossary">
         <div class="container">
-            <h2 class="section-title">執行部</h2>
-            <div class="members-grid">
-                <div class="member-card">
-                    <div class="member-avatar">👨‍💼</div>
-                    <div class="member-info">
-                        <h3>山田 太郎</h3>
-                        <p class="member-role">生徒会長</p>
-                        <p class="member-grade">3年A組</p>
-                        <p class="member-description">生徒会活動の透明性向上を目指し、このプロジェクトを立ち上げました。すべての生徒が納得できる生徒会運営を実現します。</p>
-                    </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>予算</h3>
+                    <p>ある期間（通常は1年度）において、収入と支出の見込みを示したものです。生徒会費の使い道を計画するために使用されます。予算案は生徒総会で承認され、その後の活動の指針となります。</p>
                 </div>
-                <div class="member-card">
-                    <div class="member-avatar">👩‍💼</div>
-                    <div class="member-info">
-                        <h3>佐藤 花子</h3>
-                        <p class="member-role">副会長</p>
-                        <p class="member-grade">3年B組</p>
-                        <p class="member-description">会計の透明化と効率化を担当しています。予算管理のデジタル化により、より良い生徒会活動を実現したいです。</p>
-                    </div>
+                <div class="feature-card">
+                    <h3>決算</h3>
+                    <p>実際の収入と支出をまとめたものです。予算と実際の執行状況を比較して、適切に使われたかを確認します。年度末に決算報告が行われ、次年度の予算編成の参考となります。</p>
                 </div>
-                <div class="member-card">
-                    <div class="member-avatar">👨‍💻</div>
-                    <div class="member-info">
-                        <h3>鈴木 一郎</h3>
-                        <p class="member-role">書記</p>
-                        <p class="member-grade">2年C組</p>
-                        <p class="member-description">システム開発とデータ管理を担当。プログラミングの知識を活かして、使いやすいダッシュボードを構築しています。</p>
-                    </div>
+                <div class="feature-card">
+                    <h3>予算執行</h3>
+                    <p>予算に基づいて実際に支出を行うことです。各部活動や委員会が申請した予算を使用する際のプロセスを指します。予算執行は適切な手続きを経て行われ、記録が残されます。</p>
                 </div>
-                <div class="member-card">
-                    <div class="member-avatar">👩‍💻</div>
-                    <div class="member-info">
-                        <h3>高橋 みどり</h3>
-                        <p class="member-role">会計</p>
-                        <p class="member-grade">2年D組</p>
-                        <p class="member-description">日々の会計業務と予算執行の記録を担当。正確な記録と公開により、信頼される生徒会を目指します。</p>
-                    </div>
+                <div class="feature-card">
+                    <h3>透明性</h3>
+                    <p>情報を隠すことなく公開し、誰でも確認できる状態を指します。このプロジェクトでは、予算の使途をすべて公開することで透明性を確保しています。透明性の確保は、信頼される生徒会運営の基盤です。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>可視化</h3>
+                    <p>データをグラフや表など、視覚的にわかりやすい形で表示することです。複雑な会計データを誰でも理解できるようにします。ダッシュボードでは、収支データをグラフで可視化しています。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>ダッシュボード</h3>
+                    <p>重要な情報を一覧で表示する画面です。このサイトでは、予算と決算のデータをグラフや表で表示します。ダッシュボードを利用することで、素早くデータを確認できます。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>生徒会費</h3>
+                    <p>すべての生徒から徴収される会費です。この会費は、学校行事、部活動、委員会活動など、さまざまな活動に使用されます。生徒会費の使途は、すべての生徒が確認できるように公開されています。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>予算案</h3>
+                    <p>次年度の予算を計画した案です。生徒会執行部が作成し、生徒総会で承認されます。予算案には、各部活動や委員会への予算配分が含まれています。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>監査</h3>
+                    <p>会計の正確性を確認する作業です。監査委員が予算の執行状況をチェックし、問題がないか確認します。監査により、会計の透明性と正確性が保証されます。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>月次レポート</h3>
+                    <p>毎月の収支状況をまとめたレポートです。月次レポートでは、その月の収入と支出、予算執行状況を確認できます。毎月末に公開されます。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>年間決算</h3>
+                    <p>1年度の収支をまとめた決算書です。年間決算では、年間の収入と支出、予算と実際の執行状況の比較が行われます。年度末に公開され、次年度の予算編成の参考となります。</p>
+                </div>
+                <div class="feature-card">
+                    <h3>予算配分</h3>
+                    <p>各部活動や委員会に予算を分配することです。予算配分は、活動の重要性や必要性に基づいて行われます。配分基準は明確に公開され、公平性が保証されています。</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 委員会 -->
-    <section id="committees">
-        <div class="container">
-            <h2 class="section-title">委員会メンバー</h2>
-            <div class="members-grid">
-                <div class="member-card">
-                    <div class="member-avatar">📊</div>
-                    <div class="member-info">
-                        <h3>田中 健太</h3>
-                        <p class="member-role">広報委員会</p>
-                        <p class="member-grade">2年A組</p>
-                        <p class="member-description">プロジェクトの広報活動を担当。多くの生徒にこの取り組みを知ってもらうため、わかりやすい情報発信を心がけています。</p>
-                    </div>
-                </div>
-                <div class="member-card">
-                    <div class="member-avatar">🎨</div>
-                    <div class="member-info">
-                        <h3>伊藤 美咲</h3>
-                        <p class="member-role">デザイン担当</p>
-                        <p class="member-grade">1年B組</p>
-                        <p class="member-description">ダッシュボードのUIデザインを担当。使いやすく、見やすいインターフェースを目指して日々改善しています。</p>
-                    </div>
-                </div>
-                <div class="member-card">
-                    <div class="member-avatar">🔍</div>
-                    <div class="member-info">
-                        <h3>渡辺 翔太</h3>
-                        <p class="member-role">監査委員</p>
-                        <p class="member-grade">3年C組</p>
-                        <p class="member-description">会計の監査とデータの正確性を確認。透明性を保つため、細部までチェックしています。</p>
-                    </div>
-                </div>
-                <div class="member-card">
-                    <div class="member-avatar">💬</div>
-                    <div class="member-info">
-                        <h3>中村 さくら</h3>
-                        <p class="member-role">総務委員会</p>
-                        <p class="member-grade">1年A組</p>
-                        <p class="member-description">生徒からの意見や質問を集約し、プロジェクトに反映させる役割を担っています。皆さんの声をお待ちしています。</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTAセクション -->
+    <!-- 関連リンク -->
     <section class="cta-section">
         <div class="cta-section-content">
-            <h2>プロジェクトに参加しませんか？</h2>
-            <p>生徒会活動の透明化は、すべての生徒の協力があって実現できます</p>
+            <h2>他の情報も確認してください</h2>
+            <p>用語についてさらに詳しく知りたい場合は、FAQやドキュメントもご覧ください</p>
             <div class="cta-buttons">
-                <a href="index.html#dashboard" class="btn-primary">ダッシュボードを見る</a>
+                <a href="faq.html" class="btn-primary">FAQを見る</a>
+                <a href="documents.html" class="btn-secondary">ドキュメントに戻る</a>
             </div>
         </div>
     </section>
@@ -198,7 +165,6 @@
         // スクロールトップボタンの制御
         const scrollTopBtn = document.getElementById('scrollTopBtn');
         
-        // スクロール位置を監視してボタンの表示/非表示を制御
         window.addEventListener('scroll', () => {
             if (window.pageYOffset > 300) {
                 scrollTopBtn.classList.add('visible');
@@ -207,7 +173,6 @@
             }
         });
         
-        // ボタンをクリックしたらページの最上部にスムーズにスクロール
         scrollTopBtn.addEventListener('click', () => {
             window.scrollTo({
                 top: 0,
@@ -221,7 +186,6 @@
         const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
         const body = document.body;
 
-        // ハンバーガーボタンのクリックイベント
         hamburger.addEventListener('click', () => {
             const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
             hamburger.setAttribute('aria-expanded', !isExpanded);
@@ -229,7 +193,6 @@
             body.classList.toggle('menu-open');
         });
 
-        // モバイルメニューのリンクをクリックしたらメニューを閉じる
         mobileNavLinks.forEach(link => {
             link.addEventListener('click', () => {
                 hamburger.setAttribute('aria-expanded', 'false');
@@ -238,7 +201,6 @@
             });
         });
 
-        // オーバーレイの背景をクリックしたらメニューを閉じる
         mobileMenuOverlay.addEventListener('click', (e) => {
             if (e.target === mobileMenuOverlay) {
                 hamburger.setAttribute('aria-expanded', 'false');

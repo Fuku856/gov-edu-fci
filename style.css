@@ -699,6 +699,30 @@ footer {
     padding-bottom: 0.25rem;
 }
 
+/* 目次スタイル */
+.toc-list {
+    list-style: none;
+    padding: 0;
+}
+
+.toc-list li {
+    margin-bottom: 0.75rem;
+}
+
+.toc-list a {
+    color: var(--primary-blue);
+    text-decoration: none;
+    transition: all 0.3s;
+    display: inline-block;
+    padding: 0.25rem 0;
+}
+
+.toc-list a:hover {
+    color: var(--accent-cyan);
+    text-decoration: underline;
+    transform: translateX(5px);
+}
+
 /* スクロールトップボタン */
 .scroll-top-btn {
     position: fixed !important;
