@@ -33,10 +33,12 @@ function initializeAuth() {
   // 認証状態の監視（要素の存在を確認してから実行）
   waitForElement('login-page', () => {
     waitForElement('main-content', () => {
-      // 初期状態を設定（ログイン前はログインページを表示）
-      console.log('初期状態を設定: ログインページを表示');
-      showLoginPage();
-      hideMainContent();
+      // 初期状態: 認証状態をチェックするまで何も表示しない
+      // これにより、リロード時の一瞬のログイン画面のちらつきを防ぐ
+      const loginPage = document.getElementById('login-page');
+      const mainContent = document.getElementById('main-content');
+      if (loginPage) loginPage.style.visibility = 'hidden';
+      if (mainContent) mainContent.style.visibility = 'hidden';
       
       // 認証状態の監視
       firebase.auth().onAuthStateChanged((user) => {
@@ -58,11 +60,12 @@ function initializeAuth() {
         hideLoginPage();
         showMainContent();
         
-        // ユーザー情報を表示（オプション）
+        // ユーザー情報を表示（ヘッダーにログアウトボタンを表示）
         updateUserInfo(user);
       } else {
         // 許可されていないドメインの場合、ログアウト
         console.log('認証失敗: 許可されていないメールアドレス');
+        hideUserInfo();
         alert('このサイトは学校関係者のみがアクセスできます。\n許可されていないメールアドレスです。\nメールアドレス: ' + email);
         firebase.auth().signOut().then(() => {
           showLoginPage();
@@ -72,6 +75,7 @@ function initializeAuth() {
     } else {
       // ユーザーがログインしていない
       console.log('ユーザーがログインしていません');
+      hideUserInfo();
       showLoginPage();
       hideMainContent();
     }
@@ -131,6 +135,7 @@ async function signOut() {
   try {
     await firebase.auth().signOut();
     console.log('ログアウト成功');
+    hideUserInfo();
     showLoginPage();
     hideMainContent();
   } catch (error) {
@@ -149,10 +154,17 @@ function isAllowedEmailDomain(email) {
   }
   
   // 動作確認用: 特定のメールアドレスを許可する場合は、ここに追加
-  const ALLOWED_EMAILS = [
+  // 注意: 個人のメールアドレスを追加する場合は、GitHubに公開する前に削除してください
+  let ALLOWED_EMAILS = [
     'hachi56kiku56@gmail.com',
     // 'your-email@gmail.com',  // 動作確認用: コメントアウトを外してメールアドレスを追加
   ];
+  
+  // 開発用設定ファイルから読み込む（存在する場合）
+  // auth.local.js は .gitignore に含まれているため、GitHubに公開されません
+  if (typeof DEV_ALLOWED_EMAILS !== 'undefined') {
+    ALLOWED_EMAILS = ALLOWED_EMAILS.concat(DEV_ALLOWED_EMAILS);
+  }
   
   const emailLower = email.toLowerCase().trim();
   console.log('isAllowedEmailDomain: チェック中のメールアドレス:', emailLower);
@@ -181,7 +193,12 @@ function isAllowedEmailDomain(email) {
 function showLoginPage() {
   const loginPage = document.getElementById('login-page');
   if (loginPage) {
+    loginPage.style.visibility = 'visible';
     loginPage.style.display = 'flex';
+    // トランジション効果のため、少し遅延してopacityを変更
+    setTimeout(() => {
+      loginPage.style.opacity = '1';
+    }, 10);
     console.log('showLoginPage: ログインページを表示しました');
   } else {
     console.warn('showLoginPage: ログインページの要素が見つかりません（login.htmlを使用している可能性があります）');
@@ -194,7 +211,12 @@ function showLoginPage() {
 function hideLoginPage() {
   const loginPage = document.getElementById('login-page');
   if (loginPage) {
-    loginPage.style.display = 'none';
+    loginPage.style.opacity = '0';
+    // トランジション効果のため、少し遅延して非表示
+    setTimeout(() => {
+      loginPage.style.display = 'none';
+      loginPage.style.visibility = 'hidden';
+    }, 300);
     console.log('hideLoginPage: ログインページを非表示にしました');
   } else {
     console.warn('hideLoginPage: ログインページの要素が見つかりません');
@@ -207,6 +229,7 @@ function hideLoginPage() {
 function showMainContent() {
   const mainContent = document.getElementById('main-content');
   if (mainContent) {
+    mainContent.style.visibility = 'visible';
     mainContent.style.display = 'block';
     console.log('showMainContent: メインコンテンツを表示しました');
   } else {
@@ -230,6 +253,7 @@ function showMainContent() {
 function hideMainContent() {
   const mainContent = document.getElementById('main-content');
   if (mainContent) {
+    mainContent.style.visibility = 'hidden';
     mainContent.style.display = 'none';
     console.log('hideMainContent: メインコンテンツを非表示にしました');
   } else {
@@ -242,18 +266,53 @@ function hideMainContent() {
 }
 
 /**
- * ユーザー情報を更新
+ * ユーザー情報を更新（ヘッダーにログアウトボタンを表示）
  */
 function updateUserInfo(user) {
   const userInfo = document.getElementById('user-info');
+  const mobileUserInfo = document.getElementById('mobile-user-info');
+  const userName = user.displayName || user.email.split('@')[0];
+  
+  // デスクトップ表示用（ヘッダー）
   if (userInfo) {
+    userInfo.style.display = 'flex';
+    userInfo.style.alignItems = 'center';
+    userInfo.style.gap = '1rem';
     userInfo.innerHTML = `
-      <div class="user-profile">
-        <img src="${user.photoURL || ''}" alt="プロフィール画像" class="user-avatar">
-        <span class="user-name">${user.displayName || user.email}</span>
-        <button onclick="signOut()" class="logout-btn">ログアウト</button>
+      <span style="color: white; font-size: 0.9rem;">${userName}</span>
+      <button onclick="signOut()" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">ログアウト</button>
+    `;
+    console.log('ユーザー情報を更新しました（デスクトップ）:', userName);
+  }
+  
+  // モバイル表示用（モバイルメニュー）
+  if (mobileUserInfo) {
+    mobileUserInfo.style.display = 'block';
+    mobileUserInfo.innerHTML = `
+      <div style="text-align: center; color: white;">
+        <p style="margin-bottom: 1rem; font-size: 0.9rem; opacity: 0.9;">${userName}</p>
+        <button onclick="signOut()" class="mobile-nav-link" style="width: 100%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 0.75rem 1.5rem; border-radius: 8px;">ログアウト</button>
       </div>
     `;
+    console.log('ユーザー情報を更新しました（モバイル）:', userName);
+  }
+}
+
+/**
+ * ユーザー情報を非表示（ログアウト時）
+ */
+function hideUserInfo() {
+  const userInfo = document.getElementById('user-info');
+  const mobileUserInfo = document.getElementById('mobile-user-info');
+  
+  if (userInfo) {
+    userInfo.style.display = 'none';
+    userInfo.innerHTML = '';
+  }
+  
+  if (mobileUserInfo) {
+    mobileUserInfo.style.display = 'none';
+    mobileUserInfo.innerHTML = '';
   }
 }
 

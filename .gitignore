@@ -12,6 +12,10 @@ build/
 .env
 .env.local
 
+# 開発用設定ファイル（個人情報を含む可能性があるためGitHubに公開しない）
+auth.local.js
+firebase-config.local.js
+
 # IDE
 .vscode/
 .idea/

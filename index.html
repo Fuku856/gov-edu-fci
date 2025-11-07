@@ -12,11 +12,13 @@
     
     <!-- Firebase設定と認証スクリプト -->
     <script src="firebase-config.js"></script>
+    <!-- 開発用設定ファイル（存在する場合のみ読み込む、.gitignoreで除外されているためGitHubに公開されない） -->
+    <script src="auth.local.js" onerror="console.log('auth.local.js が見つかりません（開発用ファイルです）')"></script>
     <script src="auth.js"></script>
 </head>
 <body>
     <!-- ログインページ（認証されていない場合に表示） -->
-    <div id="login-page" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 10000; justify-content: center; align-items: center;">
+    <div id="login-page" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); z-index: 10000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
         <div style="background: white; border-radius: 20px; padding: 3rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); max-width: 400px; width: 90%; text-align: center;">
             <h1 style="color: #333; margin-bottom: 1rem; font-size: 1.8rem;">🏫 生徒会 見える化</h1>
             <p style="color: #666; margin-bottom: 2rem; line-height: 1.6;">学校のGoogleアカウントでログインしてください</p>
@@ -38,7 +40,7 @@
     </div>
     
     <!-- メインコンテンツ（認証されている場合に表示） -->
-    <div id="main-content">
+    <div id="main-content" style="visibility: hidden;">
     <!-- ヘッダー -->
     <header>
         <nav>
@@ -49,6 +51,8 @@
                 <li><a href="members.html">メンバー紹介</a></li>
                 <li><a href="#dashboard">ダッシュボード</a></li>
             </ul>
+            <!-- ユーザー情報とログアウトボタン（ログイン中のみ表示） -->
+            <div id="user-info" style="display: none; margin-left: auto; margin-right: 1rem;"></div>
             <button class="hamburger" aria-label="メニューを開く" aria-expanded="false">
                 <span class="hamburger-line"></span>
                 <span class="hamburger-line"></span>
@@ -62,6 +66,8 @@
                 <li><a href="#goals" class="mobile-nav-link">目標</a></li>
                 <li><a href="members.html" class="mobile-nav-link">メンバー紹介</a></li>
                 <li><a href="#dashboard" class="mobile-nav-link">ダッシュボード</a></li>
+                <!-- モバイルメニューにユーザー情報を表示（ログイン中のみ） -->
+                <li id="mobile-user-info" style="display: none; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.2);"></li>
             </ul>
         </div>
     </header>
