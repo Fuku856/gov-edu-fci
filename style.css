@@ -1,9 +1,9 @@
 :root {
-    --primary-blue: #0066ff;
-    --secondary-blue: #0080ff;
-    --light-blue: #00b4ff;
+    --primary-blue: #0052cc;
+    --secondary-blue: #0066d9;
+    --light-blue: #0099e6;
     --dark-navy: #001a4d;
-    --accent-cyan: #00d9ff;
+    --accent-cyan: #00b8d4;
     --accent-purple: #6366f1;
     --bg-light: #f0f9ff;
     --text-dark: #1e293b;
@@ -774,6 +774,217 @@ footer {
 .toc-number {
     font-weight: 700;
     margin-right: 0.5rem;
+}
+
+/* フローティング目次ボタン */
+.toc-toggle-btn {
+    position: fixed;
+    right: 0;
+    bottom: 8rem;
+    background: white;
+    color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: -4px 0 16px rgba(0, 102, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9998;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.toc-toggle-btn:hover {
+    background: var(--primary-blue);
+    color: white;
+    transform: translateY(-2px) translateX(-5px);
+    box-shadow: -8px 0 24px rgba(0, 102, 255, 0.4);
+}
+
+.toc-toggle-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.toc-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.toc-btn-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* 目次サイドパネル */
+.toc-sidebar {
+    position: fixed;
+    right: -400px;
+    top: 0;
+    width: 350px;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: -4px 0 30px rgba(0, 102, 255, 0.2);
+    z-index: 10000;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    border-left: 1px solid rgba(0, 102, 255, 0.1);
+}
+
+.toc-sidebar.active {
+    right: 0;
+}
+
+.toc-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(0, 102, 255, 0.1);
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.1), rgba(0, 180, 255, 0.1));
+}
+
+.toc-sidebar-header h3 {
+    color: var(--primary-blue);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.toc-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--primary-blue);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toc-close-btn:hover {
+    background: rgba(0, 102, 255, 0.1);
+    transform: rotate(90deg);
+}
+
+.toc-close-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.toc-sidebar-content {
+    padding: 1.5rem;
+}
+
+.toc-sidebar-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.toc-sidebar-list li {
+    margin-bottom: 0.5rem;
+}
+
+.toc-sidebar-link {
+    display: block;
+    padding: 0.875rem 1rem;
+    color: var(--text-dark);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-weight: 500;
+    font-size: 0.95rem;
+    border-left: 3px solid transparent;
+    line-height: 1.6;
+}
+
+.toc-sidebar-link:hover {
+    background: rgba(0, 102, 255, 0.08);
+    color: var(--primary-blue);
+    border-left-color: var(--primary-blue);
+    padding-left: 1.25rem;
+}
+
+.toc-sidebar-link:active {
+    background: rgba(0, 102, 255, 0.12);
+}
+
+/* オーバーレイ */
+.toc-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.toc-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+body.toc-open {
+    overflow: hidden;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .toc-toggle-btn {
+        right: 0;
+        bottom: 6rem;
+        padding: 0.625rem 1rem;
+        font-size: 0.85rem;
+        border-radius: 12px 0 0 12px;
+    }
+
+    .toc-toggle-btn:hover {
+        transform: translateY(-2px) translateX(-5px);
+    }
+
+    .toc-toggle-btn:active {
+        transform: translateY(0) scale(0.98);
+    }
+
+    .toc-sidebar {
+        width: 280px;
+        right: -280px;
+    }
+
+    .scroll-top-btn {
+        bottom: 2rem;
+        right: 0;
+        border-radius: 50% 0 0 50%;
+    }
+}
+
+@media (max-width: 480px) {
+    .toc-toggle-btn {
+        right: 0;
+        bottom: 5.5rem;
+        padding: 0.625rem 0.875rem;
+    }
+    
+    .scroll-top-btn {
+        bottom: 1.5rem;
+        right: 0;
+    }
 }
 
 /* スクロールトップボタン */

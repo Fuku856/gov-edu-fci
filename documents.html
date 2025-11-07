@@ -49,10 +49,9 @@
                 <h3 style="color: var(--primary-blue); margin-bottom: 1.5rem; font-size: 1.5rem;">目次</h3>
                 <ul class="toc-list">
                     <li><a href="#getting-started"><span class="toc-number">1.</span> はじめに</a></li>
-                    <li><a href="#site-guide"><span class="toc-number">2.</span> サイトの使い方</a></li>
-                    <li><a href="#pages"><span class="toc-number">3.</span> 各ページの説明</a></li>
-                    <li><a href="#dashboard-guide"><span class="toc-number">4.</span> ダッシュボードの使い方</a></li>
-                    <li><a href="#related-pages"><span class="toc-number">5.</span> 関連ページ</a></li>
+                    <li><a href="#pages"><span class="toc-number">2.</span> 各ページの説明</a></li>
+                    <li><a href="#dashboard-guide"><span class="toc-number">3.</span> ダッシュボードの使い方</a></li>
+                    <li><a href="#related-pages"><span class="toc-number">4.</span> 関連ページ</a></li>
                 </ul>
             </div>
         </div>
@@ -85,39 +84,10 @@
         </div>
     </section>
 
-    <!-- サイトの使い方 -->
-    <section id="site-guide">
-        <div class="container">
-            <h2 class="section-title">2. サイトの使い方</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🖥️</div>
-                    <h3>デスクトップでの利用</h3>
-                    <p>パソコンやタブレットでは、画面上部のナビゲーションバーから各セクションにアクセスできます。スクロールしてコンテンツを確認するか、ナビゲーションメニューから目的のセクションに直接移動できます。</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📱</div>
-                    <h3>モバイルでの利用</h3>
-                    <p>スマートフォンでは、画面右上のハンバーガーメニュー（三本線のアイコン）をタップしてメニューを開きます。レスポンシブデザインにより、どのデバイスからでも快適に閲覧できます。</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔝</div>
-                    <h3>ページトップに戻る</h3>
-                    <p>ページを下にスクロールすると、右下に「ページの先頭に戻る」ボタンが表示されます。クリック（タップ）すると、スムーズにページの上部に戻ることができます。</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🔗</div>
-                    <h3>リンクの使い方</h3>
-                    <p>サイト内の各リンクは青色で表示されます。リンクにマウスを合わせると色が変わり、クリックすると該当ページやセクションに移動します。外部リンクは新しいタブで開きます。</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- 各ページの説明 -->
     <section id="pages">
         <div class="container">
-            <h2 class="section-title">3. 各ページの説明</h2>
+            <h2 class="section-title">2. 各ページの説明</h2>
             <div class="goals-list">
                 <div class="goal-item">
                     <div class="goal-number">🏠</div>
@@ -186,7 +156,7 @@
     <!-- ダッシュボードの使い方 -->
     <section id="dashboard-guide">
         <div class="container">
-            <h2 class="section-title">4. ダッシュボードの使い方</h2>
+            <h2 class="section-title">3. ダッシュボードの使い方</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">📊</div>
@@ -219,7 +189,7 @@
     <!-- 関連ページへのリンク -->
     <section id="related-pages">
         <div class="container">
-            <h2 class="section-title">5. 関連ページ</h2>
+            <h2 class="section-title">4. 関連ページ</h2>
             <div class="features-grid">
                 <a href="faq.html" class="feature-card-link">
                     <div class="feature-card">
@@ -252,7 +222,6 @@
             <div class="footer-section">
                 <h3>プロジェクトについて</h3>
                 <ul>
-                    <li><a href="index.html">トップページ</a></li>
                     <li><a href="index.html#goals">目的</a></li>
                     <li><a href="members.html">メンバー</a></li>
                     <li><a href="project-members.html">プロジェクトメンバー</a></li>
@@ -269,7 +238,6 @@
             <div class="footer-section">
                 <h3>参加する</h3>
                 <ul>
-                    <li><a href="contact.html">お問い合わせ</a></li>
                     <li><a href="contact.html">意見を送る</a></li>
                     <li><a href="contact.html">質問する</a></li>
                     <li><a href="contact.html">改善提案</a></li>
@@ -282,6 +250,7 @@
                     <li><a href="documents.html">ドキュメント</a></li>
                     <li><a href="faq.html">FAQ</a></li>
                     <li><a href="glossary.html">用語集</a></li>
+                    <li><a href="contact.html">お問い合わせ</a></li>
                 </ul>
             </div>
         </div>
@@ -296,6 +265,37 @@
             <path d="M18 15l-6-6-6 6"/>
         </svg>
     </button>
+
+    <!-- フローティング目次ボタン -->
+    <button id="tocToggleBtn" class="toc-toggle-btn" aria-label="目次を開く" aria-expanded="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <span class="toc-btn-text">目次</span>
+    </button>
+
+    <!-- 目次サイドパネル -->
+    <div id="tocSidebar" class="toc-sidebar">
+        <div class="toc-sidebar-header">
+            <h3>目次</h3>
+            <button id="tocCloseBtn" class="toc-close-btn" aria-label="目次を閉じる">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div class="toc-sidebar-content">
+            <ul class="toc-sidebar-list">
+                <li><a href="#getting-started" class="toc-sidebar-link">1. はじめに</a></li>
+                <li><a href="#pages" class="toc-sidebar-link">2. 各ページの説明</a></li>
+                <li><a href="#dashboard-guide" class="toc-sidebar-link">3. ダッシュボードの使い方</a></li>
+                <li><a href="#related-pages" class="toc-sidebar-link">4. 関連ページ</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- オーバーレイ -->
+    <div id="tocOverlay" class="toc-overlay"></div>
 
     <script>
         // スクロールトップボタンの制御
@@ -350,6 +350,20 @@
             }
         });
 
+        // スムーズスクロール関数
+        function smoothScrollTo(targetId) {
+            const target = document.querySelector(targetId);
+            if (target) {
+                const headerHeight = document.querySelector('header').offsetHeight;
+                const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
         // スムーズスクロール（アンカーリンク用）
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -360,17 +374,56 @@
                 }
                 
                 e.preventDefault();
-                const target = document.querySelector(href);
-                if (target) {
-                    // ヘッダーの高さを考慮してスクロール
-                    const headerHeight = document.querySelector('header').offsetHeight;
-                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
-                    
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-                }
+                smoothScrollTo(href);
+            });
+        });
+
+        // 目次サイドパネルの制御
+        const tocToggleBtn = document.getElementById('tocToggleBtn');
+        const tocSidebar = document.getElementById('tocSidebar');
+        const tocCloseBtn = document.getElementById('tocCloseBtn');
+        const tocOverlay = document.getElementById('tocOverlay');
+        const tocSidebarLinks = document.querySelectorAll('.toc-sidebar-link');
+
+        // 目次ボタンをクリックしたらパネルを開く
+        tocToggleBtn.addEventListener('click', () => {
+            const isExpanded = tocToggleBtn.getAttribute('aria-expanded') === 'true';
+            tocToggleBtn.setAttribute('aria-expanded', !isExpanded);
+            tocSidebar.classList.toggle('active');
+            tocOverlay.classList.toggle('active');
+            document.body.classList.toggle('toc-open');
+        });
+
+        // 閉じるボタンをクリックしたらパネルを閉じる
+        tocCloseBtn.addEventListener('click', () => {
+            tocToggleBtn.setAttribute('aria-expanded', 'false');
+            tocSidebar.classList.remove('active');
+            tocOverlay.classList.remove('active');
+            document.body.classList.remove('toc-open');
+        });
+
+        // オーバーレイをクリックしたらパネルを閉じる
+        tocOverlay.addEventListener('click', () => {
+            tocToggleBtn.setAttribute('aria-expanded', 'false');
+            tocSidebar.classList.remove('active');
+            tocOverlay.classList.remove('active');
+            document.body.classList.remove('toc-open');
+        });
+
+        // サイドバーのリンクをクリックしたらスクロールしてパネルを閉じる
+        tocSidebarLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const href = link.getAttribute('href');
+                smoothScrollTo(href);
+                
+                // 少し遅延してからパネルを閉じる（スクロールが見えるように）
+                setTimeout(() => {
+                    tocToggleBtn.setAttribute('aria-expanded', 'false');
+                    tocSidebar.classList.remove('active');
+                    tocOverlay.classList.remove('active');
+                    document.body.classList.remove('toc-open');
+                }, 300);
             });
         });
     </script>
