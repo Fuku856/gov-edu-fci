@@ -116,6 +116,40 @@
     <!-- Firebase設定と認証スクリプト -->
     <script src="firebase-config.js"></script>
     <script src="auth.js"></script>
+    
+    <!-- login.html専用の認証処理 -->
+    <script>
+        // login.htmlを使用している場合の認証処理
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof firebase === 'undefined') {
+                console.error('Firebase SDKが読み込まれていません');
+                return;
+            }
+            
+            // 認証状態を監視
+            firebase.auth().onAuthStateChanged((user) => {
+                if (user) {
+                    const email = user.email;
+                    console.log('ログイン中のメールアドレス:', email);
+                    
+                    // メールアドレスのチェック（auth.jsの関数を使用）
+                    if (typeof isAllowedEmailDomain === 'function' && isAllowedEmailDomain(email)) {
+                        // 認証成功: index.htmlにリダイレクト
+                        console.log('認証成功: index.htmlにリダイレクトします');
+                        window.location.href = 'index.html';
+                    } else {
+                        // 許可されていないメールアドレス
+                        console.log('許可されていないメールアドレス:', email);
+                        alert('このサイトは学校関係者のみがアクセスできます。\n許可されていないメールアドレスです。\nメールアドレス: ' + email);
+                        firebase.auth().signOut();
+                    }
+                } else {
+                    // ログインしていない場合は、このページを表示
+                    console.log('ログインしていません: login.htmlを表示');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
 

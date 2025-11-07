@@ -3,23 +3,43 @@
  * Googleログインと認証状態の管理を行う
  */
 
+// DOM要素が読み込まれるまで待つ関数
+function waitForElement(id, callback, maxAttempts = 50) {
+  let attempts = 0;
+  const checkElement = () => {
+    attempts++;
+    const element = document.getElementById(id);
+    if (element) {
+      callback(element);
+    } else if (attempts < maxAttempts) {
+      setTimeout(checkElement, 100);
+    } else {
+      console.warn(`要素 ${id} が見つかりませんでした`);
+    }
+  };
+  checkElement();
+}
+
 // Firebaseが初期化されるまで待つ
-document.addEventListener('DOMContentLoaded', () => {
+function initializeAuth() {
   if (typeof firebase === 'undefined') {
     console.error('Firebase SDKが読み込まれていません');
     // Firebase SDKが読み込まれていない場合でも、初期状態を設定
-    showLoginPage();
-    hideMainContent();
+    waitForElement('login-page', () => showLoginPage());
+    waitForElement('main-content', () => hideMainContent());
     return;
   }
   
-  // 初期状態を設定（ログイン前はログインページを表示）
-  console.log('初期状態を設定: ログインページを表示');
-  showLoginPage();
-  hideMainContent();
-  
-  // 認証状態の監視
-  firebase.auth().onAuthStateChanged((user) => {
+  // 認証状態の監視（要素の存在を確認してから実行）
+  waitForElement('login-page', () => {
+    waitForElement('main-content', () => {
+      // 初期状態を設定（ログイン前はログインページを表示）
+      console.log('初期状態を設定: ログインページを表示');
+      showLoginPage();
+      hideMainContent();
+      
+      // 認証状態の監視
+      firebase.auth().onAuthStateChanged((user) => {
     console.log('認証状態が変更されました:', user ? user.email : 'ログアウト');
     
     if (user) {
@@ -55,8 +75,18 @@ document.addEventListener('DOMContentLoaded', () => {
       showLoginPage();
       hideMainContent();
     }
+      });
+    });
   });
-});
+}
+
+// DOMが読み込まれた後に実行
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeAuth);
+} else {
+  // DOMが既に読み込まれている場合
+  initializeAuth();
+}
 
 /**
  * Googleログインを実行
@@ -150,12 +180,11 @@ function isAllowedEmailDomain(email) {
  */
 function showLoginPage() {
   const loginPage = document.getElementById('login-page');
-  console.log('showLoginPage: ログインページを表示', loginPage);
   if (loginPage) {
     loginPage.style.display = 'flex';
     console.log('showLoginPage: ログインページを表示しました');
   } else {
-    console.error('showLoginPage: ログインページの要素が見つかりません');
+    console.warn('showLoginPage: ログインページの要素が見つかりません（login.htmlを使用している可能性があります）');
   }
 }
 
@@ -164,12 +193,11 @@ function showLoginPage() {
  */
 function hideLoginPage() {
   const loginPage = document.getElementById('login-page');
-  console.log('hideLoginPage: ログインページを非表示', loginPage);
   if (loginPage) {
     loginPage.style.display = 'none';
     console.log('hideLoginPage: ログインページを非表示にしました');
   } else {
-    console.error('hideLoginPage: ログインページの要素が見つかりません');
+    console.warn('hideLoginPage: ログインページの要素が見つかりません');
   }
 }
 
@@ -178,12 +206,17 @@ function hideLoginPage() {
  */
 function showMainContent() {
   const mainContent = document.getElementById('main-content');
-  console.log('showMainContent: メインコンテンツを表示', mainContent);
   if (mainContent) {
     mainContent.style.display = 'block';
     console.log('showMainContent: メインコンテンツを表示しました');
   } else {
-    console.error('showMainContent: メインコンテンツの要素が見つかりません');
+    console.warn('showMainContent: メインコンテンツの要素が見つかりません（login.htmlを使用している可能性があります）');
+    // login.htmlを使用している場合は、index.htmlにリダイレクト
+    if (window.location.pathname.includes('login.html')) {
+      console.log('login.htmlからindex.htmlにリダイレクトします');
+      window.location.href = 'index.html';
+      return;
+    }
   }
   
   // body要素のクラスを削除（ログイン状態のスタイルを適用）
@@ -196,12 +229,11 @@ function showMainContent() {
  */
 function hideMainContent() {
   const mainContent = document.getElementById('main-content');
-  console.log('hideMainContent: メインコンテンツを非表示', mainContent);
   if (mainContent) {
     mainContent.style.display = 'none';
     console.log('hideMainContent: メインコンテンツを非表示にしました');
   } else {
-    console.error('hideMainContent: メインコンテンツの要素が見つかりません');
+    console.warn('hideMainContent: メインコンテンツの要素が見つかりません（login.htmlを使用している可能性があります）');
   }
   
   // body要素のクラスを追加（ログアウト状態のスタイルを適用）
