@@ -773,6 +773,10 @@ footer {
         display: none !important;
     }
 
+    body.menu-open nav {
+        justify-content: flex-end;
+    }
+
     section {
         padding: 4rem 0;
     }
