@@ -88,6 +88,9 @@ function initializeAuth() {
       hideUserInfo();
       showLoginPage();
       hideMainContent();
+      
+      // ログインボタンの状態をリセット
+      resetLoginButton();
     }
       });
     });
@@ -148,6 +151,9 @@ async function signOut() {
     hideUserInfo();
     showLoginPage();
     hideMainContent();
+    
+    // ログインボタンの状態をリセット
+    resetLoginButton();
   } catch (error) {
     console.error('ログアウトエラー:', error);
     alert('ログアウトに失敗しました');
@@ -346,6 +352,23 @@ function hideUserInfo() {
   if (mobileUserInfo) {
     mobileUserInfo.style.display = 'none';
     mobileUserInfo.innerHTML = '';
+  }
+}
+
+/**
+ * ログインボタンの状態をリセット
+ */
+function resetLoginButton() {
+  const loginButton = document.getElementById('google-login-btn');
+  if (loginButton) {
+    loginButton.disabled = false;
+    // SVGアイコンを保持したままテキストをリセット
+    const svg = loginButton.querySelector('svg');
+    if (svg) {
+      loginButton.innerHTML = svg.outerHTML + ' Googleでログイン';
+    } else {
+      loginButton.textContent = 'Googleでログイン';
+    }
   }
 }
 

@@ -148,6 +148,19 @@
                 } else {
                     // ログインしていない場合は、このページを表示
                     console.log('ログインしていません: login.htmlを表示');
+                    
+                    // ログインボタンの状態をリセット
+                    const loginButton = document.getElementById('google-login-btn');
+                    if (loginButton) {
+                        loginButton.disabled = false;
+                        // SVGアイコンを保持したままテキストをリセット
+                        const svg = loginButton.querySelector('svg');
+                        if (svg) {
+                            loginButton.innerHTML = svg.outerHTML + ' Googleでログイン';
+                        } else {
+                            loginButton.textContent = 'Googleでログイン';
+                        }
+                    }
                 }
             });
         });
