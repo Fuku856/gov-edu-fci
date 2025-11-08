@@ -58,25 +58,33 @@ function initializeAuth() {
       // ユーザーがログインしている
       const email = user.email;
       console.log('ログイン中のメールアドレス:', email);
+      console.log('認証プロバイダー:', user.providerData.map(p => p.providerId));
       
-      // メールドメインをチェック
+      // GitHub認証でログインしている場合、開発者用のチェックを行う
+      const isGitHubUser = isAllowedGitHubUser(user);
+      console.log('GitHubユーザーのチェック結果:', isGitHubUser);
+      
+      // メールドメインをチェック（通常の学校アカウント用）
       const isAllowed = isAllowedEmailDomain(email);
       console.log('メールアドレスのチェック結果:', isAllowed);
       console.log('許可されたメールドメイン:', typeof ALLOWED_EMAIL_DOMAINS !== 'undefined' ? ALLOWED_EMAIL_DOMAINS : '未定義（firebase-config.jsを確認してください）');
       
-      if (isAllowed) {
-        // 許可されたドメインの場合、サイトを表示
-        console.log('認証成功: サイトを表示します');
+      if (isGitHubUser || isAllowed) {
+        // 許可されたユーザー（GitHub開発者または学校アカウント）の場合、サイトを表示
+        console.log('認証成功: サイトを表示します', isGitHubUser ? '(GitHub開発者)' : '(学校アカウント)');
         hideLoginPage();
         showMainContent();
         
         // ユーザー情報を表示（ヘッダーにログアウトボタンを表示）
         updateUserInfo(user);
       } else {
-        // 許可されていないドメインの場合、ログアウト
-        console.log('認証失敗: 許可されていないメールアドレス');
+        // 許可されていないユーザーの場合、ログアウト
+        console.log('認証失敗: 許可されていないユーザー');
         hideUserInfo();
-        alert('このサイトは学校関係者のみがアクセスできます。\n許可されていないメールアドレスです。\nメールアドレス: ' + email);
+        const providerType = user.providerData.some(p => p.providerId === 'github.com') 
+          ? 'GitHubアカウント' 
+          : 'メールアドレス';
+        alert('このサイトは学校関係者または開発者のみがアクセスできます。\n許可されていない' + providerType + 'です。\nメールアドレス: ' + email);
         firebase.auth().signOut().then(() => {
           showLoginPage();
           hideMainContent();
@@ -142,6 +150,47 @@ async function signInWithGoogle() {
 }
 
 /**
+ * GitHubログインを実行（開発者用）
+ */
+async function signInWithGitHub() {
+  const provider = new firebase.auth.GithubAuthProvider();
+  
+  // GitHub認証に必要なスコープを追加（ユーザー名やメールアドレスを取得するため）
+  provider.addScope('read:user');
+  provider.addScope('user:email');
+  
+  try {
+    // ログインボタンを無効化
+    const loginButton = document.getElementById('github-login-btn');
+    if (loginButton) {
+      loginButton.disabled = true;
+      loginButton.textContent = 'ログイン中...';
+    }
+    
+    // GitHubログインを実行
+    const result = await firebase.auth().signInWithPopup(provider);
+    const user = result.user;
+    
+    console.log('GitHubログイン成功:', user.email);
+    console.log('GitHubプロバイダー情報:', result.credential);
+    
+  } catch (error) {
+    console.error('GitHubログインエラー:', error);
+    
+    // エラーメッセージを表示
+    const errorMessage = getErrorMessage(error.code);
+    alert('GitHubログインに失敗しました: ' + errorMessage);
+    
+    // ログインボタンを再有効化
+    const loginButton = document.getElementById('github-login-btn');
+    if (loginButton) {
+      loginButton.disabled = false;
+      loginButton.textContent = 'GitHubでログイン（開発者用）';
+    }
+  }
+}
+
+/**
  * ログアウトを実行
  */
 async function signOut() {
@@ -158,6 +207,73 @@ async function signOut() {
     console.error('ログアウトエラー:', error);
     alert('ログアウトに失敗しました');
   }
+}
+
+/**
+ * GitHubユーザーが許可されているかチェック
+ */
+function isAllowedGitHubUser(user) {
+  if (!user) {
+    console.log('isAllowedGitHubUser: ユーザーが空です');
+    return false;
+  }
+  
+  // GitHubプロバイダーでログインしているか確認
+  const isGitHubProvider = user.providerData.some(
+    provider => provider.providerId === 'github.com'
+  );
+  
+  if (!isGitHubProvider) {
+    // GitHubプロバイダーでログインしていない場合は、この関数では判定しない
+    return false;
+  }
+  
+  console.log('isAllowedGitHubUser: GitHubユーザーをチェック中');
+  
+  // 許可されたGitHubメールアドレスをチェック
+  const allowedGitHubEmails = typeof ALLOWED_GITHUB_EMAILS !== 'undefined' 
+    ? ALLOWED_GITHUB_EMAILS 
+    : [];
+  
+  if (user.email) {
+    const emailLower = user.email.toLowerCase().trim();
+    if (allowedGitHubEmails.includes(emailLower)) {
+      console.log('isAllowedGitHubUser: GitHubメールアドレスが許可リストに一致しました');
+      return true;
+    }
+  }
+  
+  // GitHubユーザー名を取得（providerDataから）
+  // 注意: Firebase Authenticationでは、GitHubユーザー名を直接取得できない場合があります
+  // そのため、表示名（displayName）やメールアドレスから判定します
+  const allowedGitHubUsernames = typeof ALLOWED_GITHUB_USERNAMES !== 'undefined' 
+    ? ALLOWED_GITHUB_USERNAMES 
+    : [];
+  
+  // 表示名からユーザー名を推測（GitHubの場合、表示名は通常ユーザー名）
+  if (user.displayName) {
+    const displayNameLower = user.displayName.toLowerCase().trim();
+    if (allowedGitHubUsernames.some(username => 
+      username.toLowerCase().trim() === displayNameLower
+    )) {
+      console.log('isAllowedGitHubUser: GitHubユーザー名が許可リストに一致しました');
+      return true;
+    }
+  }
+  
+  // メールアドレスのローカル部分（@より前）からユーザー名を推測
+  if (user.email) {
+    const emailLocalPart = user.email.split('@')[0].toLowerCase().trim();
+    if (allowedGitHubUsernames.some(username => 
+      username.toLowerCase().trim() === emailLocalPart
+    )) {
+      console.log('isAllowedGitHubUser: メールアドレスから推測したGitHubユーザー名が許可リストに一致しました');
+      return true;
+    }
+  }
+  
+  console.log('isAllowedGitHubUser: GitHubユーザーが許可リストに一致しませんでした');
+  return false;
 }
 
 /**
@@ -400,6 +516,7 @@ async function getIdToken() {
 
 // グローバルに公開
 window.signInWithGoogle = signInWithGoogle;
+window.signInWithGitHub = signInWithGitHub;
 window.signOut = signOut;
 window.getIdToken = getIdToken;
 

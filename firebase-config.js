@@ -31,6 +31,24 @@ const PROD_ALLOWED_EMAILS = [
   // テストが完了したら、この行を削除してください
 ];
 
+// 開発者用: 許可されたGitHubユーザー名のリスト
+// ⚠️ 注意: このリストはGitHubに公開されます。ユーザー名のみを記載してください
+// 開発者がGitHub認証でログインできるようにするためのリストです
+// 例: ['developer1', 'developer2']
+const ALLOWED_GITHUB_USERNAMES = [
+      'Fuku856'
+  // 開発者用: GitHubユーザー名を追加してください
+  // 例: 'your-github-username',
+];
+
+// 開発者用: 許可されたGitHubアカウントのメールアドレスリスト
+// ⚠️ 注意: このリストはGitHubに公開されます。必要に応じてメールアドレスを追加できます
+// GitHubユーザー名よりも柔軟な認証が可能ですが、プライバシーに注意してください
+const ALLOWED_GITHUB_EMAILS = [
+  // 開発者用: GitHubアカウントのメールアドレスを追加してください
+  // 例: 'developer@example.com',
+];
+
 // Firebase初期化
 if (typeof firebase !== 'undefined') {
   firebase.initializeApp(firebaseConfig);
