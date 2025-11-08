@@ -768,6 +768,18 @@ function hideMainContent() {
 }
 
 /**
+ * 認証プロバイダーのロゴを取得
+ */
+function getProviderIcon(providerId) {
+  if (providerId === 'github.com') {
+    return `<svg style="width: 18px; height: 18px; fill: currentColor; flex-shrink: 0;" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>`;
+  } else if (providerId === 'google.com') {
+    return `<svg style="width: 18px; height: 18px; flex-shrink: 0;" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>`;
+  }
+  return '';
+}
+
+/**
  * ユーザー情報を更新（ヘッダーにログアウトボタンを表示）
  */
 function updateUserInfo(user) {
@@ -775,17 +787,26 @@ function updateUserInfo(user) {
   const mobileUserInfo = document.getElementById('mobile-user-info');
   const userName = user.displayName || user.email.split('@')[0];
   
+  // 認証プロバイダーを取得（最初のプロバイダーを使用）
+  const providerId = user.providerData && user.providerData.length > 0 
+    ? user.providerData[0].providerId 
+    : 'google.com'; // デフォルトはGoogle
+  const providerIcon = getProviderIcon(providerId);
+  
   // モバイル表示用（モバイルメニュー内に表示）
   // モバイルでは常にモバイルメニュー内に表示
   if (mobileUserInfo) {
     mobileUserInfo.style.display = 'block';
     mobileUserInfo.innerHTML = `
       <div style="text-align: center; color: white;">
-        <p style="margin-bottom: 1rem; font-size: 0.9rem; opacity: 0.9;">${userName}</p>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.9rem; opacity: 0.9;">
+          ${providerIcon}
+          <span>${userName}</span>
+        </div>
         <button onclick="signOut()" class="mobile-nav-link" style="width: 100%; background: #dc3545; color: white; border: 1px solid #c82333; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 500; transition: all 0.3s;" onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">ログアウト</button>
       </div>
     `;
-    console.log('ユーザー情報を更新しました（モバイル）:', userName);
+    console.log('ユーザー情報を更新しました（モバイル）:', userName, 'プロバイダー:', providerId);
   }
   
   // デスクトップ表示用（ヘッダー）
@@ -795,10 +816,13 @@ function updateUserInfo(user) {
     userInfo.style.alignItems = 'center';
     userInfo.style.gap = '1rem';
     userInfo.innerHTML = `
-      <span style="color: white; font-size: 0.9rem;">${userName}</span>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        ${providerIcon}
+        <span style="color: white; font-size: 0.9rem;">${userName}</span>
+      </div>
       <button onclick="signOut()" style="background: #dc3545; color: white; border: 1px solid #c82333; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; font-weight: 500;" onmouseover="this.style.background='#c82333'; this.style.borderColor='#bd2130'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#dc3545'; this.style.borderColor='#c82333'; this.style.transform='translateY(0)'">ログアウト</button>
     `;
-    console.log('ユーザー情報を更新しました（デスクトップ）:', userName);
+    console.log('ユーザー情報を更新しました（デスクトップ）:', userName, 'プロバイダー:', providerId);
   } else if (userInfo) {
     // モバイルの場合は非表示にする
     userInfo.style.display = 'none';
