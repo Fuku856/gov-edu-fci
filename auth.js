@@ -211,6 +211,32 @@ async function signInWithGitHub() {
     
   } catch (error) {
     console.error('GitHubログインエラー:', error);
+    console.error('エラーコード:', error.code);
+    console.error('エラーメッセージ:', error.message);
+    
+    // ネットワークエラーやサービス利用不可エラーの場合、リトライを促す
+    if (error.code && (
+      error.code.includes('visibility-check-was-unavailable') ||
+      error.code.includes('network') ||
+      error.code.includes('503') ||
+      error.code.includes('service-unavailable')
+    )) {
+      const errorMessage = getErrorMessage(error.code);
+      const retry = confirm(
+        errorMessage + '\n\n' +
+        'リトライしますか？\n\n' +
+        '「OK」をクリック: 再度ログインを試みる\n' +
+        '「キャンセル」をクリック: キャンセル'
+      );
+      
+      if (retry) {
+        // 少し待ってから再度試す
+        setTimeout(() => {
+          signInWithGitHub();
+        }, 1000);
+        return;
+      }
+    }
     
     // 既存のアカウントが異なるプロバイダーで存在する場合の処理
     if (error.code === 'auth/account-exists-with-different-credential') {
@@ -790,10 +816,28 @@ function getErrorMessage(errorCode) {
     'auth/user-disabled': 'このアカウントは無効化されています',
     'auth/user-not-found': 'ユーザーが見つかりません',
     'auth/wrong-password': 'パスワードが間違っています',
-    'auth/too-many-requests': 'リクエストが多すぎます。しばらく待ってから再度お試しください。'
+    'auth/too-many-requests': 'リクエストが多すぎます。しばらく待ってから再度お試しください。',
+    'auth/visibility-check-was-unavailable.-please-retry-the-request-and-contact-support-if-the-problem-persists': '認証プロセスが中断されました。ポップアップがブロックされている可能性があります。ブラウザのポップアップブロッカーを無効化してから再度お試しください。',
+    'auth/visibility-check-was-unavailable': '認証プロセスが中断されました。ポップアップがブロックされている可能性があります。ブラウザのポップアップブロッカーを無効化してから再度お試しください。',
+    'auth/internal-error': '内部エラーが発生しました。しばらく待ってから再度お試しください。',
+    'auth/service-unavailable': '認証サービスが一時的に利用できません。しばらく待ってから再度お試しください。'
   };
   
-  return errorMessages[errorCode] || '不明なエラーが発生しました: ' + errorCode;
+  // エラーコードが完全一致しない場合、部分一致を試す
+  if (errorMessages[errorCode]) {
+    return errorMessages[errorCode];
+  }
+  
+  // エラーコードに特定の文字列が含まれているかチェック
+  if (errorCode.includes('visibility-check-was-unavailable')) {
+    return '認証プロセスが中断されました。ポップアップがブロックされている可能性があります。ブラウザのポップアップブロッカーを無効化してから再度お試しください。';
+  }
+  
+  if (errorCode.includes('network') || errorCode.includes('503') || errorCode.includes('service-unavailable')) {
+    return 'ネットワークエラーまたはサービスが一時的に利用できません。しばらく待ってから再度お試しください。';
+  }
+  
+  return '不明なエラーが発生しました: ' + errorCode;
 }
 
 /**
