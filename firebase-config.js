@@ -36,8 +36,8 @@ const PROD_ALLOWED_EMAILS = [
 // 開発者がGitHub認証でログインできるようにするためのリストです
 // 例: ['developer1', 'developer2']
 const ALLOWED_GITHUB_USERNAMES = [
-      'Fuku856'
-      'yosh-20',
+  'Fuku856',
+  'yosh-20',
   // 開発者用: GitHubユーザー名を追加してください
   // 例: 'your-github-username',
 ];
