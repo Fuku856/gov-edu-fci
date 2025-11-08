@@ -182,6 +182,9 @@ async function signInWithGitHub() {
     const githubCredential = result.credential;
     if (githubCredential && githubCredential.accessToken) {
       console.log('GitHubアクセストークンを取得しました');
+      // アクセストークンをsessionStorageに保存（将来的に使用する可能性があるため）
+      sessionStorage.setItem('github_access_token', githubCredential.accessToken);
+      
       // GitHub APIを使用してユーザー名を取得
       try {
         const githubResponse = await fetch('https://api.github.com/user', {
@@ -195,10 +198,15 @@ async function signInWithGitHub() {
           console.log('GitHubユーザー名:', githubUser.login);
           // ユーザー名をsessionStorageに保存（認証チェック時に使用）
           sessionStorage.setItem('github_username', githubUser.login);
+          console.log('GitHubユーザー名をsessionStorageに保存しました:', githubUser.login);
+        } else {
+          console.error('GitHub API呼び出しに失敗:', githubResponse.status, githubResponse.statusText);
         }
       } catch (error) {
         console.error('GitHub API呼び出しエラー:', error);
       }
+    } else {
+      console.error('GitHubアクセストークンが取得できませんでした');
     }
     
   } catch (error) {
@@ -355,6 +363,56 @@ async function getGitHubUsernameFromAPI(accessToken) {
 }
 
 /**
+ * GitHub OAuthトークンを取得（現在のユーザーから）
+ * 注意: これは直接取得できないため、別の方法を使用する必要があります
+ */
+async function getGitHubAccessToken(user) {
+  // Firebase Authenticationでは、現在ログインしているユーザーのOAuthトークンを
+  // 直接取得することはできません。そのため、signInWithPopupの結果から取得する必要があります。
+  // ここでは、sessionStorageに保存されたトークンを使用します（一時的な解決策）
+  return sessionStorage.getItem('github_access_token');
+}
+
+/**
+ * GitHubユーザー名を取得（複数の方法を試す）
+ */
+async function getGitHubUsernameFromUser(user) {
+  // 方法1: sessionStorageから取得（ログイン時に保存されたもの）
+  let username = sessionStorage.getItem('github_username');
+  if (username) {
+    console.log('getGitHubUsernameFromUser: sessionStorageから取得:', username);
+    return username;
+  }
+  
+  // 方法2: sessionStorageに保存されたアクセストークンを使用してGitHub APIから取得
+  const accessToken = sessionStorage.getItem('github_access_token');
+  if (accessToken) {
+    console.log('getGitHubUsernameFromUser: アクセストークンを使用してGitHub APIから取得を試みます');
+    try {
+      const githubResponse = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `token ${accessToken}`
+        }
+      });
+      if (githubResponse.ok) {
+        const githubUser = await githubResponse.json();
+        console.log('getGitHubUsernameFromUser: GitHub APIから取得したユーザー名:', githubUser.login);
+        // sessionStorageに保存
+        sessionStorage.setItem('github_username', githubUser.login);
+        return githubUser.login;
+      } else {
+        console.log('getGitHubUsernameFromUser: GitHub API呼び出しに失敗:', githubResponse.status);
+      }
+    } catch (error) {
+      console.error('getGitHubUsernameFromUser: GitHub API呼び出しエラー:', error);
+    }
+  }
+  
+  console.log('getGitHubUsernameFromUser: ユーザー名を取得できませんでした');
+  return null;
+}
+
+/**
  * GitHubユーザーが許可されているかチェック
  */
 async function isAllowedGitHubUser(user) {
@@ -401,16 +459,35 @@ async function isAllowedGitHubUser(user) {
   console.log('isAllowedGitHubUser: allowedGitHubUsernames =', allowedGitHubUsernames);
   
   // sessionStorageからGitHubユーザー名を取得（ログイン時に保存されたもの）
-  const savedUsername = sessionStorage.getItem('github_username');
-  if (savedUsername) {
-    console.log('isAllowedGitHubUser: sessionStorageから取得したGitHubユーザー名:', savedUsername);
-    const savedUsernameLower = savedUsername.toLowerCase().trim();
-    if (allowedGitHubUsernames.some(username => 
-      username.toLowerCase().trim() === savedUsernameLower
-    )) {
-      console.log('isAllowedGitHubUser: GitHubユーザー名が許可リストに一致しました（sessionStorage）');
-      return true;
+  // または、アクセストークンを使用してGitHub APIから取得
+  let username = await getGitHubUsernameFromUser(user);
+  
+  if (!username) {
+    // sessionStorageにない場合、少し待ってから再度試す（GitHub API呼び出しが完了するまで）
+    // 最大3回、500ms間隔でリトライ
+    for (let i = 0; i < 3; i++) {
+      console.log(`isAllowedGitHubUser: sessionStorageにユーザー名がないため、${(i + 1) * 500}ms待機します（試行 ${i + 1}/3）`);
+      await new Promise(resolve => setTimeout(resolve, 500)); // 500ms待機
+      username = await getGitHubUsernameFromUser(user);
+      if (username) {
+        console.log('isAllowedGitHubUser: 待機後にGitHubユーザー名を取得:', username);
+        break;
+      }
     }
+  }
+  
+  if (username) {
+    const usernameLower = username.toLowerCase().trim();
+    if (allowedGitHubUsernames.some(allowedUsername => 
+      allowedUsername.toLowerCase().trim() === usernameLower
+    )) {
+      console.log('isAllowedGitHubUser: GitHubユーザー名が許可リストに一致しました:', username);
+      return true;
+    } else {
+      console.log('isAllowedGitHubUser: GitHubユーザー名が許可リストにありません:', username, '許可リスト:', allowedGitHubUsernames);
+    }
+  } else {
+    console.log('isAllowedGitHubUser: GitHubユーザー名を取得できませんでした');
   }
   
   // providerDataからGitHubの情報を取得
