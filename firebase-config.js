@@ -27,8 +27,8 @@ const ALLOWED_EMAIL_DOMAINS = [
 // テストが完了したら、このリストを空にするか削除してください
 // ローカル環境でのテストは auth.local.js を使用することを推奨します
 const PROD_ALLOWED_EMAILS = [
-        'hachi56kiku56@gmail.com',  // テスト用: 本番環境でテストが必要な場合のみコメントアウトを外す
-  // テストが完了したら、この行を削除してください
+  // テスト用メールアドレス: 必要に応じて追加してください
+  // 例: 'test@example.com',
 ];
 
 // 開発者用: 許可されたGitHubユーザー名のリスト
@@ -37,6 +37,7 @@ const PROD_ALLOWED_EMAILS = [
 // 例: ['developer1', 'developer2']
 const ALLOWED_GITHUB_USERNAMES = [
       'Fuku856'
+      'yosh-20',
   // 開発者用: GitHubユーザー名を追加してください
   // 例: 'your-github-username',
 ];

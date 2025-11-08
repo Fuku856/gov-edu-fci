@@ -177,15 +177,102 @@ async function signInWithGitHub() {
   } catch (error) {
     console.error('GitHubログインエラー:', error);
     
-    // エラーメッセージを表示
-    const errorMessage = getErrorMessage(error.code);
-    alert('GitHubログインに失敗しました: ' + errorMessage);
+    // 既存のアカウントが異なるプロバイダーで存在する場合の処理
+    if (error.code === 'auth/account-exists-with-different-credential') {
+      const email = error.email;
+      const credential = error.credential;
+      
+      console.log('既存のアカウントが異なるプロバイダーで存在します:', email);
+      
+      // ユーザーに既存のアカウントでログインするよう促す
+      const linkAccount = confirm(
+        'このメールアドレス (' + email + ') は既にGoogleアカウントで登録されています。\n\n' +
+        '既存のアカウントにGitHub認証をリンクしますか？\n\n' +
+        '「OK」をクリック: 既存のアカウントにGitHub認証をリンク\n' +
+        '「キャンセル」をクリック: Googleアカウントでログイン'
+      );
+      
+      if (linkAccount) {
+        // 既存のアカウントにGitHub認証をリンク
+        try {
+          // まず、既存のプロバイダーでサインインを試みる
+          // Googleプロバイダーのリストを取得
+          const signInMethods = await firebase.auth().fetchSignInMethodsForEmail(email);
+          console.log('利用可能なサインインメソッド:', signInMethods);
+          
+          if (signInMethods.includes('google.com')) {
+            // GoogleアカウントでログインしてからGitHubをリンク
+            alert(
+              '既存のGoogleアカウントでログインしてから、GitHub認証をリンクしてください。\n\n' +
+              '手順:\n' +
+              '1. Googleアカウントでログイン\n' +
+              '2. プロフィール設定からGitHub認証をリンク\n\n' +
+              'または、GitHubアカウントで別のメールアドレスを使用してください。'
+            );
+          } else {
+            // その他のプロバイダーの場合
+            alert(
+              'このメールアドレスは既に他の方法で登録されています。\n\n' +
+              '既存のアカウントでログインするか、GitHubアカウントで別のメールアドレスを使用してください。'
+            );
+          }
+        } catch (linkError) {
+          console.error('アカウントリンクエラー:', linkError);
+          alert(
+            'アカウントのリンクに失敗しました。\n\n' +
+            '既存のGoogleアカウントでログインするか、GitHubアカウントで別のメールアドレスを使用してください。'
+          );
+        }
+      } else {
+        // Googleアカウントでログインするよう促す
+        alert('Googleアカウントでログインしてください。');
+      }
+    } else {
+      // その他のエラーの場合
+      const errorMessage = getErrorMessage(error.code);
+      alert('GitHubログインに失敗しました: ' + errorMessage);
+    }
     
     // ログインボタンを再有効化
     const loginButton = document.getElementById('github-login-btn');
     if (loginButton) {
       loginButton.disabled = false;
       loginButton.textContent = 'GitHubでログイン（開発者用）';
+    }
+  }
+}
+
+/**
+ * 既存のアカウントにGitHub認証をリンク
+ */
+async function linkGitHubProvider() {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    alert('まずGoogleアカウントでログインしてください。');
+    return;
+  }
+  
+  const provider = new firebase.auth.GithubAuthProvider();
+  provider.addScope('read:user');
+  provider.addScope('user:email');
+  
+  try {
+    const result = await user.linkWithPopup(provider);
+    console.log('GitHub認証のリンクに成功しました:', result);
+    alert('GitHub認証をリンクしました。今後はGitHubアカウントでもログインできます。');
+    
+    // ユーザー情報を更新
+    updateUserInfo(result.user);
+  } catch (error) {
+    console.error('GitHub認証のリンクエラー:', error);
+    
+    if (error.code === 'auth/credential-already-in-use') {
+      alert('このGitHubアカウントは既に他のアカウントにリンクされています。');
+    } else if (error.code === 'auth/email-already-in-use') {
+      alert('このメールアドレスは既に使用されています。');
+    } else {
+      const errorMessage = getErrorMessage(error.code);
+      alert('GitHub認証のリンクに失敗しました: ' + errorMessage);
     }
   }
 }
@@ -497,10 +584,18 @@ function getErrorMessage(errorCode) {
     'auth/cancelled-popup-request': 'ログインがキャンセルされました',
     'auth/network-request-failed': 'ネットワークエラーが発生しました',
     'auth/popup-blocked': 'ポップアップがブロックされています',
-    'auth/unauthorized-domain': 'このドメインは許可されていません'
+    'auth/unauthorized-domain': 'このドメインは許可されていません',
+    'auth/account-exists-with-different-credential': 'このメールアドレスは既に他の方法で登録されています。既存のアカウントでログインするか、別のメールアドレスを使用してください。',
+    'auth/email-already-in-use': 'このメールアドレスは既に使用されています',
+    'auth/operation-not-allowed': 'この認証方法は許可されていません',
+    'auth/invalid-credential': '認証情報が無効です',
+    'auth/user-disabled': 'このアカウントは無効化されています',
+    'auth/user-not-found': 'ユーザーが見つかりません',
+    'auth/wrong-password': 'パスワードが間違っています',
+    'auth/too-many-requests': 'リクエストが多すぎます。しばらく待ってから再度お試しください。'
   };
   
-  return errorMessages[errorCode] || '不明なエラーが発生しました';
+  return errorMessages[errorCode] || '不明なエラーが発生しました: ' + errorCode;
 }
 
 /**
@@ -517,6 +612,7 @@ async function getIdToken() {
 // グローバルに公開
 window.signInWithGoogle = signInWithGoogle;
 window.signInWithGitHub = signInWithGitHub;
+window.linkGitHubProvider = linkGitHubProvider;
 window.signOut = signOut;
 window.getIdToken = getIdToken;
 
