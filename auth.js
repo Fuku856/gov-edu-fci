@@ -644,7 +644,7 @@ function showMainContent() {
     document.body.classList.remove('logged-out');
     document.body.classList.add('logged-in');
     
-    // アニメーションクラスを追加する関数
+    // アニメーションクラスを追加する関数（即座に実行して同期を保つ）
     const applyAnimations = () => {
       // ヘッダー
       const header = mainContent.querySelector('header');
@@ -686,16 +686,11 @@ function showMainContent() {
     };
     
     // initPageAnimations()が定義されている場合はそれを使用、なければ直接適用
+    // 即座に実行してページ全体のフェードインアニメーションと同期させる
     if (typeof window.initPageAnimations === 'function') {
-      // requestAnimationFrameを使ってDOMの更新を待つ
-      requestAnimationFrame(() => {
-        window.initPageAnimations();
-      });
+      window.initPageAnimations();
     } else {
-      // 即座にアニメーションクラスを適用（requestAnimationFrameでDOMの更新を待つ）
-      requestAnimationFrame(() => {
-        applyAnimations();
-      });
+      applyAnimations();
     }
     
     // アクティブなナビゲーションリンクを設定
