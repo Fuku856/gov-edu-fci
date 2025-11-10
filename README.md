@@ -28,12 +28,18 @@
 - **トップページ** (`index.html`): プロジェクトの概要、特徴、目標を紹介
 - **メンバー紹介** (`members.html`): 生徒会執行部と委員会メンバーを紹介
 - **プロジェクトメンバー** (`project-members.html`): プロジェクトに参加している12名のメンバーを紹介
+- **お問い合わせ** (`contact.html`): 意見・質問・改善提案の送信フォーム
+- **ドキュメント** (`documents.html`): プロジェクトに関する詳細なドキュメント
+- **FAQ** (`faq.html`): よくある質問と回答
+- **用語集** (`glossary.html`): プロジェクトで使用される用語の説明
+- **ログイン** (`login.html`): 認証ページ（スタンドアロン版）
 
 ## 技術スタック
 
 - **HTML5**: セマンティックなマークアップ
 - **CSS3**: グラスモーフィズムデザイン、レスポンシブレイアウト
 - **Vanilla JavaScript**: インタラクティブな機能（モバイルメニュー、スクロールトップボタンなど）
+- **Firebase Authentication**: Google認証とGitHub認証による安全なアクセス制御
 
 ## デザイン特徴
 
@@ -59,36 +65,69 @@
 - 第三者（5名）
 - 開発チーム（2名：デジタル・デザイン）
 
-詳細は[プロジェクトメンバーページ](https://gov-edu-fci.pages.dev/project-members)をご覧ください。
+詳細はプロジェクトメンバーページ（`project-members.html`）をご覧ください。
 
-## 🔐 Basic認証の設定
+## 🔐 認証システム
 
-このサイトは学校関係者のみがアクセスできるよう、Basic認証が設定されています。
+このサイトは学校関係者および開発者のみがアクセスできるよう、**Firebase Authentication**を使用した認証システムが実装されています。
 
-### 認証情報の取得
+### 認証方法
 
-アクセスにはユーザー名とパスワードが必要です。認証情報は生徒会執行部またはプロジェクト管理者から提供されます。
+- **Google認証**: 学校のGoogleアカウント（`@fcihs-satoyama.ed.jp`ドメイン）でログイン
+- **GitHub認証**: 開発者用として、許可されたGitHubアカウントでログイン
 
 ### アクセス方法
 
-1. サイトにアクセスすると、認証ダイアログが表示されます
-2. 提供されたユーザー名とパスワードを入力してください
-3. 認証が成功すると、サイトを閲覧できます
+1. サイトにアクセスすると、ログインページが表示されます
+2. 学校のGoogleアカウントまたは許可されたGitHubアカウントでログインしてください
+3. 認証が成功すると、サイトのコンテンツを閲覧できます
 
-### 管理者向け: 認証設定方法
+## ファイル構成
 
-Basic認証は、**Cloudflare Pages Functions**を使用して実装されています。
+```
+gov-edu-fci/
+├── index.html              # トップページ
+├── login.html              # ログインページ（スタンドアロン版）
+├── members.html            # メンバー紹介ページ
+├── project-members.html    # プロジェクトメンバーページ
+├── contact.html            # お問い合わせページ
+├── documents.html          # ドキュメントページ
+├── faq.html                # FAQページ
+├── glossary.html           # 用語集ページ
+├── style.css               # スタイルシート
+├── auth.js                 # 認証管理スクリプト
+├── auth.local.js           # 開発用認証設定（.gitignoreで除外）
+├── firebase-config.js      # Firebase設定ファイル
+├── functions/
+│   └── _middleware.js      # サーバー側ミドルウェア
+├── Auth/                   # 認証に関するドキュメント
+│   ├── FIREBASE_SETUP_STEP_BY_STEP.md
+│   ├── GITHUB_AUTH_SETUP.md
+│   ├── GITHUB_AUTH_TROUBLESHOOTING.md
+│   ├── SECURITY_NOTES.md
+│   ├── TEST_ACCOUNT_SETUP.md
+│   └── TROUBLESHOOTING.md
+├── .gitignore              # Git除外設定
+└── README.md               # このファイル
+```
 
-**設定手順:**
-1. このリポジトリにはすでに `functions/_middleware.js` が含まれています
-2. Cloudflareダッシュボードで環境変数を設定（`AUTH_USERNAME` と `AUTH_PASSWORD`）
-3. 変更をGitにコミット＆プッシュしてデプロイ
+## セキュリティ
 
-詳細な手順については、[BASIC_AUTH_SETUP.md](./BASIC_AUTH_SETUP.md)または[QUICK_START.md](./QUICK_START.md)を参照してください。
+- すべてのページはFirebase Authenticationによる認証が必要です
+- 学校のGoogleアカウント（`@fcihs-satoyama.ed.jp`）のみがアクセス可能
+- 開発者用として、許可されたGitHubアカウントもアクセス可能
+- 認証状態はクライアント側で管理され、未認証ユーザーにはログインページが表示されます
+- 詳細は[`Auth/SECURITY_NOTES.md`](./Auth/SECURITY_NOTES.md)と[`Auth/SECURITY.md`](./Auth/SECURITY.md)を参照
+
+
 
 ## Credit
 
 - **開発**: Ryoichiro Onoe
+
+## 関連リンク
+
+- [GitHubリポジトリ](https://github.com/Fuku856/gov-edu-fci)
 
 ---
 
