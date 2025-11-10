@@ -34,6 +34,28 @@ body:not(.auth-checked) #main-content header {
     opacity: 0 !important;
 }
 
+/* 認証確認後は、main-contentとその子要素を表示 */
+body.auth-checked #main-content {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+body.auth-checked #main-content header {
+    display: block !important;
+    visibility: visible !important;
+}
+
+body.auth-checked #main-content footer {
+    display: block !important;
+    visibility: visible !important;
+}
+
+body.auth-checked #main-content section {
+    display: block !important;
+    visibility: visible !important;
+}
+
 /* ページ読み込み時のアニメーション効果 */
 .fade-in-up {
     opacity: 0;

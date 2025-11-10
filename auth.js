@@ -728,40 +728,52 @@ function hideLoginPage() {
 function showMainContent() {
   const mainContent = document.getElementById('main-content');
   if (mainContent) {
-    // bodyにauth-checkedクラスを追加（CSSの!importantルールを回避）
+    // まず、bodyにauth-checkedクラスを追加（CSSの!importantルールを回避）
+    // これにより、CSSルールが適用されなくなる
     document.body.classList.add('auth-checked');
     
-    // インラインスタイルで確実に表示（!importantを使用）
-    mainContent.style.setProperty('display', 'block', 'important');
-    mainContent.style.setProperty('visibility', 'visible', 'important');
-    mainContent.style.setProperty('opacity', '1', 'important');
-    
-    // ヘッダーも確実に表示
-    const header = mainContent.querySelector('header');
-    if (header) {
-      header.style.setProperty('display', 'block', 'important');
-      header.style.setProperty('visibility', 'visible', 'important');
-      // 初期状態（非表示）にする（下から上にアニメーション）
-      header.style.opacity = '0';
-      header.style.transform = 'translateY(40px)';
-    }
-    
-    // フッターも確実に表示
-    const footer = mainContent.querySelector('footer');
-    if (footer) {
-      footer.style.setProperty('display', 'block', 'important');
-      footer.style.setProperty('visibility', 'visible', 'important');
-    }
-    
-    // 表示を確実にするため、少し遅延してアクティブなナビゲーションリンクを設定
+    // 少し待ってからスタイルを設定（DOMの更新を待つ）
     setTimeout(() => {
-      // アクティブなナビゲーションリンクを設定（グローバル関数が存在する場合）
-      if (typeof setActiveNavLink === 'function') {
-        setActiveNavLink();
-      } else if (typeof initActiveNavLink === 'function') {
-        initActiveNavLink();
+      // インラインスタイルで確実に表示（!importantを使用）
+      mainContent.style.setProperty('display', 'block', 'important');
+      mainContent.style.setProperty('visibility', 'visible', 'important');
+      mainContent.style.setProperty('opacity', '1', 'important');
+      
+      // ヘッダーも確実に表示
+      const header = mainContent.querySelector('header');
+      if (header) {
+        header.style.setProperty('display', 'block', 'important');
+        header.style.setProperty('visibility', 'visible', 'important');
+        // 初期状態（非表示）にする（下から上にアニメーション）
+        header.style.opacity = '0';
+        header.style.transform = 'translateY(40px)';
       }
-    }, 50);
+      
+      // フッターも確実に表示
+      const footer = mainContent.querySelector('footer');
+      if (footer) {
+        footer.style.setProperty('display', 'block', 'important');
+        footer.style.setProperty('visibility', 'visible', 'important');
+      }
+      
+      // main-content内のすべてのセクションも表示
+      const sections = mainContent.querySelectorAll('section');
+      sections.forEach(section => {
+        section.style.setProperty('display', 'block', 'important');
+        section.style.setProperty('visibility', 'visible', 'important');
+      });
+      
+      // 表示を確実にするため、少し遅延してアクティブなナビゲーションリンクを設定
+      setTimeout(() => {
+        // アクティブなナビゲーションリンクを設定（グローバル関数が存在する場合）
+        if (typeof setActiveNavLink === 'function') {
+          setActiveNavLink();
+        } else if (typeof initActiveNavLink === 'function') {
+          initActiveNavLink();
+        }
+      }, 50);
+    }, 10);
+    
     console.log('showMainContent: メインコンテンツを表示しました');
   } else {
     console.warn('showMainContent: メインコンテンツの要素が見つかりません（login.htmlを使用している可能性があります）');
