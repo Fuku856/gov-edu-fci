@@ -398,6 +398,80 @@
         
         // ハッシュ変更時にもアクティブなリンクを更新
         window.addEventListener('hashchange', setActiveNavLink);
+
+        // ページ読み込み時のアニメーション効果
+        function initPageAnimations() {
+            const mainContent = document.getElementById('main-content');
+            if (!mainContent) return;
+            
+            // メインコンテンツが表示されているか確認
+            if (mainContent.style.display === 'none' || mainContent.style.visibility === 'hidden') {
+                // まだ表示されていない場合は少し待って再試行
+                setTimeout(initPageAnimations, 100);
+                return;
+            }
+
+            // セクションタイトルのアニメーション
+            const sectionTitles = document.querySelectorAll('.section-title');
+            sectionTitles.forEach((title, index) => {
+                setTimeout(() => {
+                    title.classList.add('animate-in');
+                }, 300 + index * 100);
+            });
+
+            // 特徴カードのアニメーション
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate-in');
+                }, 600 + index * 100);
+            });
+
+            // 統計カードのアニメーション
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('animate-in');
+                }, 400 + index * 150);
+            });
+
+            // 目標アイテムのアニメーション
+            const goalItems = document.querySelectorAll('.goal-item');
+            goalItems.forEach((item, index) => {
+                setTimeout(() => {
+                    item.classList.add('animate-in');
+                }, 500 + index * 100);
+            });
+
+            // CTAセクションのアニメーション
+            const ctaContent = document.querySelector('.cta-section-content');
+            if (ctaContent) {
+                setTimeout(() => {
+                    ctaContent.classList.add('animate-in');
+                }, 800);
+            }
+
+            // フッターのアニメーション
+            const footer = document.querySelector('footer');
+            if (footer) {
+                setTimeout(() => {
+                    footer.classList.add('fade-in');
+                    footer.classList.add('visible');
+                }, 1000);
+            }
+        }
+
+        // ページ読み込み時にアニメーションを初期化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(initPageAnimations, 500);
+            });
+        } else {
+            setTimeout(initPageAnimations, 500);
+        }
+
+        // 認証後にアニメーションを再初期化（auth.jsから呼び出される可能性があるため）
+        window.initPageAnimations = initPageAnimations;
     </script>
     </div> <!-- main-content の終了 -->
 </body>

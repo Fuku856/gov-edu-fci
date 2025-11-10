@@ -33,6 +33,27 @@ body:not(.auth-checked) #login-page {
     opacity: 0 !important;
 }
 
+/* ページ読み込み時のアニメーション効果 */
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-in-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.fade-in {
+    opacity: 0;
+    transition: opacity 0.6s ease-out;
+}
+
+.fade-in.visible {
+    opacity: 1;
+}
+
 /* グラスモーフィズム効果 */
 .glass {
     background: rgba(255, 255, 255, 0.7);
@@ -54,6 +75,12 @@ header {
     top: 0;
     z-index: 100;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+header:hover {
+    background: rgba(0, 102, 255, 0.95);
+    box-shadow: 0 6px 40px rgba(0, 102, 255, 0.3);
 }
 
 nav {
@@ -248,6 +275,14 @@ body.menu-open .scroll-top-btn {
     padding: 8rem 2rem;
     text-align: center;
     overflow: hidden;
+    opacity: 0;
+    animation: fadeInHero 1s ease-out 0.3s forwards;
+}
+
+@keyframes fadeInHero {
+    to {
+        opacity: 1;
+    }
 }
 
 .hero::before {
@@ -339,6 +374,14 @@ section {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     font-weight: 700;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.section-title.animate-in {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* 特徴セクション */
@@ -358,6 +401,8 @@ section {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
 }
 
 .feature-card::before {
@@ -372,10 +417,17 @@ section {
     transition: opacity 0.4s;
 }
 
+.feature-card.animate-in {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
 .feature-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 60px rgba(0, 102, 255, 0.2);
-    border-color: rgba(0, 180, 255, 0.5);
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 0 25px 70px rgba(0, 102, 255, 0.3);
+    border-color: rgba(0, 180, 255, 0.7);
+    background: rgba(255, 255, 255, 0.8);
 }
 
 .feature-card:hover::before {
@@ -476,11 +528,20 @@ section {
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.3s;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.stat-card.animate-in {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
 
 .stat-card:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.08) translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 217, 255, 0.3);
 }
 
 .stat-number {
@@ -513,12 +574,21 @@ section {
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.5);
     transition: all 0.4s;
+    opacity: 0;
+    transform: translateX(-30px);
+}
+
+.goal-item.animate-in {
+    opacity: 1;
+    transform: translateX(0);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
 
 .goal-item:hover {
-    transform: translateX(10px);
-    box-shadow: 0 15px 50px rgba(0, 102, 255, 0.2);
-    border-color: rgba(0, 180, 255, 0.5);
+    transform: translateX(15px) translateY(-3px);
+    box-shadow: 0 20px 60px rgba(0, 102, 255, 0.3);
+    border-color: rgba(0, 180, 255, 0.7);
+    background: rgba(255, 255, 255, 0.75);
 }
 
 .goal-number {
@@ -573,6 +643,14 @@ section {
 .cta-section-content {
     position: relative;
     z-index: 1;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.cta-section-content.animate-in {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .cta-section h2 {
@@ -638,6 +716,12 @@ footer {
     -webkit-backdrop-filter: blur(20px);
     color: white;
     padding: 3rem 0 1.5rem;
+    opacity: 0;
+    transition: opacity 0.6s ease-out;
+}
+
+footer.visible {
+    opacity: 1;
 }
 
 .footer-content {

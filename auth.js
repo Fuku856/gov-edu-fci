@@ -753,6 +753,13 @@ function showMainContent() {
   // body要素のクラスを削除（ログイン状態のスタイルを適用）
   document.body.classList.remove('logged-out');
   document.body.classList.add('logged-in');
+  
+  // ページ読み込み時のアニメーション効果を初期化
+  if (typeof window.initPageAnimations === 'function') {
+    setTimeout(() => {
+      window.initPageAnimations();
+    }, 100);
+  }
 }
 
 /**
