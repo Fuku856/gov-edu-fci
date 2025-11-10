@@ -739,11 +739,11 @@ function showMainContent() {
         initActiveNavLink();
       }
       
-      // ヘッダーを初期状態（非表示）にする
+      // ヘッダーを初期状態（非表示）にする（下から上にアニメーション）
       const header = mainContent.querySelector('header');
       if (header) {
         header.style.opacity = '0';
-        header.style.transform = 'translateY(-40px)';
+        header.style.transform = 'translateY(40px)';
       }
     }, 50);
     console.log('showMainContent: メインコンテンツを表示しました');

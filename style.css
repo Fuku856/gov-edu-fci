@@ -78,7 +78,7 @@ header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     transition: background 0.3s ease, box-shadow 0.3s ease, opacity 0.8s ease-out, transform 0.8s ease-out;
     opacity: 0;
-    transform: translateY(-40px);
+    transform: translateY(40px);
 }
 
 #main-content:not([style*="display: none"]) header.header-visible,
