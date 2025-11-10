@@ -648,22 +648,37 @@ function showMainContent() {
       initActiveNavLink();
     }
     
+    // body要素のクラスを削除（ログイン状態のスタイルを適用）
+    document.body.classList.remove('logged-out');
+    document.body.classList.add('logged-in');
+    
+    // ページ読み込み時のアニメーション効果を初期化
+    if (typeof window.initPageAnimations === 'function') {
+      // ページ全体のフェードインと同時に開始
+      window.initPageAnimations();
+    } else {
+      // initPageAnimations()が定義されていない場合（members.htmlなど）、
+      // ヘッダーとフッターを直接表示
+      const header = mainContent.querySelector('header');
+      if (header) {
+        header.classList.add('header-visible');
+      }
+      
+      const footer = mainContent.querySelector('footer');
+      if (footer) {
+        footer.classList.add('visible');
+      }
+    }
   } else {
     // login.htmlを使用している場合は、index.htmlにリダイレクト
     if (window.location.pathname.includes('login.html')) {
       window.location.href = 'index.html';
       return;
     }
-  }
-  
-  // body要素のクラスを削除（ログイン状態のスタイルを適用）
-  document.body.classList.remove('logged-out');
-  document.body.classList.add('logged-in');
-  
-  // ページ読み込み時のアニメーション効果を初期化
-  if (typeof window.initPageAnimations === 'function') {
-    // ページ全体のフェードインと同時に開始
-    window.initPageAnimations();
+    
+    // body要素のクラスを削除（ログイン状態のスタイルを適用）
+    document.body.classList.remove('logged-out');
+    document.body.classList.add('logged-in');
   }
 }
 

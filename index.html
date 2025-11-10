@@ -399,7 +399,7 @@
         // ハッシュ変更時にもアクティブなリンクを更新
         window.addEventListener('hashchange', setActiveNavLink);
 
-        // ページ読み込み時のアニメーション効果
+        // ページ読み込み時のアニメーション効果（すべて同時に開始）
         function initPageAnimations() {
             const mainContent = document.getElementById('main-content');
             if (!mainContent) return;
@@ -410,6 +410,7 @@
                 return;
             }
 
+            // すべてのアニメーションを同時に開始（ページ全体のフェードインと同時）
             // ヘッダーのアニメーション
             const header = document.querySelector('header');
             if (header) {
