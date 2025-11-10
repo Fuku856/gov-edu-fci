@@ -838,67 +838,51 @@ function showMainContent() {
   document.body.classList.add('logged-in');
   
   // ページ読み込み時のアニメーション効果を初期化
-  // ページ全体のフェードインアニメーションと同時に開始（速く）
+  // すべてのアニメーションを同時に開始
   if (typeof window.initPageAnimations === 'function') {
-    // initPageAnimations()が存在する場合、少し待ってから実行（DOMの準備を待つ）
-    setTimeout(() => {
-      window.initPageAnimations();
-    }, 50); // すぐに実行（ページ全体のフェードインと同時に）
+    // initPageAnimations()が存在する場合、すぐに実行
+    window.initPageAnimations();
   } else {
     // initPageAnimations()が定義されていない場合（members.htmlなど）、
-    // auth.jsで直接ヘッダーとフッターのアニメーションを実行
-    setTimeout(() => {
-      const header = mainContent.querySelector('header');
-      if (header && !header.classList.contains('header-visible')) {
-        header.classList.add('header-visible');
-        setTimeout(() => {
-          header.style.removeProperty('opacity');
-          header.style.removeProperty('transform');
-        }, 50);
-      }
-      
-      const footer = mainContent.querySelector('footer');
-      if (footer && !footer.classList.contains('visible')) {
-        footer.classList.add('visible');
-        footer.classList.add('fade-in');
-      }
-      
-      // セクションタイトル、カード、アイテムなどのアニメーション（速く、順番に）
-      const sectionTitles = mainContent.querySelectorAll('.section-title');
-      sectionTitles.forEach((title, index) => {
-        setTimeout(() => {
-          title.classList.add('animate-in');
-        }, 200 + index * 50);
-      });
-      
-      const featureCards = mainContent.querySelectorAll('.feature-card');
-      featureCards.forEach((card, index) => {
-        setTimeout(() => {
-          card.classList.add('animate-in');
-        }, 300 + index * 50);
-      });
-      
-      const statCards = mainContent.querySelectorAll('.stat-card');
-      statCards.forEach((card, index) => {
-        setTimeout(() => {
-          card.classList.add('animate-in');
-        }, 250 + index * 80);
-      });
-      
-      const goalItems = mainContent.querySelectorAll('.goal-item');
-      goalItems.forEach((item, index) => {
-        setTimeout(() => {
-          item.classList.add('animate-in');
-        }, 350 + index * 60);
-      });
-      
-      const ctaContent = mainContent.querySelector('.cta-section-content');
-      if (ctaContent) {
-        setTimeout(() => {
-          ctaContent.classList.add('animate-in');
-        }, 500);
-      }
-    }, 150);
+    // auth.jsで直接すべてのアニメーションを実行
+    const header = mainContent.querySelector('header');
+    if (header && !header.classList.contains('header-visible')) {
+      header.classList.add('header-visible');
+      header.style.removeProperty('opacity');
+      header.style.removeProperty('transform');
+    }
+    
+    const footer = mainContent.querySelector('footer');
+    if (footer && !footer.classList.contains('visible')) {
+      footer.classList.add('visible');
+      footer.classList.add('fade-in');
+    }
+    
+    // セクションタイトル、カード、アイテムなどのアニメーション（すべて同時に）
+    const sectionTitles = mainContent.querySelectorAll('.section-title');
+    sectionTitles.forEach((title) => {
+      title.classList.add('animate-in');
+    });
+    
+    const featureCards = mainContent.querySelectorAll('.feature-card');
+    featureCards.forEach((card) => {
+      card.classList.add('animate-in');
+    });
+    
+    const statCards = mainContent.querySelectorAll('.stat-card');
+    statCards.forEach((card) => {
+      card.classList.add('animate-in');
+    });
+    
+    const goalItems = mainContent.querySelectorAll('.goal-item');
+    goalItems.forEach((item) => {
+      item.classList.add('animate-in');
+    });
+    
+    const ctaContent = mainContent.querySelector('.cta-section-content');
+    if (ctaContent) {
+      ctaContent.classList.add('animate-in');
+    }
   }
 }
 

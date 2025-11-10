@@ -411,65 +411,50 @@
                 return;
             }
 
-            // ヘッダーのアニメーション（最初に表示）
+            // すべてのアニメーションを同時に開始
+            // ヘッダーのアニメーション
             const header = document.querySelector('header');
             if (header && !header.classList.contains('header-visible')) {
-                // すぐにアニメーション開始（ページ全体のフェードインと同時に）
                 header.classList.add('header-visible');
-                // インラインスタイルのopacityとtransformを削除してCSSクラスのアニメーションを適用
-                setTimeout(() => {
-                    header.style.removeProperty('opacity');
-                    header.style.removeProperty('transform');
-                }, 50);
+                header.style.removeProperty('opacity');
+                header.style.removeProperty('transform');
             }
 
-            // セクションタイトルのアニメーション（速く、順番に）
+            // セクションタイトルのアニメーション（すべて同時に）
             const sectionTitles = document.querySelectorAll('.section-title');
-            sectionTitles.forEach((title, index) => {
-                setTimeout(() => {
-                    title.classList.add('animate-in');
-                }, 200 + index * 50);
+            sectionTitles.forEach((title) => {
+                title.classList.add('animate-in');
             });
 
-            // 特徴カードのアニメーション（速く、順番に）
+            // 特徴カードのアニメーション（すべて同時に）
             const featureCards = document.querySelectorAll('.feature-card');
-            featureCards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.classList.add('animate-in');
-                }, 300 + index * 50);
+            featureCards.forEach((card) => {
+                card.classList.add('animate-in');
             });
 
-            // 統計カードのアニメーション（速く、順番に）
+            // 統計カードのアニメーション（すべて同時に）
             const statCards = document.querySelectorAll('.stat-card');
-            statCards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.classList.add('animate-in');
-                }, 250 + index * 80);
+            statCards.forEach((card) => {
+                card.classList.add('animate-in');
             });
 
-            // 目標アイテムのアニメーション（速く、順番に）
+            // 目標アイテムのアニメーション（すべて同時に）
             const goalItems = document.querySelectorAll('.goal-item');
-            goalItems.forEach((item, index) => {
-                setTimeout(() => {
-                    item.classList.add('animate-in');
-                }, 350 + index * 60);
+            goalItems.forEach((item) => {
+                item.classList.add('animate-in');
             });
 
             // CTAセクションのアニメーション
             const ctaContent = document.querySelector('.cta-section-content');
             if (ctaContent) {
-                setTimeout(() => {
-                    ctaContent.classList.add('animate-in');
-                }, 500);
+                ctaContent.classList.add('animate-in');
             }
 
             // フッターのアニメーション
             const footer = document.querySelector('footer');
             if (footer && !footer.classList.contains('visible')) {
-                setTimeout(() => {
-                    footer.classList.add('fade-in');
-                    footer.classList.add('visible');
-                }, 450); // セクションアニメーションの後に表示
+                footer.classList.add('fade-in');
+                footer.classList.add('visible');
             }
         }
 
