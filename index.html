@@ -316,96 +316,62 @@
 
         // アクティブなナビゲーションリンクを設定
         window.setActiveNavLink = function setActiveNavLink() {
-            const currentUrl = window.location.href;
-            const currentPath = window.location.pathname;
             const currentHash = window.location.hash || '';
+            const currentPath = window.location.pathname;
             const isIndexPage = currentPath.endsWith('/') || currentPath.endsWith('/index.html') || currentPath.endsWith('index.html');
+            
+            if (!isIndexPage) return; // index.html以外では何もしない
+            
             const navLinks = document.querySelectorAll('.nav-links a');
             const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
             
-            // 現在のページのファイル名を取得
-            const getCurrentPageName = () => {
-                const pathParts = currentPath.split('/').filter(p => p);
-                if (pathParts.length === 0 || currentPath.endsWith('/')) {
-                    return 'index.html';
-                }
-                return pathParts[pathParts.length - 1].toLowerCase();
-            };
+            // すべてのリンクからactiveクラスを削除
+            navLinks.forEach(link => link.classList.remove('active'));
+            mobileNavLinks.forEach(link => link.classList.remove('active'));
             
-            const currentPageName = getCurrentPageName();
-            
-            function checkLink(link) {
-                link.classList.remove('active');
-                const linkHref = link.getAttribute('href');
-                if (!linkHref) return;
-                
-                const linkParts = linkHref.split('#');
-                let linkPath = linkParts[0];
-                const linkHash = linkParts[1] ? '#' + linkParts[1] : '';
-                
-                // 相対パスを絶対URLに変換して比較
-                if (linkPath && linkPath !== '' && !linkPath.startsWith('#')) {
-                    // リンクのパスを正規化
-                    let normalizedLinkPath = linkPath;
-                    if (normalizedLinkPath.startsWith('./')) {
-                        normalizedLinkPath = normalizedLinkPath.substring(2);
-                    }
-                    if (normalizedLinkPath.startsWith('/')) {
-                        normalizedLinkPath = normalizedLinkPath.substring(1);
-                    }
-                    
-                    // ファイル名を取得
-                    const linkFileName = normalizedLinkPath.split('/').pop().toLowerCase();
-                    
-                    // 現在のページ名と比較
-                    if (linkFileName === currentPageName) {
-                        link.classList.add('active');
-                        return;
-                    }
-                    
-                    // index.htmlの特別処理
-                    if ((normalizedLinkPath === 'index.html' || normalizedLinkPath === '') && isIndexPage) {
-                        link.classList.add('active');
-                        return;
-                    }
-                }
-                
-                // ハッシュリンクの場合（#featuresなど、index.html内のセクション）
-                if (linkHash && isIndexPage) {
-                    if (currentHash === linkHash) {
-                        link.classList.add('active');
-                        return;
-                    }
-                    // ハッシュがない場合、デフォルトで#featuresをアクティブにする
-                    if (!currentHash && linkHash === '#features') {
-                        link.classList.add('active');
-                        return;
-                    }
-                }
-                
-                // index.html#features のような形式の場合
-                if (linkPath && linkHash) {
-                    let normalizedLinkPath = linkPath;
-                    if (normalizedLinkPath.startsWith('./')) {
-                        normalizedLinkPath = normalizedLinkPath.substring(2);
-                    }
-                    if (normalizedLinkPath.startsWith('/')) {
-                        normalizedLinkPath = normalizedLinkPath.substring(1);
-                    }
-                    if ((normalizedLinkPath === 'index.html' || normalizedLinkPath === '') && isIndexPage) {
-                        if (currentHash === linkHash || (!currentHash && linkHash === '#features')) {
+            // 現在のハッシュに一致するリンクにactiveクラスを追加
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href) {
+                    if (href.startsWith('#')) {
+                        // #featuresのような形式
+                        if (currentHash === href || (!currentHash && href === '#features')) {
                             link.classList.add('active');
                         }
+                    } else if (href.includes('#')) {
+                        // index.html#featuresのような形式
+                        const hash = '#' + href.split('#')[1];
+                        if (currentHash === hash || (!currentHash && hash === '#features')) {
+                            link.classList.add('active');
+                        }
+                    } else if (href === 'members.html') {
+                        // members.htmlへのリンクは何もしない（members.htmlで手動設定）
                     }
                 }
-            }
+            });
             
-            navLinks.forEach(checkLink);
-            mobileNavLinks.forEach(checkLink);
+            mobileNavLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href) {
+                    if (href.startsWith('#')) {
+                        // #featuresのような形式
+                        if (currentHash === href || (!currentHash && href === '#features')) {
+                            link.classList.add('active');
+                        }
+                    } else if (href.includes('#')) {
+                        // index.html#featuresのような形式
+                        const hash = '#' + href.split('#')[1];
+                        if (currentHash === hash || (!currentHash && hash === '#features')) {
+                            link.classList.add('active');
+                        }
+                    } else if (href === 'members.html') {
+                        // members.htmlへのリンクは何もしない（members.htmlで手動設定）
+                    }
+                }
+            });
         }
         
-        // DOMContentLoadedイベントで実行（要素が確実に存在することを保証）
-        // ただし、認証後にメインコンテンツが表示される場合を考慮
+        // DOMContentLoadedイベントで実行
         window.initActiveNavLink = function initActiveNavLink() {
             // メインコンテンツが表示されているか確認
             const mainContent = document.getElementById('main-content');
@@ -418,7 +384,6 @@
                     if (navLinks.length > 0) {
                         setActiveNavLink();
                     } else {
-                        // まだ要素がない場合、もう一度試行
                         setTimeout(initActiveNavLink, 100);
                     }
                 }, 100);

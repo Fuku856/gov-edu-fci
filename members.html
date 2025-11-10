@@ -61,7 +61,7 @@
                 <ul class="nav-links">
                     <li><a href="index.html#features">特徴</a></li>
                     <li><a href="index.html#goals">目標</a></li>
-                    <li><a href="members.html">メンバー紹介</a></li>
+                    <li><a href="members.html" class="active">メンバー紹介</a></li>
                     <li><a href="index.html#dashboard">ダッシュボード</a></li>
                 </ul>
             </div>
@@ -80,7 +80,7 @@
             <ul class="mobile-nav-links">
                 <li><a href="index.html#features" class="mobile-nav-link">特徴</a></li>
                 <li><a href="index.html#goals" class="mobile-nav-link">目標</a></li>
-                <li><a href="members.html" class="mobile-nav-link">メンバー紹介</a></li>
+                <li><a href="members.html" class="mobile-nav-link active">メンバー紹介</a></li>
                 <li><a href="index.html#dashboard" class="mobile-nav-link">ダッシュボード</a></li>
                 <!-- モバイルメニューにユーザー情報を表示（ログイン中のみ） -->
                 <li id="mobile-user-info" style="display: none; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.2);"></li>
@@ -301,125 +301,15 @@
             }
         });
 
-        // アクティブなナビゲーションリンクを設定
+        // アクティブなナビゲーションリンクを設定（index.html用）
+        // members.htmlでは手動でactiveクラスを設定しているため、index.htmlのセクションリンクのみ処理
         window.setActiveNavLink = function setActiveNavLink() {
-            const currentUrl = window.location.href;
-            const currentPath = window.location.pathname;
-            const currentHash = window.location.hash || '';
-            const isIndexPage = currentPath.endsWith('/') || currentPath.endsWith('/index.html') || currentPath.endsWith('index.html');
-            const navLinks = document.querySelectorAll('.nav-links a');
-            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
-            
-            // 現在のページのファイル名を取得
-            const getCurrentPageName = () => {
-                const pathParts = currentPath.split('/').filter(p => p);
-                if (pathParts.length === 0 || currentPath.endsWith('/')) {
-                    return 'index.html';
-                }
-                return pathParts[pathParts.length - 1].toLowerCase();
-            };
-            
-            const currentPageName = getCurrentPageName();
-            
-            function checkLink(link) {
-                link.classList.remove('active');
-                const linkHref = link.getAttribute('href');
-                if (!linkHref) return;
-                
-                const linkParts = linkHref.split('#');
-                let linkPath = linkParts[0];
-                const linkHash = linkParts[1] ? '#' + linkParts[1] : '';
-                
-                // 相対パスを絶対URLに変換して比較
-                if (linkPath && linkPath !== '' && !linkPath.startsWith('#')) {
-                    // リンクのパスを正規化
-                    let normalizedLinkPath = linkPath;
-                    if (normalizedLinkPath.startsWith('./')) {
-                        normalizedLinkPath = normalizedLinkPath.substring(2);
-                    }
-                    if (normalizedLinkPath.startsWith('/')) {
-                        normalizedLinkPath = normalizedLinkPath.substring(1);
-                    }
-                    
-                    // ファイル名を取得
-                    const linkFileName = normalizedLinkPath.split('/').pop().toLowerCase();
-                    
-                    // 現在のページ名と比較
-                    if (linkFileName === currentPageName) {
-                        link.classList.add('active');
-                        return;
-                    }
-                    
-                    // index.htmlの特別処理
-                    if ((normalizedLinkPath === 'index.html' || normalizedLinkPath === '') && isIndexPage) {
-                        link.classList.add('active');
-                        return;
-                    }
-                }
-                
-                // ハッシュリンクの場合（#featuresなど、index.html内のセクション）
-                if (linkHash && isIndexPage) {
-                    if (currentHash === linkHash) {
-                        link.classList.add('active');
-                        return;
-                    }
-                    // ハッシュがない場合、デフォルトで#featuresをアクティブにする
-                    if (!currentHash && linkHash === '#features') {
-                        link.classList.add('active');
-                        return;
-                    }
-                }
-                
-                // index.html#features のような形式の場合
-                if (linkPath && linkHash) {
-                    let normalizedLinkPath = linkPath;
-                    if (normalizedLinkPath.startsWith('./')) {
-                        normalizedLinkPath = normalizedLinkPath.substring(2);
-                    }
-                    if (normalizedLinkPath.startsWith('/')) {
-                        normalizedLinkPath = normalizedLinkPath.substring(1);
-                    }
-                    if ((normalizedLinkPath === 'index.html' || normalizedLinkPath === '') && isIndexPage) {
-                        if (currentHash === linkHash || (!currentHash && linkHash === '#features')) {
-                            link.classList.add('active');
-                        }
-                    }
-                }
-            }
-            
-            navLinks.forEach(checkLink);
-            mobileNavLinks.forEach(checkLink);
+            // members.htmlでは何もしない（手動でactiveクラスを設定済み）
         }
         
-        // DOMContentLoadedイベントで実行（要素が確実に存在することを保証）
-        // ただし、認証後にメインコンテンツが表示される場合を考慮
         window.initActiveNavLink = function initActiveNavLink() {
-            // メインコンテンツが表示されているか確認
-            const mainContent = document.getElementById('main-content');
-            if (mainContent && (mainContent.style.display !== 'none' && mainContent.style.visibility !== 'hidden')) {
-                setActiveNavLink();
-            } else {
-                // メインコンテンツがまだ表示されていない場合、少し待ってから再試行
-                setTimeout(() => {
-                    const navLinks = document.querySelectorAll('.nav-links a');
-                    if (navLinks.length > 0) {
-                        setActiveNavLink();
-                    } else {
-                        // まだ要素がない場合、もう一度試行
-                        setTimeout(initActiveNavLink, 100);
-                    }
-                }, 100);
-            }
+            // members.htmlでは何もしない
         }
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initActiveNavLink);
-        } else {
-            initActiveNavLink();
-        }
-        
-        // ハッシュ変更時にもアクティブなリンクを更新
-        window.addEventListener('hashchange', setActiveNavLink);
     </script>
 </body>
 </html>
