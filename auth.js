@@ -54,26 +54,18 @@ function initializeAuth() {
       firebase.auth().onAuthStateChanged((user) => {
         // 非同期処理を実行するための即時実行関数
         (async () => {
-          console.log('認証状態が変更されました:', user ? user.email : 'ログアウト');
-          
           if (user) {
             // ユーザーがログインしている
             const email = user.email;
-            console.log('ログイン中のメールアドレス:', email);
-            console.log('認証プロバイダー:', user.providerData.map(p => p.providerId));
             
             // GitHub認証でログインしている場合、開発者用のチェックを行う
             const isGitHubUser = await isAllowedGitHubUser(user);
-            console.log('GitHubユーザーのチェック結果:', isGitHubUser);
             
             // メールドメインをチェック（通常の学校アカウント用）
             const isAllowed = isAllowedEmailDomain(email);
-            console.log('メールアドレスのチェック結果:', isAllowed);
-            console.log('許可されたメールドメイン:', typeof ALLOWED_EMAIL_DOMAINS !== 'undefined' ? ALLOWED_EMAIL_DOMAINS : '未定義（firebase-config.jsを確認してください）');
             
             if (isGitHubUser || isAllowed) {
               // 許可されたユーザー（GitHub開発者または学校アカウント）の場合、サイトを表示
-              console.log('認証成功: サイトを表示します', isGitHubUser ? '(GitHub開発者)' : '(学校アカウント)');
               hideLoginPage();
               showMainContent();
               
@@ -81,7 +73,6 @@ function initializeAuth() {
               await updateUserInfo(user);
             } else {
               // 許可されていないユーザーの場合、ログアウト
-              console.log('認証失敗: 許可されていないユーザー');
               hideUserInfo();
               const providerType = user.providerData.some(p => p.providerId === 'github.com') 
                 ? 'GitHubアカウント' 
@@ -94,7 +85,6 @@ function initializeAuth() {
             }
           } else {
             // ユーザーがログインしていない
-            console.log('ユーザーがログインしていません');
             hideUserInfo();
             showLoginPage();
             hideMainContent();
@@ -154,7 +144,6 @@ async function signInWithGoogle() {
     const result = await firebase.auth().signInWithPopup(provider);
     const user = result.user;
     
-    console.log('ログイン成功:', user.email);
     
   } catch (error) {
     console.error('ログインエラー:', error);
@@ -214,15 +203,10 @@ async function signInWithGitHub() {
     const result = await firebase.auth().signInWithPopup(provider);
     const user = result.user;
     
-    console.log('GitHubログイン成功:', user.email);
-    console.log('GitHubプロバイダー情報:', result.credential);
-    
     // GitHub OAuthアクセストークンを取得
-    // 注意: Firebase Authenticationでは、OAuthトークンはcredential.accessTokenから取得できます
     const githubCredential = result.credential;
     if (githubCredential && githubCredential.accessToken) {
-      console.log('GitHubアクセストークンを取得しました');
-      // アクセストークンをsessionStorageに保存（将来的に使用する可能性があるため）
+      // アクセストークンをsessionStorageに保存
       sessionStorage.setItem('github_access_token', githubCredential.accessToken);
       
       // GitHub APIを使用してユーザー名を取得
@@ -234,19 +218,12 @@ async function signInWithGitHub() {
         });
         if (githubResponse.ok) {
           const githubUser = await githubResponse.json();
-          console.log('GitHub APIから取得したユーザー情報:', githubUser);
-          console.log('GitHubユーザー名:', githubUser.login);
           // ユーザー名をsessionStorageに保存（認証チェック時に使用）
           sessionStorage.setItem('github_username', githubUser.login);
-          console.log('GitHubユーザー名をsessionStorageに保存しました:', githubUser.login);
-        } else {
-          console.error('GitHub API呼び出しに失敗:', githubResponse.status, githubResponse.statusText);
         }
       } catch (error) {
         console.error('GitHub API呼び出しエラー:', error);
       }
-    } else {
-      console.error('GitHubアクセストークンが取得できませんでした');
     }
     
   } catch (error) {
@@ -360,7 +337,6 @@ async function linkGitHubProvider() {
   
   try {
     const result = await user.linkWithPopup(provider);
-    console.log('GitHub認証のリンクに成功しました:', result);
     alert('GitHub認証をリンクしました。今後はGitHubアカウントでもログインできます。');
     
     // ユーザー情報を更新
@@ -405,7 +381,6 @@ async function signOut() {
 async function getGitHubUsernameFromAPI(accessToken) {
   try {
     if (!accessToken) {
-      console.log('getGitHubUsernameFromAPI: アクセストークンがありません');
       return null;
     }
     
@@ -417,12 +392,10 @@ async function getGitHubUsernameFromAPI(accessToken) {
     
     if (response.ok) {
       const githubUser = await response.json();
-      console.log('getGitHubUsernameFromAPI: GitHub APIから取得したユーザー情報:', githubUser);
-      return githubUser.login; // GitHubユーザー名
-    } else {
-      console.log('getGitHubUsernameFromAPI: GitHub API呼び出しに失敗:', response.status);
-      return null;
+      return githubUser.login;
     }
+    
+    return null;
   } catch (error) {
     console.error('getGitHubUsernameFromAPI: エラー:', error);
     return null;
@@ -484,7 +457,6 @@ async function getGitHubUsernameFromUser(user) {
  */
 async function isAllowedGitHubUser(user) {
   if (!user) {
-    console.log('isAllowedGitHubUser: ユーザーが空です');
     return false;
   }
   
@@ -494,50 +466,35 @@ async function isAllowedGitHubUser(user) {
   );
   
   if (!isGitHubProvider) {
-    // GitHubプロバイダーでログインしていない場合は、この関数では判定しない
     return false;
   }
-  
-  console.log('isAllowedGitHubUser: GitHubユーザーをチェック中');
-  console.log('isAllowedGitHubUser: user.displayName =', user.displayName);
-  console.log('isAllowedGitHubUser: user.email =', user.email);
-  console.log('isAllowedGitHubUser: user.providerData =', user.providerData);
   
   // 許可されたGitHubメールアドレスをチェック
   const allowedGitHubEmails = typeof ALLOWED_GITHUB_EMAILS !== 'undefined' 
     ? ALLOWED_GITHUB_EMAILS 
     : [];
-  console.log('isAllowedGitHubUser: allowedGitHubEmails =', allowedGitHubEmails);
   
   if (user.email) {
     const emailLower = user.email.toLowerCase().trim();
     if (allowedGitHubEmails.includes(emailLower)) {
-      console.log('isAllowedGitHubUser: GitHubメールアドレスが許可リストに一致しました');
       return true;
     }
   }
   
-  // GitHubユーザー名を取得（providerDataから）
-  // 注意: Firebase Authenticationでは、GitHubユーザー名を直接取得できない場合があります
-  // そのため、表示名（displayName）やメールアドレスから判定します
+  // GitHubユーザー名を取得
   const allowedGitHubUsernames = typeof ALLOWED_GITHUB_USERNAMES !== 'undefined' 
     ? ALLOWED_GITHUB_USERNAMES 
     : [];
-  console.log('isAllowedGitHubUser: allowedGitHubUsernames =', allowedGitHubUsernames);
   
-  // sessionStorageからGitHubユーザー名を取得（ログイン時に保存されたもの）
-  // または、アクセストークンを使用してGitHub APIから取得
+  // sessionStorageからGitHubユーザー名を取得
   let username = await getGitHubUsernameFromUser(user);
   
   if (!username) {
-    // sessionStorageにない場合、少し待ってから再度試す（GitHub API呼び出しが完了するまで）
-    // 最大3回、500ms間隔でリトライ
+    // sessionStorageにない場合、少し待ってから再度試す（最大3回、500ms間隔でリトライ）
     for (let i = 0; i < 3; i++) {
-      console.log(`isAllowedGitHubUser: sessionStorageにユーザー名がないため、${(i + 1) * 500}ms待機します（試行 ${i + 1}/3）`);
-      await new Promise(resolve => setTimeout(resolve, 500)); // 500ms待機
+      await new Promise(resolve => setTimeout(resolve, 500));
       username = await getGitHubUsernameFromUser(user);
       if (username) {
-        console.log('isAllowedGitHubUser: 待機後にGitHubユーザー名を取得:', username);
         break;
       }
     }
@@ -548,83 +505,43 @@ async function isAllowedGitHubUser(user) {
     if (allowedGitHubUsernames.some(allowedUsername => 
       allowedUsername.toLowerCase().trim() === usernameLower
     )) {
-      console.log('isAllowedGitHubUser: GitHubユーザー名が許可リストに一致しました:', username);
       return true;
-    } else {
-      console.log('isAllowedGitHubUser: GitHubユーザー名が許可リストにありません:', username, '許可リスト:', allowedGitHubUsernames);
     }
-  } else {
-    console.log('isAllowedGitHubUser: GitHubユーザー名を取得できませんでした');
   }
   
   // providerDataからGitHubの情報を取得
   const githubProviderData = user.providerData.find(provider => provider.providerId === 'github.com');
-  if (githubProviderData) {
-    console.log('isAllowedGitHubUser: githubProviderData =', githubProviderData);
-    console.log('isAllowedGitHubUser: githubProviderData.displayName =', githubProviderData.displayName);
-    console.log('isAllowedGitHubUser: githubProviderData.uid =', githubProviderData.uid);
-    
-    // GitHub APIからユーザー名を取得を試みる
-    // 注意: GitHub APIのuser endpointは認証が必要な場合があります
-    // そのため、まずは他の方法でチェックします
-    try {
-      // GitHub APIを使用してユーザー名を取得
-      // UIDは数値のIDなので、ユーザー名を取得するには別の方法が必要
-      // 代わりに、GitHubのユーザー名がURLに含まれている場合があります
-      // ただし、Firebase Authenticationでは、GitHubユーザー名は直接取得できません
-    } catch (error) {
-      console.log('isAllowedGitHubUser: GitHub API呼び出しエラー:', error);
-    }
-  }
   
-  // 表示名からユーザー名を推測（GitHubの場合、displayNameがユーザー名の場合がある）
-  // ただし、GitHubのdisplayNameは通常、ユーザーのフルネームであり、ユーザー名とは異なります
+  // 表示名からユーザー名を推測
   if (user.displayName) {
     const displayNameLower = user.displayName.toLowerCase().trim();
-    console.log('isAllowedGitHubUser: 表示名でチェック:', displayNameLower);
     if (allowedGitHubUsernames.some(username => 
       username.toLowerCase().trim() === displayNameLower
     )) {
-      console.log('isAllowedGitHubUser: GitHubユーザー名が許可リストに一致しました（表示名）');
       return true;
     }
   }
-  
-  // photoURLからユーザー名を抽出を試みる
-  // GitHubのphotoURLは通常、https://avatars.githubusercontent.com/u/{uid}?v=4 の形式
-  // ただし、これからユーザー名を直接取得することはできません
-  // 代わりに、GitHub APIを使用する必要があります
-  
-  // 最も確実な方法: GitHubメールアドレスを使用
-  // または、GitHub APIからユーザー名を取得（OAuthトークンが必要）
   
   // providerDataのdisplayNameからもチェック
   if (githubProviderData && githubProviderData.displayName) {
     const providerDisplayNameLower = githubProviderData.displayName.toLowerCase().trim();
-    console.log('isAllowedGitHubUser: providerDataの表示名でチェック:', providerDisplayNameLower);
     if (allowedGitHubUsernames.some(username => 
       username.toLowerCase().trim() === providerDisplayNameLower
     )) {
-      console.log('isAllowedGitHubUser: GitHubユーザー名が許可リストに一致しました（providerDataの表示名）');
       return true;
     }
   }
   
-  // メールアドレスのローカル部分（@より前）からユーザー名を推測
-  // 注意: これは正確ではない場合があります
+  // メールアドレスのローカル部分からユーザー名を推測
   if (user.email) {
     const emailLocalPart = user.email.split('@')[0].toLowerCase().trim();
-    console.log('isAllowedGitHubUser: メールアドレスのローカル部分でチェック:', emailLocalPart);
     if (allowedGitHubUsernames.some(username => 
       username.toLowerCase().trim() === emailLocalPart
     )) {
-      console.log('isAllowedGitHubUser: メールアドレスから推測したGitHubユーザー名が許可リストに一致しました');
       return true;
     }
   }
   
-  console.log('isAllowedGitHubUser: GitHubユーザーが許可リストに一致しませんでした');
-  console.log('isAllowedGitHubUser: デバッグ情報 - displayName:', user.displayName, ', email:', user.email);
   return false;
 }
 
@@ -659,31 +576,25 @@ function isAllowedEmailDomain(email) {
   }
   
   const emailLower = email.toLowerCase().trim();
-  console.log('isAllowedEmailDomain: チェック中のメールアドレス:', emailLower);
-  console.log('isAllowedEmailDomain: 許可されたメールアドレス:', ALLOWED_EMAILS);
   
   // 許可されたメールアドレスのリストをチェック
   if (ALLOWED_EMAILS.includes(emailLower)) {
-    console.log('isAllowedEmailDomain: メールアドレスが許可リストに一致しました');
     return true;
   }
   
   // メールドメインをチェック
   const emailDomain = email.split('@')[1];
-  console.log('isAllowedEmailDomain: メールドメイン:', emailDomain);
   
-  // ALLOWED_EMAIL_DOMAINSが定義されているか確認（firebase-config.jsから読み込まれる）
-  // 未定義の場合は空配列を使用（セキュリティのため、すべて拒否）
+  if (!emailDomain) {
+    return false;
+  }
+  
+  // ALLOWED_EMAIL_DOMAINSが定義されているか確認
   const allowedDomains = typeof ALLOWED_EMAIL_DOMAINS !== 'undefined' 
     ? ALLOWED_EMAIL_DOMAINS 
     : [];
   
-  console.log('isAllowedEmailDomain: 許可されたドメイン:', allowedDomains);
-  
-  const domainAllowed = allowedDomains.includes(emailDomain);
-  console.log('isAllowedEmailDomain: ドメインチェック結果:', domainAllowed);
-  
-  return domainAllowed;
+  return allowedDomains.includes(emailDomain);
 }
 
 /**
@@ -698,9 +609,6 @@ function showLoginPage() {
     setTimeout(() => {
       loginPage.style.opacity = '1';
     }, 10);
-    console.log('showLoginPage: ログインページを表示しました');
-  } else {
-    console.warn('showLoginPage: ログインページの要素が見つかりません（login.htmlを使用している可能性があります）');
   }
 }
 
@@ -716,9 +624,6 @@ function hideLoginPage() {
       loginPage.style.display = 'none';
       loginPage.style.visibility = 'hidden';
     }, 300);
-    console.log('hideLoginPage: ログインページを非表示にしました');
-  } else {
-    console.warn('hideLoginPage: ログインページの要素が見つかりません');
   }
 }
 
@@ -732,102 +637,20 @@ function showMainContent() {
     // これにより、CSSルールが適用されなくなる
     document.body.classList.add('auth-checked');
     
-    // インラインスタイルを削除してから、新しいスタイルを設定
-    mainContent.style.removeProperty('display');
-    mainContent.style.removeProperty('visibility');
-    // opacityはCSSアニメーションに任せる（削除しない）
-    
     // インラインスタイルで確実に表示（!importantを使用）
     mainContent.style.setProperty('display', 'block', 'important');
     mainContent.style.setProperty('visibility', 'visible', 'important');
-    // opacityはCSSアニメーション（fadeInPage）に任せるため、!importantで設定しない
     
-    // ヘッダーも確実に表示
-    const header = mainContent.querySelector('header');
-    if (header) {
-      header.style.removeProperty('display');
-      header.style.removeProperty('visibility');
-      header.style.setProperty('display', 'block', 'important');
-      header.style.setProperty('visibility', 'visible', 'important');
-      console.log('Header display and visibility set');
-      
-      // ヘッダーのアニメーションはinitPageAnimations()で実行（重複を避ける）
-      // ただし、initPageAnimations()が存在しない場合はここで実行
-      if (typeof window.initPageAnimations !== 'function') {
-        setTimeout(() => {
-          header.classList.add('header-visible');
-          console.log('header-visible class added at', Date.now());
-          // インラインスタイルのopacityとtransformを削除してCSSクラスのアニメーションを適用
-          setTimeout(() => {
-            header.style.removeProperty('opacity');
-            header.style.removeProperty('transform');
-          }, 50);
-        }, 50); // すぐに開始
-      }
+    // アクティブなナビゲーションリンクを設定
+    if (typeof setActiveNavLink === 'function') {
+      setActiveNavLink();
+    } else if (typeof initActiveNavLink === 'function') {
+      initActiveNavLink();
     }
     
-    // フッターも確実に表示
-    const footer = mainContent.querySelector('footer');
-    if (footer) {
-      footer.style.removeProperty('display');
-      footer.style.removeProperty('visibility');
-      footer.style.setProperty('display', 'block', 'important');
-      footer.style.setProperty('visibility', 'visible', 'important');
-      console.log('Footer display and visibility set');
-      
-      // フッターのアニメーションはinitPageAnimations()で実行（重複を避ける）
-      // ただし、initPageAnimations()が存在しない場合はここで実行
-      if (typeof window.initPageAnimations !== 'function') {
-        setTimeout(() => {
-          footer.classList.add('visible');
-          footer.classList.add('fade-in');
-          console.log('footer visible and fade-in classes added at', Date.now());
-        }, 500); // 少し遅延してから
-      }
-    }
-    
-    // main-content内のすべてのセクションも表示
-    const sections = mainContent.querySelectorAll('section');
-    sections.forEach(section => {
-      section.style.removeProperty('display');
-      section.style.removeProperty('visibility');
-      section.style.setProperty('display', 'block', 'important');
-      section.style.setProperty('visibility', 'visible', 'important');
-    });
-    
-    // 表示を確実にするため、少し遅延してアクティブなナビゲーションリンクを設定
-    setTimeout(() => {
-      // アクティブなナビゲーションリンクを設定（グローバル関数が存在する場合）
-      if (typeof setActiveNavLink === 'function') {
-        setActiveNavLink();
-      } else if (typeof initActiveNavLink === 'function') {
-        initActiveNavLink();
-      }
-    }, 50);
-    
-    console.log('showMainContent: メインコンテンツを表示しました');
-    console.log('main-content display:', mainContent.style.display);
-    console.log('main-content visibility:', mainContent.style.visibility);
-    console.log('body.auth-checked:', document.body.classList.contains('auth-checked'));
-    
-    // ヘッダーとフッターの存在を確認
-    const headerCheck = mainContent.querySelector('header');
-    const footerCheck = mainContent.querySelector('footer');
-    console.log('header found:', !!headerCheck);
-    console.log('footer found:', !!footerCheck);
-    if (headerCheck) {
-      console.log('header display:', headerCheck.style.display);
-      console.log('header visibility:', headerCheck.style.visibility);
-    }
-    if (footerCheck) {
-      console.log('footer display:', footerCheck.style.display);
-      console.log('footer visibility:', footerCheck.style.visibility);
-    }
   } else {
-    console.warn('showMainContent: メインコンテンツの要素が見つかりません（login.htmlを使用している可能性があります）');
     // login.htmlを使用している場合は、index.htmlにリダイレクト
     if (window.location.pathname.includes('login.html')) {
-      console.log('login.htmlからindex.htmlにリダイレクトします');
       window.location.href = 'index.html';
       return;
     }
@@ -838,51 +661,9 @@ function showMainContent() {
   document.body.classList.add('logged-in');
   
   // ページ読み込み時のアニメーション効果を初期化
-  // すべてのアニメーションを同時に開始
   if (typeof window.initPageAnimations === 'function') {
-    // initPageAnimations()が存在する場合、すぐに実行
+    // ページ全体のフェードインと同時に開始
     window.initPageAnimations();
-  } else {
-    // initPageAnimations()が定義されていない場合（members.htmlなど）、
-    // auth.jsで直接すべてのアニメーションを実行
-    const header = mainContent.querySelector('header');
-    if (header && !header.classList.contains('header-visible')) {
-      header.classList.add('header-visible');
-      header.style.removeProperty('opacity');
-      header.style.removeProperty('transform');
-    }
-    
-    const footer = mainContent.querySelector('footer');
-    if (footer && !footer.classList.contains('visible')) {
-      footer.classList.add('visible');
-      footer.classList.add('fade-in');
-    }
-    
-    // セクションタイトル、カード、アイテムなどのアニメーション（すべて同時に）
-    const sectionTitles = mainContent.querySelectorAll('.section-title');
-    sectionTitles.forEach((title) => {
-      title.classList.add('animate-in');
-    });
-    
-    const featureCards = mainContent.querySelectorAll('.feature-card');
-    featureCards.forEach((card) => {
-      card.classList.add('animate-in');
-    });
-    
-    const statCards = mainContent.querySelectorAll('.stat-card');
-    statCards.forEach((card) => {
-      card.classList.add('animate-in');
-    });
-    
-    const goalItems = mainContent.querySelectorAll('.goal-item');
-    goalItems.forEach((item) => {
-      item.classList.add('animate-in');
-    });
-    
-    const ctaContent = mainContent.querySelector('.cta-section-content');
-    if (ctaContent) {
-      ctaContent.classList.add('animate-in');
-    }
   }
 }
 
@@ -894,9 +675,7 @@ function hideMainContent() {
   if (mainContent) {
     mainContent.style.visibility = 'hidden';
     mainContent.style.display = 'none';
-    console.log('hideMainContent: メインコンテンツを非表示にしました');
   } else {
-    console.warn('hideMainContent: メインコンテンツの要素が見つかりません（login.htmlを使用している可能性があります）');
   }
   
   // body要素のクラスを追加（ログアウト状態のスタイルを適用）
@@ -958,7 +737,6 @@ async function updateUserInfo(user) {
         <button onclick="signOut()" class="mobile-nav-link" style="width: 100%; background: #dc3545; color: white; border: 1px solid #c82333; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 500; transition: all 0.3s;" onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">ログアウト</button>
       </div>
     `;
-    console.log('ユーザー情報を更新しました（モバイル）:', userName, 'プロバイダー:', providerId);
   }
   
   // デスクトップ表示用（ヘッダー）
@@ -974,7 +752,6 @@ async function updateUserInfo(user) {
       </div>
       <button onclick="signOut()" style="background: #dc3545; color: white; border: 1px solid #c82333; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s; font-weight: 500;" onmouseover="this.style.background='#c82333'; this.style.borderColor='#bd2130'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#dc3545'; this.style.borderColor='#c82333'; this.style.transform='translateY(0)'">ログアウト</button>
     `;
-    console.log('ユーザー情報を更新しました（デスクトップ）:', userName, 'プロバイダー:', providerId);
   } else if (userInfo) {
     // モバイルの場合は非表示にする
     userInfo.style.display = 'none';

@@ -406,39 +406,35 @@
             
             // メインコンテンツが表示されているか確認
             if (mainContent.style.display === 'none' || mainContent.style.visibility === 'hidden') {
-                // まだ表示されていない場合は少し待って再試行
                 setTimeout(initPageAnimations, 100);
                 return;
             }
 
-            // すべてのアニメーションを同時に開始
             // ヘッダーのアニメーション
             const header = document.querySelector('header');
-            if (header && !header.classList.contains('header-visible')) {
+            if (header) {
                 header.classList.add('header-visible');
-                header.style.removeProperty('opacity');
-                header.style.removeProperty('transform');
             }
 
-            // セクションタイトルのアニメーション（すべて同時に）
+            // セクションタイトルのアニメーション
             const sectionTitles = document.querySelectorAll('.section-title');
             sectionTitles.forEach((title) => {
                 title.classList.add('animate-in');
             });
 
-            // 特徴カードのアニメーション（すべて同時に）
+            // 特徴カードのアニメーション
             const featureCards = document.querySelectorAll('.feature-card');
             featureCards.forEach((card) => {
                 card.classList.add('animate-in');
             });
 
-            // 統計カードのアニメーション（すべて同時に）
+            // 統計カードのアニメーション
             const statCards = document.querySelectorAll('.stat-card');
             statCards.forEach((card) => {
                 card.classList.add('animate-in');
             });
 
-            // 目標アイテムのアニメーション（すべて同時に）
+            // 目標アイテムのアニメーション
             const goalItems = document.querySelectorAll('.goal-item');
             goalItems.forEach((item) => {
                 item.classList.add('animate-in');
@@ -452,16 +448,12 @@
 
             // フッターのアニメーション
             const footer = document.querySelector('footer');
-            if (footer && !footer.classList.contains('visible')) {
-                footer.classList.add('fade-in');
+            if (footer) {
                 footer.classList.add('visible');
             }
         }
 
-        // ページ読み込み時にアニメーションを初期化（auth.jsから呼び出されるため、ここでは実行しない）
-        // auth.jsのshowMainContent()から呼び出される
-
-        // 認証後にアニメーションを再初期化（auth.jsから呼び出される可能性があるため）
+        // 認証後にアニメーションを初期化（auth.jsから呼び出される）
         window.initPageAnimations = initPageAnimations;
     </script>
     </div> <!-- main-content の終了 -->
