@@ -300,6 +300,54 @@
                 body.classList.remove('menu-open');
             }
         });
+
+        // アクティブなナビゲーションリンクを設定
+        window.setActiveNavLink = function setActiveNavLink() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-links a');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+            
+            // すべてのリンクからactiveクラスを削除
+            navLinks.forEach(link => link.classList.remove('active'));
+            mobileNavLinks.forEach(link => link.classList.remove('active'));
+            
+            // 現在のページに応じてアクティブなリンクを設定
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && (href === 'contact.html' || currentPath.includes('contact.html'))) {
+                    link.classList.add('active');
+                }
+            });
+            
+            mobileNavLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && (href === 'contact.html' || currentPath.includes('contact.html'))) {
+                    link.classList.add('active');
+                }
+            });
+        };
+        
+        window.initActiveNavLink = function initActiveNavLink() {
+            const mainContent = document.getElementById('main-content');
+            if (mainContent && (mainContent.style.display !== 'none' && mainContent.style.visibility !== 'hidden')) {
+                setActiveNavLink();
+            } else {
+                setTimeout(() => {
+                    const navLinks = document.querySelectorAll('.nav-links a');
+                    if (navLinks.length > 0) {
+                        setActiveNavLink();
+                    } else {
+                        setTimeout(initActiveNavLink, 100);
+                    }
+                }, 100);
+            }
+        };
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initActiveNavLink);
+        } else {
+            initActiveNavLink();
+        }
     </script>
 </body>
 </html>

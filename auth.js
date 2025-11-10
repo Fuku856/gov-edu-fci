@@ -728,22 +728,38 @@ function hideLoginPage() {
 function showMainContent() {
   const mainContent = document.getElementById('main-content');
   if (mainContent) {
-    mainContent.style.display = 'block';
-    // 表示を確実にするため、少し遅延してvisibilityを変更
+    // bodyにauth-checkedクラスを追加（CSSの!importantルールを回避）
+    document.body.classList.add('auth-checked');
+    
+    // インラインスタイルで確実に表示（!importantを使用）
+    mainContent.style.setProperty('display', 'block', 'important');
+    mainContent.style.setProperty('visibility', 'visible', 'important');
+    mainContent.style.setProperty('opacity', '1', 'important');
+    
+    // ヘッダーも確実に表示
+    const header = mainContent.querySelector('header');
+    if (header) {
+      header.style.setProperty('display', 'block', 'important');
+      header.style.setProperty('visibility', 'visible', 'important');
+      // 初期状態（非表示）にする（下から上にアニメーション）
+      header.style.opacity = '0';
+      header.style.transform = 'translateY(40px)';
+    }
+    
+    // フッターも確実に表示
+    const footer = mainContent.querySelector('footer');
+    if (footer) {
+      footer.style.setProperty('display', 'block', 'important');
+      footer.style.setProperty('visibility', 'visible', 'important');
+    }
+    
+    // 表示を確実にするため、少し遅延してアクティブなナビゲーションリンクを設定
     setTimeout(() => {
-      mainContent.style.visibility = 'visible';
       // アクティブなナビゲーションリンクを設定（グローバル関数が存在する場合）
       if (typeof setActiveNavLink === 'function') {
         setActiveNavLink();
       } else if (typeof initActiveNavLink === 'function') {
         initActiveNavLink();
-      }
-      
-      // ヘッダーを初期状態（非表示）にする（下から上にアニメーション）
-      const header = mainContent.querySelector('header');
-      if (header) {
-        header.style.opacity = '0';
-        header.style.transform = 'translateY(40px)';
       }
     }, 50);
     console.log('showMainContent: メインコンテンツを表示しました');
