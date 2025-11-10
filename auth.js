@@ -749,10 +749,19 @@ function showMainContent() {
       header.style.removeProperty('visibility');
       header.style.setProperty('display', 'block', 'important');
       header.style.setProperty('visibility', 'visible', 'important');
-      // 初期状態（非表示）にする（下から上にアニメーション）
-      // initPageAnimations()で設定されるため、ここでは設定しない
-      // header.style.opacity = '0';
-      // header.style.transform = 'translateY(40px)';
+      console.log('Header display and visibility set');
+      
+      // ページ全体のフェードインアニメーションと同時にヘッダーも表示
+      // 少し遅延してからヘッダーのアニメーションを開始
+      setTimeout(() => {
+        header.classList.add('header-visible');
+        console.log('header-visible class added at', Date.now());
+        // インラインスタイルのopacityとtransformを削除してCSSクラスのアニメーションを適用
+        setTimeout(() => {
+          header.style.removeProperty('opacity');
+          header.style.removeProperty('transform');
+        }, 50);
+      }, 850); // ページ全体のフェードイン（0.8秒）がほぼ完了してから
     }
     
     // フッターも確実に表示
@@ -762,7 +771,14 @@ function showMainContent() {
       footer.style.removeProperty('visibility');
       footer.style.setProperty('display', 'block', 'important');
       footer.style.setProperty('visibility', 'visible', 'important');
-      // フッターのopacityはCSSとinitPageAnimations()で制御されるため、ここでは設定しない
+      console.log('Footer display and visibility set');
+      
+      // ページ全体のフェードイン後にフッターを表示（アニメーション付き）
+      setTimeout(() => {
+        footer.classList.add('visible');
+        footer.classList.add('fade-in');
+        console.log('footer visible and fade-in classes added at', Date.now());
+      }, 1100); // ページ全体のフェードインが完了してから少し遅延
     }
     
     // main-content内のすべてのセクションも表示
@@ -822,6 +838,61 @@ function showMainContent() {
     setTimeout(() => {
       window.initPageAnimations();
     }, 900); // ページ全体のフェードイン（0.8秒）が完了してから実行
+  } else {
+    // initPageAnimations()が定義されていない場合（members.htmlなど）、
+    // auth.jsで直接ヘッダーとフッターのアニメーションを実行
+    setTimeout(() => {
+      const header = mainContent.querySelector('header');
+      if (header && !header.classList.contains('header-visible')) {
+        header.classList.add('header-visible');
+        setTimeout(() => {
+          header.style.removeProperty('opacity');
+          header.style.removeProperty('transform');
+        }, 50);
+      }
+      
+      const footer = mainContent.querySelector('footer');
+      if (footer && !footer.classList.contains('visible')) {
+        footer.classList.add('visible');
+        footer.classList.add('fade-in');
+      }
+      
+      // セクションタイトル、カード、アイテムなどのアニメーション
+      const sectionTitles = mainContent.querySelectorAll('.section-title');
+      sectionTitles.forEach((title, index) => {
+        setTimeout(() => {
+          title.classList.add('animate-in');
+        }, 300 + index * 100);
+      });
+      
+      const featureCards = mainContent.querySelectorAll('.feature-card');
+      featureCards.forEach((card, index) => {
+        setTimeout(() => {
+          card.classList.add('animate-in');
+        }, 600 + index * 100);
+      });
+      
+      const statCards = mainContent.querySelectorAll('.stat-card');
+      statCards.forEach((card, index) => {
+        setTimeout(() => {
+          card.classList.add('animate-in');
+        }, 400 + index * 150);
+      });
+      
+      const goalItems = mainContent.querySelectorAll('.goal-item');
+      goalItems.forEach((item, index) => {
+        setTimeout(() => {
+          item.classList.add('animate-in');
+        }, 500 + index * 100);
+      });
+      
+      const ctaContent = mainContent.querySelector('.cta-section-content');
+      if (ctaContent) {
+        setTimeout(() => {
+          ctaContent.classList.add('animate-in');
+        }, 800);
+      }
+    }, 900);
   }
 }
 

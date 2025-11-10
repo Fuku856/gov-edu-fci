@@ -56,12 +56,14 @@ body.auth-checked #main-content header {
     display: block !important;
     visibility: visible !important;
     /* ヘッダーのopacityは個別アニメーションで制御 */
+    /* ただし、すぐに表示されるようにするため、auth-checkedの場合は最低限のopacityを設定 */
 }
 
 body.auth-checked #main-content footer {
     display: block !important;
     visibility: visible !important;
     /* フッターのopacityは個別アニメーションで制御 */
+    /* ただし、すぐに表示されるようにするため、auth-checkedの場合は最低限のopacityを設定 */
 }
 
 body.auth-checked #main-content section {
@@ -116,11 +118,17 @@ header {
     transform: translateY(40px);
 }
 
+/* ヘッダーが表示される状態 */
 #main-content:not([style*="display: none"]) header.header-visible,
 header.header-visible,
 body.auth-checked header.header-visible {
     opacity: 1 !important;
     transform: translateY(0) !important;
+}
+
+/* body.auth-checkedの場合、ヘッダーが存在する場合は最低限表示（アニメーション前でも見えるように） */
+body.auth-checked #main-content header:not(.header-visible) {
+    opacity: 0.3 !important; /* 完全に透明ではなく、少し見えるように */
 }
 
 header:hover {
@@ -769,6 +777,9 @@ footer.visible,
 body.auth-checked footer.visible {
     opacity: 1 !important;
 }
+
+/* body.auth-checkedの場合、フッターは表示される（opacityは個別アニメーションで制御） */
+/* アニメーションが実行されるまでの間も、ページ全体のフェードインに含まれる */
 
 .footer-content {
     max-width: 1200px;
