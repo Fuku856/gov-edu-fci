@@ -401,15 +401,6 @@
 
         // ページ読み込み時のアニメーション効果（すべて同時に開始）
         function initPageAnimations() {
-            const mainContent = document.getElementById('main-content');
-            if (!mainContent) return;
-            
-            // メインコンテンツが表示されているか確認
-            if (mainContent.style.display === 'none' || mainContent.style.visibility === 'hidden') {
-                setTimeout(initPageAnimations, 100);
-                return;
-            }
-
             // すべてのアニメーションを同時に開始（ページ全体のフェードインと同時）
             // ヘッダーのアニメーション
             const header = document.querySelector('header');

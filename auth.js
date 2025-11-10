@@ -634,40 +634,75 @@ function showMainContent() {
   const mainContent = document.getElementById('main-content');
   if (mainContent) {
     // まず、bodyにauth-checkedクラスを追加（CSSの!importantルールを回避）
-    // これにより、CSSルールが適用されなくなる
     document.body.classList.add('auth-checked');
     
     // インラインスタイルで確実に表示（!importantを使用）
     mainContent.style.setProperty('display', 'block', 'important');
     mainContent.style.setProperty('visibility', 'visible', 'important');
     
-    // アクティブなナビゲーションリンクを設定
-    if (typeof setActiveNavLink === 'function') {
-      setActiveNavLink();
-    } else if (typeof initActiveNavLink === 'function') {
-      initActiveNavLink();
-    }
-    
     // body要素のクラスを削除（ログイン状態のスタイルを適用）
     document.body.classList.remove('logged-out');
     document.body.classList.add('logged-in');
     
-    // ページ読み込み時のアニメーション効果を初期化
-    if (typeof window.initPageAnimations === 'function') {
-      // ページ全体のフェードインと同時に開始
-      window.initPageAnimations();
-    } else {
-      // initPageAnimations()が定義されていない場合（members.htmlなど）、
-      // ヘッダーとフッターを直接表示
+    // アニメーションクラスを追加する関数
+    const applyAnimations = () => {
+      // ヘッダー
       const header = mainContent.querySelector('header');
       if (header) {
         header.classList.add('header-visible');
       }
       
+      // セクションタイトル、カード、アイテムなどのアニメーション
+      const sectionTitles = mainContent.querySelectorAll('.section-title');
+      sectionTitles.forEach((title) => {
+        title.classList.add('animate-in');
+      });
+      
+      const featureCards = mainContent.querySelectorAll('.feature-card');
+      featureCards.forEach((card) => {
+        card.classList.add('animate-in');
+      });
+      
+      const statCards = mainContent.querySelectorAll('.stat-card');
+      statCards.forEach((card) => {
+        card.classList.add('animate-in');
+      });
+      
+      const goalItems = mainContent.querySelectorAll('.goal-item');
+      goalItems.forEach((item) => {
+        item.classList.add('animate-in');
+      });
+      
+      const ctaContent = mainContent.querySelector('.cta-section-content');
+      if (ctaContent) {
+        ctaContent.classList.add('animate-in');
+      }
+      
+      // フッター
       const footer = mainContent.querySelector('footer');
       if (footer) {
         footer.classList.add('visible');
       }
+    };
+    
+    // initPageAnimations()が定義されている場合はそれを使用、なければ直接適用
+    if (typeof window.initPageAnimations === 'function') {
+      // requestAnimationFrameを使ってDOMの更新を待つ
+      requestAnimationFrame(() => {
+        window.initPageAnimations();
+      });
+    } else {
+      // 即座にアニメーションクラスを適用（requestAnimationFrameでDOMの更新を待つ）
+      requestAnimationFrame(() => {
+        applyAnimations();
+      });
+    }
+    
+    // アクティブなナビゲーションリンクを設定
+    if (typeof setActiveNavLink === 'function') {
+      setActiveNavLink();
+    } else if (typeof initActiveNavLink === 'function') {
+      initActiveNavLink();
     }
   } else {
     // login.htmlを使用している場合は、index.htmlにリダイレクト
