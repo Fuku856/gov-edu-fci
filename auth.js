@@ -78,7 +78,7 @@ function initializeAuth() {
               showMainContent();
               
               // ユーザー情報を表示（ヘッダーにログアウトボタンを表示）
-              updateUserInfo(user);
+              await updateUserInfo(user);
             } else {
               // 許可されていないユーザーの場合、ログアウト
               console.log('認証失敗: 許可されていないユーザー');
@@ -364,7 +364,7 @@ async function linkGitHubProvider() {
     alert('GitHub認証をリンクしました。今後はGitHubアカウントでもログインできます。');
     
     // ユーザー情報を更新
-    updateUserInfo(result.user);
+    await updateUserInfo(result.user);
   } catch (error) {
     console.error('GitHub認証のリンクエラー:', error);
     
@@ -782,15 +782,30 @@ function getProviderIcon(providerId) {
 /**
  * ユーザー情報を更新（ヘッダーにログアウトボタンを表示）
  */
-function updateUserInfo(user) {
+async function updateUserInfo(user) {
   const userInfo = document.getElementById('user-info');
   const mobileUserInfo = document.getElementById('mobile-user-info');
-  const userName = user.displayName || user.email.split('@')[0];
   
   // 認証プロバイダーを取得（最初のプロバイダーを使用）
   const providerId = user.providerData && user.providerData.length > 0 
     ? user.providerData[0].providerId 
     : 'google.com'; // デフォルトはGoogle
+  
+  // GitHubプロバイダーの場合はGitHubユーザー名を取得
+  let userName;
+  if (providerId === 'github.com') {
+    const githubUsername = await getGitHubUsernameFromUser(user);
+    if (githubUsername) {
+      userName = githubUsername;
+    } else {
+      // GitHubユーザー名が取得できない場合は、メールアドレスのローカル部分を使用
+      userName = user.displayName || user.email.split('@')[0];
+    }
+  } else {
+    // Googleなどの他のプロバイダーの場合は従来通り
+    userName = user.displayName || user.email.split('@')[0];
+  }
+  
   const providerIcon = getProviderIcon(providerId);
   
   // モバイル表示用（モバイルメニュー内に表示）

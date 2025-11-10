@@ -313,6 +313,68 @@
                 body.classList.remove('menu-open');
             }
         });
+
+        // アクティブなナビゲーションリンクを設定
+        function setActiveNavLink() {
+            const currentPath = window.location.pathname;
+            const currentHash = window.location.hash || '';
+            const isIndexPage = currentPath.endsWith('/') || currentPath.endsWith('/index.html') || currentPath.endsWith('index.html');
+            const navLinks = document.querySelectorAll('.nav-links a');
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+            
+            function checkLink(link) {
+                link.classList.remove('active');
+                const linkHref = link.getAttribute('href');
+                if (!linkHref) return;
+                
+                const linkParts = linkHref.split('#');
+                const linkPath = linkParts[0];
+                const linkHash = linkParts[1] ? '#' + linkParts[1] : '';
+                
+                // ページリンクの場合（members.htmlなど）
+                if (linkPath && linkPath !== '' && !linkPath.startsWith('#')) {
+                    const normalizedLinkPath = linkPath.replace(/^\.\//, '');
+                    const normalizedCurrentPath = currentPath.replace(/\/$/, '');
+                    if (normalizedCurrentPath.endsWith(normalizedLinkPath) || 
+                        (normalizedLinkPath === 'index.html' && isIndexPage)) {
+                        link.classList.add('active');
+                        return;
+                    }
+                }
+                
+                // ハッシュリンクの場合（#featuresなど、index.html内のセクション）
+                if (linkHash && isIndexPage) {
+                    if (currentHash === linkHash) {
+                        link.classList.add('active');
+                        return;
+                    }
+                    // ハッシュがない場合、デフォルトで#featuresをアクティブにする
+                    if (!currentHash && linkHash === '#features') {
+                        link.classList.add('active');
+                        return;
+                    }
+                }
+                
+                // index.html#features のような形式の場合
+                if (linkPath && linkHash) {
+                    const normalizedLinkPath = linkPath.replace(/^\.\//, '');
+                    if ((normalizedLinkPath === 'index.html' || normalizedLinkPath === '') && isIndexPage) {
+                        if (currentHash === linkHash || (!currentHash && linkHash === '#features')) {
+                            link.classList.add('active');
+                        }
+                    }
+                }
+            }
+            
+            navLinks.forEach(checkLink);
+            mobileNavLinks.forEach(checkLink);
+        }
+        
+        // ページ読み込み時にアクティブなリンクを設定
+        setActiveNavLink();
+        
+        // ハッシュ変更時にもアクティブなリンクを更新
+        window.addEventListener('hashchange', setActiveNavLink);
     </script>
     </div> <!-- main-content の終了 -->
 </body>
