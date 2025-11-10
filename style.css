@@ -52,18 +52,29 @@ body.auth-checked #main-content {
     }
 }
 
+/* ページ全体のフェードイン中に、すべての子要素も一緒にフェードイン */
+/* ただし、個別のアニメーションがある要素（ヒーローなど）は除外 */
+body.auth-checked #main-content section,
+body.auth-checked #main-content .section-title,
+body.auth-checked #main-content .feature-card,
+body.auth-checked #main-content .stat-card,
+body.auth-checked #main-content .goal-item,
+body.auth-checked #main-content .cta-section-content {
+    opacity: inherit;
+}
+
 body.auth-checked #main-content header {
     display: block !important;
     visibility: visible !important;
-    /* ヘッダーのopacityは個別アニメーションで制御 */
-    /* ただし、すぐに表示されるようにするため、auth-checkedの場合は最低限のopacityを設定 */
+    /* ページ全体のフェードインに含まれる */
+    opacity: inherit;
 }
 
 body.auth-checked #main-content footer {
     display: block !important;
     visibility: visible !important;
-    /* フッターのopacityは個別アニメーションで制御 */
-    /* ただし、すぐに表示されるようにするため、auth-checkedの場合は最低限のopacityを設定 */
+    /* ページ全体のフェードインに含まれる */
+    opacity: inherit;
 }
 
 body.auth-checked #main-content section {
@@ -113,22 +124,10 @@ header {
     top: 0;
     z-index: 100;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    transition: background 0.3s ease, box-shadow 0.3s ease, opacity 0.8s ease-out, transform 0.8s ease-out;
-    opacity: 0;
-    transform: translateY(40px);
-}
-
-/* ヘッダーが表示される状態 */
-#main-content:not([style*="display: none"]) header.header-visible,
-header.header-visible,
-body.auth-checked header.header-visible {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-}
-
-/* body.auth-checkedの場合、ヘッダーが存在する場合は最低限表示（アニメーション前でも見えるように） */
-body.auth-checked #main-content header:not(.header-visible) {
-    opacity: 0.3 !important; /* 完全に透明ではなく、少し見えるように */
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    /* ページ全体のフェードインに含まれる */
+    opacity: inherit;
+    transform: translateY(0);
 }
 
 header:hover {
@@ -328,14 +327,8 @@ body.menu-open .scroll-top-btn {
     padding: 8rem 2rem;
     text-align: center;
     overflow: hidden;
-    opacity: 0;
-    animation: fadeInHero 1s ease-out 0.3s forwards;
-}
-
-@keyframes fadeInHero {
-    to {
-        opacity: 1;
-    }
+    /* ページ全体のフェードインに含まれるため、個別のアニメーションは削除 */
+    opacity: inherit;
 }
 
 .hero::before {
@@ -427,13 +420,8 @@ section {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     font-weight: 700;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.section-title.animate-in {
-    opacity: 1;
+    /* ページ全体のフェードインに含まれる */
+    opacity: inherit;
     transform: translateY(0);
 }
 
@@ -454,8 +442,9 @@ section {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    opacity: 0;
-    transform: translateY(20px);
+    /* ページ全体のフェードインに含まれる */
+    opacity: inherit;
+    transform: translateY(0);
 }
 
 .feature-card::before {
@@ -470,11 +459,6 @@ section {
     transition: opacity 0.4s;
 }
 
-.feature-card.animate-in {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
 
 .feature-card:hover {
     transform: translateY(-12px) scale(1.02);
@@ -581,14 +565,9 @@ section {
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.3s;
-    opacity: 0;
-    transform: translateY(20px);
-}
-
-.stat-card.animate-in {
-    opacity: 1;
+    /* ページ全体のフェードインに含まれる */
+    opacity: inherit;
     transform: translateY(0);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
 
 .stat-card:hover {
@@ -627,14 +606,9 @@ section {
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.5);
     transition: all 0.4s;
-    opacity: 0;
-    transform: translateX(-30px);
-}
-
-.goal-item.animate-in {
-    opacity: 1;
+    /* ページ全体のフェードインに含まれる */
+    opacity: inherit;
     transform: translateX(0);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
 
 .goal-item:hover {
@@ -696,13 +670,8 @@ section {
 .cta-section-content {
     position: relative;
     z-index: 1;
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-
-.cta-section-content.animate-in {
-    opacity: 1;
+    /* ページ全体のフェードインに含まれる */
+    opacity: inherit;
     transform: translateY(0);
 }
 
@@ -769,13 +738,8 @@ footer {
     -webkit-backdrop-filter: blur(20px);
     color: white;
     padding: 3rem 0 1.5rem;
-    opacity: 0;
-    transition: opacity 0.6s ease-out;
-}
-
-footer.visible,
-body.auth-checked footer.visible {
-    opacity: 1 !important;
+    /* ページ全体のフェードインに含まれる */
+    opacity: inherit;
 }
 
 /* body.auth-checkedの場合、フッターは表示される（opacityは個別アニメーションで制御） */
