@@ -738,6 +738,13 @@ function showMainContent() {
       } else if (typeof initActiveNavLink === 'function') {
         initActiveNavLink();
       }
+      
+      // ヘッダーを初期状態（非表示）にする
+      const header = mainContent.querySelector('header');
+      if (header) {
+        header.style.opacity = '0';
+        header.style.transform = 'translateY(-40px)';
+      }
     }, 50);
     console.log('showMainContent: メインコンテンツを表示しました');
   } else {
@@ -758,7 +765,7 @@ function showMainContent() {
   if (typeof window.initPageAnimations === 'function') {
     setTimeout(() => {
       window.initPageAnimations();
-    }, 100);
+    }, 150);
   }
 }
 

@@ -27,7 +27,8 @@ body {
 /* 認証状態が確認されるまで、すべてのコンテンツを非表示 */
 /* これにより、ページ読み込み時の一瞬のコンテンツ表示を防ぐ */
 body:not(.auth-checked) #main-content,
-body:not(.auth-checked) #login-page {
+body:not(.auth-checked) #login-page,
+body:not(.auth-checked) #main-content header {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
@@ -75,7 +76,15 @@ header {
     top: 0;
     z-index: 100;
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    transition: background 0.3s ease, box-shadow 0.3s ease;
+    transition: background 0.3s ease, box-shadow 0.3s ease, opacity 0.8s ease-out, transform 0.8s ease-out;
+    opacity: 0;
+    transform: translateY(-40px);
+}
+
+#main-content:not([style*="display: none"]) header.header-visible,
+header.header-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 header:hover {

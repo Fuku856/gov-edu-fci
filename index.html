@@ -411,6 +411,23 @@
                 return;
             }
 
+            // ヘッダーのアニメーション（最初に表示）
+            const header = document.querySelector('header');
+            if (header) {
+                // ヘッダーが確実に非表示状態から始まるようにする
+                header.style.opacity = '0';
+                header.style.transform = 'translateY(-40px)';
+                // 少し待ってからアニメーション開始
+                setTimeout(() => {
+                    header.classList.add('header-visible');
+                    // インラインスタイルを削除してCSSクラスのアニメーションを適用
+                    setTimeout(() => {
+                        header.style.opacity = '';
+                        header.style.transform = '';
+                    }, 50);
+                }, 200);
+            }
+
             // セクションタイトルのアニメーション
             const sectionTitles = document.querySelectorAll('.section-title');
             sectionTitles.forEach((title, index) => {
