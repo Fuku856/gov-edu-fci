@@ -38,17 +38,30 @@ body:not(.auth-checked) #main-content header {
 body.auth-checked #main-content {
     display: block !important;
     visibility: visible !important;
-    opacity: 1 !important;
+    /* ページ全体のフェードイン効果 */
+    opacity: 0;
+    animation: fadeInPage 0.8s ease-out forwards;
+}
+
+@keyframes fadeInPage {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 body.auth-checked #main-content header {
     display: block !important;
     visibility: visible !important;
+    /* ヘッダーのopacityは個別アニメーションで制御 */
 }
 
 body.auth-checked #main-content footer {
     display: block !important;
     visibility: visible !important;
+    /* フッターのopacityは個別アニメーションで制御 */
 }
 
 body.auth-checked #main-content section {
@@ -104,9 +117,10 @@ header {
 }
 
 #main-content:not([style*="display: none"]) header.header-visible,
-header.header-visible {
-    opacity: 1;
-    transform: translateY(0);
+header.header-visible,
+body.auth-checked header.header-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
 }
 
 header:hover {
@@ -751,8 +765,9 @@ footer {
     transition: opacity 0.6s ease-out;
 }
 
-footer.visible {
-    opacity: 1;
+footer.visible,
+body.auth-checked footer.visible {
+    opacity: 1 !important;
 }
 
 .footer-content {

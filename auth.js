@@ -735,12 +735,12 @@ function showMainContent() {
     // インラインスタイルを削除してから、新しいスタイルを設定
     mainContent.style.removeProperty('display');
     mainContent.style.removeProperty('visibility');
-    mainContent.style.removeProperty('opacity');
+    // opacityはCSSアニメーションに任せる（削除しない）
     
     // インラインスタイルで確実に表示（!importantを使用）
     mainContent.style.setProperty('display', 'block', 'important');
     mainContent.style.setProperty('visibility', 'visible', 'important');
-    mainContent.style.setProperty('opacity', '1', 'important');
+    // opacityはCSSアニメーション（fadeInPage）に任せるため、!importantで設定しない
     
     // ヘッダーも確実に表示
     const header = mainContent.querySelector('header');
@@ -750,8 +750,9 @@ function showMainContent() {
       header.style.setProperty('display', 'block', 'important');
       header.style.setProperty('visibility', 'visible', 'important');
       // 初期状態（非表示）にする（下から上にアニメーション）
-      header.style.opacity = '0';
-      header.style.transform = 'translateY(40px)';
+      // initPageAnimations()で設定されるため、ここでは設定しない
+      // header.style.opacity = '0';
+      // header.style.transform = 'translateY(40px)';
     }
     
     // フッターも確実に表示
@@ -761,6 +762,7 @@ function showMainContent() {
       footer.style.removeProperty('visibility');
       footer.style.setProperty('display', 'block', 'important');
       footer.style.setProperty('visibility', 'visible', 'important');
+      // フッターのopacityはCSSとinitPageAnimations()で制御されるため、ここでは設定しない
     }
     
     // main-content内のすべてのセクションも表示
@@ -786,6 +788,20 @@ function showMainContent() {
     console.log('main-content display:', mainContent.style.display);
     console.log('main-content visibility:', mainContent.style.visibility);
     console.log('body.auth-checked:', document.body.classList.contains('auth-checked'));
+    
+    // ヘッダーとフッターの存在を確認
+    const headerCheck = mainContent.querySelector('header');
+    const footerCheck = mainContent.querySelector('footer');
+    console.log('header found:', !!headerCheck);
+    console.log('footer found:', !!footerCheck);
+    if (headerCheck) {
+      console.log('header display:', headerCheck.style.display);
+      console.log('header visibility:', headerCheck.style.visibility);
+    }
+    if (footerCheck) {
+      console.log('footer display:', footerCheck.style.display);
+      console.log('footer visibility:', footerCheck.style.visibility);
+    }
   } else {
     console.warn('showMainContent: メインコンテンツの要素が見つかりません（login.htmlを使用している可能性があります）');
     // login.htmlを使用している場合は、index.htmlにリダイレクト
@@ -801,10 +817,11 @@ function showMainContent() {
   document.body.classList.add('logged-in');
   
   // ページ読み込み時のアニメーション効果を初期化
+  // 少し遅延して実行（ページ全体のフェードインアニメーションが完了してから）
   if (typeof window.initPageAnimations === 'function') {
     setTimeout(() => {
       window.initPageAnimations();
-    }, 150);
+    }, 900); // ページ全体のフェードイン（0.8秒）が完了してから実行
   }
 }
 
