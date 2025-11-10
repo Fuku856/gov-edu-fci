@@ -732,7 +732,13 @@ function showMainContent() {
     // 表示を確実にするため、少し遅延してvisibilityを変更
     setTimeout(() => {
       mainContent.style.visibility = 'visible';
-    }, 10);
+      // アクティブなナビゲーションリンクを設定（グローバル関数が存在する場合）
+      if (typeof setActiveNavLink === 'function') {
+        setActiveNavLink();
+      } else if (typeof initActiveNavLink === 'function') {
+        initActiveNavLink();
+      }
+    }, 50);
     console.log('showMainContent: メインコンテンツを表示しました');
   } else {
     console.warn('showMainContent: メインコンテンツの要素が見つかりません（login.htmlを使用している可能性があります）');
