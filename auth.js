@@ -751,17 +751,19 @@ function showMainContent() {
       header.style.setProperty('visibility', 'visible', 'important');
       console.log('Header display and visibility set');
       
-      // ページ全体のフェードインアニメーションと同時にヘッダーも表示
-      // 少し遅延してからヘッダーのアニメーションを開始
-      setTimeout(() => {
-        header.classList.add('header-visible');
-        console.log('header-visible class added at', Date.now());
-        // インラインスタイルのopacityとtransformを削除してCSSクラスのアニメーションを適用
+      // ヘッダーのアニメーションはinitPageAnimations()で実行（重複を避ける）
+      // ただし、initPageAnimations()が存在しない場合はここで実行
+      if (typeof window.initPageAnimations !== 'function') {
         setTimeout(() => {
-          header.style.removeProperty('opacity');
-          header.style.removeProperty('transform');
-        }, 50);
-      }, 850); // ページ全体のフェードイン（0.8秒）がほぼ完了してから
+          header.classList.add('header-visible');
+          console.log('header-visible class added at', Date.now());
+          // インラインスタイルのopacityとtransformを削除してCSSクラスのアニメーションを適用
+          setTimeout(() => {
+            header.style.removeProperty('opacity');
+            header.style.removeProperty('transform');
+          }, 50);
+        }, 50); // すぐに開始
+      }
     }
     
     // フッターも確実に表示
@@ -773,12 +775,15 @@ function showMainContent() {
       footer.style.setProperty('visibility', 'visible', 'important');
       console.log('Footer display and visibility set');
       
-      // ページ全体のフェードイン後にフッターを表示（アニメーション付き）
-      setTimeout(() => {
-        footer.classList.add('visible');
-        footer.classList.add('fade-in');
-        console.log('footer visible and fade-in classes added at', Date.now());
-      }, 1100); // ページ全体のフェードインが完了してから少し遅延
+      // フッターのアニメーションはinitPageAnimations()で実行（重複を避ける）
+      // ただし、initPageAnimations()が存在しない場合はここで実行
+      if (typeof window.initPageAnimations !== 'function') {
+        setTimeout(() => {
+          footer.classList.add('visible');
+          footer.classList.add('fade-in');
+          console.log('footer visible and fade-in classes added at', Date.now());
+        }, 500); // 少し遅延してから
+      }
     }
     
     // main-content内のすべてのセクションも表示
@@ -833,11 +838,12 @@ function showMainContent() {
   document.body.classList.add('logged-in');
   
   // ページ読み込み時のアニメーション効果を初期化
-  // 少し遅延して実行（ページ全体のフェードインアニメーションが完了してから）
+  // ページ全体のフェードインアニメーションと同時に開始（速く）
   if (typeof window.initPageAnimations === 'function') {
+    // initPageAnimations()が存在する場合、少し待ってから実行（DOMの準備を待つ）
     setTimeout(() => {
       window.initPageAnimations();
-    }, 900); // ページ全体のフェードイン（0.8秒）が完了してから実行
+    }, 50); // すぐに実行（ページ全体のフェードインと同時に）
   } else {
     // initPageAnimations()が定義されていない場合（members.htmlなど）、
     // auth.jsで直接ヘッダーとフッターのアニメーションを実行
@@ -857,42 +863,42 @@ function showMainContent() {
         footer.classList.add('fade-in');
       }
       
-      // セクションタイトル、カード、アイテムなどのアニメーション
+      // セクションタイトル、カード、アイテムなどのアニメーション（速く、順番に）
       const sectionTitles = mainContent.querySelectorAll('.section-title');
       sectionTitles.forEach((title, index) => {
         setTimeout(() => {
           title.classList.add('animate-in');
-        }, 300 + index * 100);
+        }, 200 + index * 50);
       });
       
       const featureCards = mainContent.querySelectorAll('.feature-card');
       featureCards.forEach((card, index) => {
         setTimeout(() => {
           card.classList.add('animate-in');
-        }, 600 + index * 100);
+        }, 300 + index * 50);
       });
       
       const statCards = mainContent.querySelectorAll('.stat-card');
       statCards.forEach((card, index) => {
         setTimeout(() => {
           card.classList.add('animate-in');
-        }, 400 + index * 150);
+        }, 250 + index * 80);
       });
       
       const goalItems = mainContent.querySelectorAll('.goal-item');
       goalItems.forEach((item, index) => {
         setTimeout(() => {
           item.classList.add('animate-in');
-        }, 500 + index * 100);
+        }, 350 + index * 60);
       });
       
       const ctaContent = mainContent.querySelector('.cta-section-content');
       if (ctaContent) {
         setTimeout(() => {
           ctaContent.classList.add('animate-in');
-        }, 800);
+        }, 500);
       }
-    }, 900);
+    }, 150);
   }
 }
 

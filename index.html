@@ -413,51 +413,46 @@
 
             // ヘッダーのアニメーション（最初に表示）
             const header = document.querySelector('header');
-            if (header) {
-                // ヘッダーが確実に非表示状態から始まるようにする（下から上にアニメーション）
-                header.style.opacity = '0';
-                header.style.transform = 'translateY(40px)';
-                // 少し待ってからアニメーション開始
+            if (header && !header.classList.contains('header-visible')) {
+                // すぐにアニメーション開始（ページ全体のフェードインと同時に）
+                header.classList.add('header-visible');
+                // インラインスタイルのopacityとtransformを削除してCSSクラスのアニメーションを適用
                 setTimeout(() => {
-                    header.classList.add('header-visible');
-                    // インラインスタイルを削除してCSSクラスのアニメーションを適用
-                    setTimeout(() => {
-                        header.style.opacity = '';
-                        header.style.transform = '';
-                    }, 50);
-                }, 200);
+                    header.style.removeProperty('opacity');
+                    header.style.removeProperty('transform');
+                }, 50);
             }
 
-            // セクションタイトルのアニメーション
+            // セクションタイトルのアニメーション（速く、順番に）
             const sectionTitles = document.querySelectorAll('.section-title');
             sectionTitles.forEach((title, index) => {
                 setTimeout(() => {
                     title.classList.add('animate-in');
-                }, 300 + index * 100);
+                }, 200 + index * 50);
             });
 
-            // 特徴カードのアニメーション
+            // 特徴カードのアニメーション（速く、順番に）
             const featureCards = document.querySelectorAll('.feature-card');
             featureCards.forEach((card, index) => {
                 setTimeout(() => {
                     card.classList.add('animate-in');
-                }, 600 + index * 100);
+                }, 300 + index * 50);
             });
 
-            // 統計カードのアニメーション
+            // 統計カードのアニメーション（速く、順番に）
             const statCards = document.querySelectorAll('.stat-card');
             statCards.forEach((card, index) => {
                 setTimeout(() => {
                     card.classList.add('animate-in');
-                }, 400 + index * 150);
+                }, 250 + index * 80);
             });
 
-            // 目標アイテムのアニメーション
+            // 目標アイテムのアニメーション（速く、順番に）
             const goalItems = document.querySelectorAll('.goal-item');
             goalItems.forEach((item, index) => {
                 setTimeout(() => {
                     item.classList.add('animate-in');
-                }, 500 + index * 100);
+                }, 350 + index * 60);
             });
 
             // CTAセクションのアニメーション
@@ -465,27 +460,21 @@
             if (ctaContent) {
                 setTimeout(() => {
                     ctaContent.classList.add('animate-in');
-                }, 800);
+                }, 500);
             }
 
             // フッターのアニメーション
             const footer = document.querySelector('footer');
-            if (footer) {
+            if (footer && !footer.classList.contains('visible')) {
                 setTimeout(() => {
                     footer.classList.add('fade-in');
                     footer.classList.add('visible');
-                }, 1000);
+                }, 450); // セクションアニメーションの後に表示
             }
         }
 
-        // ページ読み込み時にアニメーションを初期化
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                setTimeout(initPageAnimations, 500);
-            });
-        } else {
-            setTimeout(initPageAnimations, 500);
-        }
+        // ページ読み込み時にアニメーションを初期化（auth.jsから呼び出されるため、ここでは実行しない）
+        // auth.jsのshowMainContent()から呼び出される
 
         // 認証後にアニメーションを再初期化（auth.jsから呼び出される可能性があるため）
         window.initPageAnimations = initPageAnimations;

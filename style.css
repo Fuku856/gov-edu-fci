@@ -38,9 +38,9 @@ body:not(.auth-checked) #main-content header {
 body.auth-checked #main-content {
     display: block !important;
     visibility: visible !important;
-    /* ページ全体のフェードイン効果 */
+    /* ページ全体のフェードイン効果（速く） */
     opacity: 0;
-    animation: fadeInPage 0.8s ease-out forwards;
+    animation: fadeInPage 0.4s ease-out forwards;
 }
 
 @keyframes fadeInPage {
