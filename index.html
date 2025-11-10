@@ -333,9 +333,15 @@
                 
                 // ページリンクの場合（members.htmlなど）
                 if (linkPath && linkPath !== '' && !linkPath.startsWith('#')) {
-                    const normalizedLinkPath = linkPath.replace(/^\.\//, '');
-                    const normalizedCurrentPath = currentPath.replace(/\/$/, '');
-                    if (normalizedCurrentPath.endsWith(normalizedLinkPath) || 
+                    // パスを正規化（先頭の/や./を削除、末尾の/を削除）
+                    const normalizedLinkPath = linkPath.replace(/^\.\//, '').replace(/^\//, '').toLowerCase();
+                    const normalizedCurrentPath = currentPath.replace(/\/$/, '').replace(/^\//, '').toLowerCase();
+                    
+                    // ファイル名だけを比較（ディレクトリパスを無視）
+                    const linkFileName = normalizedLinkPath.split('/').pop();
+                    const currentFileName = normalizedCurrentPath.split('/').pop();
+                    
+                    if (currentFileName === linkFileName || 
                         (normalizedLinkPath === 'index.html' && isIndexPage)) {
                         link.classList.add('active');
                         return;
@@ -357,7 +363,7 @@
                 
                 // index.html#features のような形式の場合
                 if (linkPath && linkHash) {
-                    const normalizedLinkPath = linkPath.replace(/^\.\//, '');
+                    const normalizedLinkPath = linkPath.replace(/^\.\//, '').replace(/^\//, '').toLowerCase();
                     if ((normalizedLinkPath === 'index.html' || normalizedLinkPath === '') && isIndexPage) {
                         if (currentHash === linkHash || (!currentHash && linkHash === '#features')) {
                             link.classList.add('active');
