@@ -1306,3 +1306,293 @@ body.toc-open .scroll-top-btn {
         height: 20px;
     }
 }
+
+/* 特徴・目標詳細ページのスタイル */
+.feature-detail-card {
+    padding: 3rem;
+    margin-bottom: 3rem;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.feature-detail-card.animate-in {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-detail-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.1), rgba(0, 217, 255, 0.1));
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+.feature-detail-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 70px rgba(0, 102, 255, 0.3);
+    border-color: rgba(0, 180, 255, 0.7);
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.feature-detail-card:hover::before {
+    opacity: 1;
+}
+
+.feature-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.feature-icon-large {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--secondary-blue), var(--accent-cyan));
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0, 128, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.feature-detail-header h3 {
+    color: var(--primary-blue);
+    font-size: 2rem;
+    margin: 0;
+    font-weight: 700;
+}
+
+.feature-detail-content {
+    position: relative;
+    z-index: 1;
+}
+
+.feature-detail-description {
+    color: var(--text-dark);
+    font-size: 1.125rem;
+    line-height: 1.8;
+    margin-bottom: 2rem;
+    font-weight: 500;
+}
+
+.feature-detail-points,
+.feature-detail-benefits {
+    margin-bottom: 2rem;
+}
+
+.feature-detail-points h4,
+.feature-detail-benefits h4 {
+    color: var(--primary-blue);
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.feature-detail-points ul,
+.feature-detail-benefits ul {
+    list-style: none;
+    padding: 0;
+}
+
+.feature-detail-points li,
+.feature-detail-benefits li {
+    color: var(--text-light);
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.feature-detail-points li::before,
+.feature-detail-benefits li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: var(--accent-cyan);
+    font-weight: 700;
+}
+
+.feature-detail-points li strong {
+    color: var(--primary-blue);
+    font-weight: 600;
+}
+
+/* 目標詳細アイテムのスタイル */
+.goal-detail-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 3rem;
+    margin-bottom: 3rem;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.4s;
+    opacity: 0;
+    transform: translateX(-30px);
+}
+
+.goal-detail-item.animate-in {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.goal-detail-item:hover {
+    transform: translateX(15px) translateY(-3px);
+    box-shadow: 0 20px 60px rgba(0, 102, 255, 0.3);
+    border-color: rgba(0, 180, 255, 0.7);
+    background: rgba(255, 255, 255, 0.75);
+}
+
+.goal-number-large {
+    min-width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, var(--secondary-blue), var(--accent-cyan));
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.75rem;
+    margin-right: 2rem;
+    box-shadow: 0 8px 20px rgba(0, 128, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.goal-detail-content {
+    flex: 1;
+}
+
+.goal-detail-content h3 {
+    color: var(--primary-blue);
+    margin-bottom: 1rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.goal-detail-description {
+    color: var(--text-dark);
+    font-size: 1.125rem;
+    line-height: 1.8;
+    margin-bottom: 2rem;
+    font-weight: 500;
+}
+
+.goal-detail-strategies,
+.goal-detail-metrics {
+    margin-bottom: 2rem;
+}
+
+.goal-detail-strategies h4,
+.goal-detail-metrics h4 {
+    color: var(--primary-blue);
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.goal-detail-strategies ul,
+.goal-detail-metrics ul {
+    list-style: none;
+    padding: 0;
+}
+
+.goal-detail-strategies li,
+.goal-detail-metrics li {
+    color: var(--text-light);
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.goal-detail-strategies li::before,
+.goal-detail-metrics li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--accent-cyan);
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.goal-detail-strategies li strong {
+    color: var(--primary-blue);
+    font-weight: 600;
+}
+
+/* レスポンシブ対応（特徴・目標詳細ページ） */
+@media (max-width: 768px) {
+    .feature-detail-card {
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .feature-detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .feature-icon-large {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+
+    .feature-detail-header h3 {
+        font-size: 1.5rem;
+    }
+
+    .feature-detail-description {
+        font-size: 1rem;
+    }
+
+    .goal-detail-item {
+        flex-direction: column;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .goal-number-large {
+        min-width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        margin-right: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .goal-detail-content h3 {
+        font-size: 1.5rem;
+    }
+
+    .goal-detail-description {
+        font-size: 1rem;
+    }
+
+    .goal-detail-item:hover {
+        transform: translateY(-3px);
+    }
+}
