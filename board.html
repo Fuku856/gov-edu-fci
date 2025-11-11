@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>掲示板 - 生徒会活動資金見える化プロジェクト</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Firebase設定と認証スクリプト -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.local.js" onerror="console.log('auth.local.js が見つかりません（開発用ファイルです）')"></script>
+    <script src="auth.js"></script>
+    <script src="admin.js"></script>
+</head>
+<body>
+    <!-- ログインページ -->
+    <div id="login-page" style="display: none; visibility: hidden; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0066ff 0%, #00b8d4 100%); z-index: 10000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;">
+        <div style="background: white; border-radius: 20px; padding: 3rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); max-width: 400px; width: 90%; text-align: center;">
+            <h1 style="color: #0052cc; margin-bottom: 1rem; font-size: 1.8rem;">🏫 生徒会 見える化</h1>
+            <p style="color: #64748b; margin-bottom: 2rem; line-height: 1.6;">学校のGoogleアカウントまたはGitHubアカウントでログインしてください</p>
+            
+            <button id="google-login-btn" onclick="signInWithGoogle()" style="background: #0066d9; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; width: 100%; min-height: 3.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-sizing: border-box; transition: background 0.3s;">
+                <svg style="width: 20px; height: 20px; flex-shrink: 0;" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                <span>Googleでログイン</span>
+            </button>
+            
+            <div style="margin: 1.5rem 0; text-align: center; position: relative;">
+                <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #e2e8f0;"></div>
+                <span style="background: white; padding: 0 1rem; color: #64748b; font-size: 0.9rem; position: relative;">または</span>
+            </div>
+            
+            <button id="github-login-btn" onclick="signInWithGitHub()" style="background: #24292e; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; width: 100%; min-height: 3.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0; box-sizing: border-box;">
+                <svg style="width: 20px; height: 20px; fill: currentColor; flex-shrink: 0;" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                <span>GitHubでログイン（開発者用）</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div id="main-content" style="display: none; visibility: hidden;">
+        <header>
+            <nav>
+                <div class="nav-left">
+                    <a href="index.html" class="logo">🏫 生徒会 見える化</a>
+                    <ul class="nav-links">
+                        <li><a href="index.html#features">特徴</a></li>
+                        <li><a href="index.html#goals">目標</a></li>
+                        <li><a href="members.html">メンバー紹介</a></li>
+                        <li><a href="board.html" class="active">掲示板</a></li>
+                        <li><a href="index.html#dashboard">ダッシュボード</a></li>
+                    </ul>
+                </div>
+                <div class="nav-right">
+                    <div id="user-info" style="display: none;"></div>
+                    <button class="hamburger" aria-label="メニューを開く" aria-expanded="false">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </button>
+                </div>
+            </nav>
+            <div class="mobile-menu-overlay">
+                <ul class="mobile-nav-links">
+                    <li><a href="index.html#features" class="mobile-nav-link">特徴</a></li>
+                    <li><a href="index.html#goals" class="mobile-nav-link">目標</a></li>
+                    <li><a href="members.html" class="mobile-nav-link">メンバー紹介</a></li>
+                    <li><a href="board.html" class="mobile-nav-link active">掲示板</a></li>
+                    <li><a href="index.html#dashboard" class="mobile-nav-link">ダッシュボード</a></li>
+                    <li id="mobile-user-info" style="display: none; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.2);"></li>
+                </ul>
+            </div>
+        </header>
+
+        <main class="board-container">
+            <section class="board-intro">
+                <h1>掲示板</h1>
+                <p>生徒会に伝えたいアイデアや意見を投稿してください。管理者が承認した投稿が公開され、全員が賛成・反対・中立の投票を行えます。</p>
+                <div class="board-limits">
+                    <div>
+                        <h3>投稿制限</h3>
+                        <p>1日あたり最大 <strong>30件</strong></p>
+                    </div>
+                    <div>
+                        <h3>投票制限</h3>
+                        <p>1日あたり最大 <strong>3,000票</strong></p>
+                    </div>
+                    <div>
+                        <h3>現在の利用状況</h3>
+                        <p id="daily-usage">読み込み中...</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="board-form-section">
+                <h2>新規投稿</h2>
+                <form id="post-form" class="board-form">
+                    <div class="form-group">
+                        <label for="post-title">タイトル</label>
+                        <input type="text" id="post-title" name="post-title" maxlength="80" required placeholder="例: 文化祭の新しい企画について">
+                    </div>
+                    <div class="form-group">
+                        <label for="post-content">内容</label>
+                        <textarea id="post-content" name="post-content" rows="5" maxlength="1000" required placeholder="提案内容や背景などを詳しく書いてください。"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">承認申請として投稿</button>
+                        <p id="post-feedback" class="feedback-message"></p>
+                    </div>
+                </form>
+            </section>
+
+            <section class="board-posts-section">
+                <h2>承認済み投稿</h2>
+                <div id="posts-container" class="board-posts">
+                    <p class="empty-message">承認済みの投稿が表示されます。</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>プロジェクトについて</h3>
+                    <ul>
+                        <li><a href="index.html#goals">目的</a></li>
+                        <li><a href="features.html">特徴・目標の詳細</a></li>
+                        <li><a href="members.html">メンバー</a></li>
+                        <li><a href="project-members.html">プロジェクトメンバー</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>情報公開</h3>
+                    <ul>
+                        <li><a href="#">予算・決算</a></li>
+                        <li><a href="#">月次レポート</a></li>
+                        <li><a href="#">活動記録</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>参加する</h3>
+                    <ul>
+                        <li><a href="contact.html">意見を送る</a></li>
+                        <li><a href="contact.html">質問する</a></li>
+                        <li><a href="contact.html">改善提案</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>技術情報</h3>
+                    <ul>
+                        <li><a href="https://github.com/Fuku856/gov-edu-fci" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                        <li><a href="documents.html">ドキュメント</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                        <li><a href="glossary.html">用語集</a></li>
+                        <li><a href="contact.html">お問い合わせ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 生徒会活動資金見える化プロジェクト Created by Ryoichiro Onoe</p>
+            </div>
+        </footer>
+    </div>
+
+    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="ページの先頭に戻る">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </button>
+
+    <script src="board.js"></script>
+</body>
+</html>
+
