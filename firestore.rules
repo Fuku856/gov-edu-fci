@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 管理者コレクション
+    match /admins/{adminId} {
+      // 読み取り: 管理者のみが自分の情報または他の管理者情報を読み取れる
+      allow read: if request.auth != null && 
+                    (request.auth.uid == adminId || 
+                     (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+                      get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true));
+      
+      // 書き込み: スーパー管理者のみが追加/更新/削除できる
+      allow write: if request.auth != null && 
+                     exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+                     get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'super_admin';
+    }
+    
+    // 投稿データ
+    match /posts/{postId} {
+      // 承認済み投稿: 全認証済みユーザーが閲覧可能
+      allow read: if request.auth != null && 
+                    resource.data.status == 'approved';
+      
+      // 承認待ち/却下投稿: 管理者のみ閲覧可能
+      allow read: if request.auth != null && 
+                    (resource.data.status == 'pending' || resource.data.status == 'rejected') &&
+                    exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+                    get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+      
+      // 投稿者本人は自分の投稿を閲覧可能（承認待ちでも）
+      allow read: if request.auth != null && 
+                    resource.data.authorId == request.auth.uid;
+      
+      // 投稿の作成: 認証済みユーザー全員（作成時は必ずpending）
+      allow create: if request.auth != null && 
+                      request.resource.data.authorId == request.auth.uid &&
+                      request.resource.data.status == 'pending';
+      
+      // 投稿の更新（承認/却下）: 管理者のみ
+      allow update: if request.auth != null && 
+                      exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+                      get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true &&
+                      // ステータスの変更のみ許可（approved または rejected）
+                      (request.resource.data.status == 'approved' || request.resource.data.status == 'rejected');
+      
+      // 投稿の削除: 投稿者本人または管理者
+      allow delete: if request.auth != null && 
+                      (resource.data.authorId == request.auth.uid ||
+                       (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+                        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true));
+    }
+    
+    // 投票データ
+    match /votes/{voteId} {
+      // 読み取り: 認証済みユーザー全員
+      allow read: if request.auth != null;
+      
+      // 投票の作成: 認証済みユーザー全員（1人1回のみ）
+      // 注意: 同じ投稿に対する重複投票のチェックは、クライアント側とアプリ側で実装が必要
+      allow create: if request.auth != null && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // 投票の更新: 自分の投票のみ
+      allow update: if request.auth != null && 
+                      resource.data.userId == request.auth.uid &&
+                      request.resource.data.userId == request.auth.uid;
+      
+      // 投票の削除: 自分の投票のみ
+      allow delete: if request.auth != null && 
+                      resource.data.userId == request.auth.uid;
+    }
+    
+    // 日次カウンター
+    match /daily_counters/{date} {
+      // 読み取り: 認証済みユーザー全員
+      allow read: if request.auth != null;
+      
+      // 書き込み: 認証済みユーザー全員（制限はアプリ側で実装）
+      allow write: if request.auth != null;
+    }
+  }
+}

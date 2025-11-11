@@ -69,7 +69,7 @@
 
 ## 🔐 認証システム
 
-このサイトは学校関係者および開発者のみがアクセスできるよう、**Firebase Authentication**を使用した認証システムが実装されています。
+このサイトは学校関係者および開発者のみがアクセスできるよう、**Firebase Authentication**と**Firestoreセキュリティルール**を使用した認証システムが実装されています。
 
 ### 認証方法
 
@@ -81,6 +81,28 @@
 1. サイトにアクセスすると、ログインページが表示されます
 2. 学校のGoogleアカウントまたは許可されたGitHubアカウントでログインしてください
 3. 認証が成功すると、サイトのコンテンツを閲覧できます
+
+### 認証強化
+
+認証システムは、**Firestoreセキュリティルール**を使用してサーバーサイドで保護されています。
+
+#### 特徴
+
+- **サーバーサイドでの認証チェック**: Firestoreセキュリティルールで保護
+- **開発者ツールから回避不可能**: サーバー側で実行されるため
+- **管理者権限管理**: Firestoreの `admins` コレクションで管理
+- **コード内にメールアドレスを記述しない**: セキュアな実装
+
+#### セットアップ手順
+
+詳細なセットアップ手順は、[Auth/QUICK_SETUP_GUIDE.md](./Auth/QUICK_SETUP_GUIDE.md) を参照してください。
+
+**クイックスタート**:
+1. Firestore Databaseを有効化
+2. セキュリティルールを設定
+3. 最初の管理者を追加
+
+詳細は [Auth/README.md](./Auth/README.md) を参照してください。
 
 ## ファイル構成
 
@@ -96,15 +118,22 @@ gov-edu-fci/
 ├── glossary.html           # 用語集ページ
 ├── style.css               # スタイルシート
 ├── auth.js                 # 認証管理スクリプト
+├── admin.js                # 管理者権限管理スクリプト
 ├── auth.local.js           # 開発用認証設定（.gitignoreで除外）
 ├── firebase-config.js      # Firebase設定ファイル
+├── firestore.rules         # Firestoreセキュリティルール
 ├── functions/
 │   └── _middleware.js      # サーバー側ミドルウェア
 ├── Auth/                   # 認証に関するドキュメント
+│   ├── README.md           # 認証強化ドキュメントの概要
+│   ├── QUICK_SETUP_GUIDE.md # クイックセットアップガイド
+│   ├── AUTHENTICATION_ENHANCEMENT_GUIDE.md # 認証強化ガイド
+│   ├── FIRESTORE_SECURITY_SETUP.md # Firestoreセキュリティ設定
 │   ├── FIREBASE_SETUP_STEP_BY_STEP.md
 │   ├── GITHUB_AUTH_SETUP.md
 │   ├── GITHUB_AUTH_TROUBLESHOOTING.md
 │   ├── SECURITY_NOTES.md
+│   ├── SECURITY.md
 │   ├── TEST_ACCOUNT_SETUP.md
 │   └── TROUBLESHOOTING.md
 ├── .gitignore              # Git除外設定
@@ -116,8 +145,9 @@ gov-edu-fci/
 - すべてのページはFirebase Authenticationによる認証が必要です
 - 学校のGoogleアカウント（`@fcihs-satoyama.ed.jp`）のみがアクセス可能
 - 開発者用として、許可されたGitHubアカウントもアクセス可能
+- **Firestoreセキュリティルール**により、サーバーサイドでデータベースへのアクセスを保護
 - 認証状態はクライアント側で管理され、未認証ユーザーにはログインページが表示されます
-- 詳細は[`Auth/SECURITY_NOTES.md`](./Auth/SECURITY_NOTES.md)と[`Auth/SECURITY.md`](./Auth/SECURITY.md)を参照
+- 詳細は[`Auth/SECURITY_NOTES.md`](./Auth/SECURITY_NOTES.md)、[`Auth/SECURITY.md`](./Auth/SECURITY.md)、[`Auth/README.md`](./Auth/README.md)を参照
 
 
 
