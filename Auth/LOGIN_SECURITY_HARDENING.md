@@ -702,11 +702,86 @@ Firebase App Check は、Firebase サービス（Firestore、Authentication、St
 > - App Check のエラーが出る場合は、サイトキーが正しく設定されているか確認してください
 > - ローカル環境でテストする場合は、reCAPTCHA の設定で `localhost` をドメインに追加してください
 
-### 無料プランでの利用
+### コンソールメッセージについて
 
-- **reCAPTCHA v3**: 無料で利用可能（Spark プランでも利用可能）
-- **reCAPTCHA Enterprise**: 有料プランが必要（より高度な機能）
-- **推奨**: まずは **reCAPTCHA v3** で導入し、必要に応じて Enterprise にアップグレード
+ブラウザの開発者ツール（Console）に表示される以下のメッセージは、**無視して問題ありません**：
+
+#### 1. `auth.local.js` のエラー
+```
+MIME タイプ ("text/html") の不一致により "auth.local.js" からのリソースがブロックされました
+auth.local.js が見つかりません（開発用ファイルです）
+```
+- **原因**: `auth.local.js` は開発用ファイルで、本番環境には存在しません
+- **対処**: 無視して問題ありません。コード内で `onerror` で処理されているため、正常な動作です
+
+#### 2. Content-Security-Policy 警告
+```
+Content-Security-Policy 警告
+```
+- **原因**: ブラウザのセキュリティポリシーに関する警告です
+- **対処**: 通常は問題ありません。サイトが正常に動作していれば無視して問題ありません
+
+#### 3. reCAPTCHA の警告
+```
+エントリー種別 longtask はサポートされていません。無視されます。
+分離された Cookie またはストレージアクセスが提供されました
+```
+- **原因**: reCAPTCHA v3 がバックグラウンドで動作している際の内部的な警告です
+- **対処**: **無視して問題ありません**。reCAPTCHA は正常に動作しています
+
+#### 4. 正常な動作ログ
+```
+getGitHubUsernameFromUser: sessionStorageから取得: Fuku856
+```
+- **原因**: これは正常な動作のログです（GitHub ユーザー名を取得している）
+- **対処**: 問題ありません
+
+### まとめ
+
+上記のメッセージはすべて**無視して問題ありません**。サイトが正常に動作していれば、これらのメッセージは気にする必要はありません。
+
+**実際に問題がある場合のエラー例**:
+- `App Check token is invalid` → App Check の設定を確認
+- `Permission denied` → Firestore セキュリティルールを確認
+- `Network error` → ネットワーク接続を確認
+
+### 無料プランでの利用と課金について
+
+#### reCAPTCHA v3 は完全無料です ✅
+
+- **reCAPTCHA v3**: **完全無料**で利用可能（Spark プランでも利用可能）
+- **自動課金は発生しません**
+- **使用量の上限もありません**（無料で無制限に利用可能）
+- **Firebase App Check で使用する場合も無料**
+
+#### reCAPTCHA Enterprise は有料です ⚠️
+
+- **reCAPTCHA Enterprise**: 有料プランが必要（月額料金が発生する可能性があります）
+- **自動課金が発生する可能性があります**
+- **推奨**: **reCAPTCHA v3** を使用してください（無料で十分な機能があります）
+
+#### 重要な確認事項
+
+**現在の設定を確認する方法**:
+
+1. Firebase Console → **Build > App Check** にアクセス
+2. **「アプリ」** タブを選択
+3. 登録されているアプリの **「証明書プロバイダ」** を確認
+   - **「reCAPTCHA」** と表示されていれば → **無料** ✅
+   - **「reCAPTCHA Enterprise」** と表示されていれば → **有料** ⚠️
+
+**課金を防ぐために**:
+
+- ✅ **必ず「reCAPTCHA」（通常版）を選択してください**
+- ❌ **「reCAPTCHA Enterprise」は選択しないでください**
+
+#### まとめ
+
+- **reCAPTCHA v3（通常版）**: 完全無料、自動課金なし、使用量無制限
+- **reCAPTCHA Enterprise**: 有料、自動課金の可能性あり
+- **推奨**: **reCAPTCHA v3** を使用（無料で十分な機能があります）
+
+> **注意**: もし誤って reCAPTCHA Enterprise を選択してしまった場合は、Firebase Console から削除して、reCAPTCHA v3（通常版）に変更してください。
 
 ### まとめ
 
