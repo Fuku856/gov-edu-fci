@@ -13,6 +13,15 @@
     
     <!-- Firebase設定と認証スクリプト -->
     <script src="firebase-config.js"></script>
+    <!-- Firebase App Check -->
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6Lc_uQ0sAAAAAAg5vrtXvMSAqvcjv1IQhcTX4PXl"></script>
+    <script>
+      // Firebase App Check を初期化
+      if (typeof firebase !== 'undefined' && firebase.appCheck) {
+        const appCheck = firebase.appCheck();
+        appCheck.activate('6Lc_uQ0sAAAAAAg5vrtXvMSAqvcjv1IQhcTX4PXl', true); // true: 自動更新を有効化
+      }
+    </script>
     <!-- 開発用設定ファイル（存在する場合のみ読み込む、.gitignoreで除外されているためGitHubに公開されない） -->
     <script src="auth.local.js" onerror="console.log('auth.local.js が見つかりません（開発用ファイルです）')"></script>
     <script src="auth.js"></script>
