@@ -89,29 +89,152 @@ service cloud.firestore {
 
 ## 2. 管理者コレクションの設定
 
-管理者ユーザーを Firestore に登録し、承認操作を許可します。
+管理者ユーザーを Firestore に登録し、承認操作を許可します。この設定により、特定のユーザーのみが投稿の承認・却下を行えるようになります。
 
-1. 管理者にしたいユーザーでサイトにログイン
-2. ブラウザ開発者ツール（Console）で以下を実行して UID を取得
+### ステップ1: 管理者にしたいユーザーでログイン
+
+1. サイト（例: `https://gov-edu-fci.pages.dev/login.html`）にアクセス
+2. 管理者にしたいアカウント（Google または GitHub）でログイン
+3. ログインが完了したことを確認
+
+### ステップ2: ユーザーUIDを取得
+
+1. ブラウザの開発者ツールを開く
+   - **Chrome/Edge**: `F12` キー または `Ctrl + Shift + I`（Windows）/ `Cmd + Option + I`（Mac）
+   - **Firefox**: `F12` キー または `Ctrl + Shift + I`（Windows）/ `Cmd + Option + I`（Mac）
+2. **Console** タブを選択
+3. 以下のコマンドを入力して `Enter` キーを押す
    ```javascript
    firebase.auth().currentUser.uid
    ```
-3. Firebase Console → Firestore Database → **データ** → 「コレクションを開始」
-4. コレクション ID: `admins`
-5. ドキュメント ID: 取得した UID
-6. フィールドを追加（例）
+4. 表示された文字列（例: `abc123def456ghi789`）をコピーしてメモ帳などに保存
+   - この文字列が **ユーザーUID** です
 
-   | フィールド | 型 | 値 |
-   |-----------|----|-----|
-   | `userId`  | string  | UID |
-   | `email`   | string  | ユーザーのメール |
-   | `displayName` | string | 表示名 |
-   | `isAdmin` | boolean | true |
-   | `role`    | string  | `super_admin` |
-   | `createdAt` | timestamp | 現在日時 |
-   | `createdBy` | string | 自分の UID |
+> **注意**: `firebase.auth().currentUser` が `null` と表示される場合は、ログインが完了していない可能性があります。ページを再読み込みしてから再度試してください。
 
-7. 以降、管理者ユーザーを追加するときは同様にドキュメントを作成します。
+### ステップ3: Firebase Console にアクセス
+
+1. [Firebase Console](https://console.firebase.google.com/) にアクセス
+2. プロジェクトを選択（既に作成済みのプロジェクト）
+3. 左側メニューから **「Firestore Database」** をクリック
+4. 上部タブから **「データ」** を選択
+
+### ステップ4: 管理者コレクションを作成
+
+1. **「コレクションを開始」** ボタンをクリック
+2. **コレクション ID** に `admins` と入力（**必ず小文字で `admins` と入力**）
+3. **「次へ」** をクリック
+
+### ステップ5: 管理者ドキュメントを作成
+
+1. **ドキュメント ID** の入力欄で、**「自動ID」** のチェックを**外す**
+2. ステップ2で取得した **ユーザーUID** を貼り付け（例: `abc123def456ghi789`）
+3. **「次へ」** をクリック
+
+### ステップ6: フィールドを追加
+
+以下のフィールドを順番に追加します。各フィールドを追加するたびに **「フィールドを追加」** をクリックしてください。
+
+| フィールド名 | 型 | 値の例 | 説明 |
+|------------|----|--------|------|
+| `userId` | **string** | `abc123def456ghi789` | ステップ2で取得したUID（そのまま貼り付け） |
+| `email` | **string** | `admin@example.com` | 管理者のメールアドレス |
+| `displayName` | **string** | `管理者 太郎` | 表示名（任意） |
+| `isAdmin` | **boolean** | `true` | 管理者フラグ（**必ず `true` に設定**） |
+| `role` | **string** | `super_admin` | 権限レベル（`super_admin` または `admin`） |
+| `createdAt` | **timestamp** | （現在の日時が自動入力） | 作成日時（**「現在」** を選択） |
+| `createdBy` | **string** | `abc123def456ghi789` | 作成者のUID（自分自身のUID） |
+
+**フィールド追加の手順（例: `userId` フィールド）**:
+1. **「フィールドを追加」** をクリック
+2. **フィールド名** に `userId` と入力
+3. **型** で **「string」** を選択
+4. **値** に UID を貼り付け
+5. **「保存」** をクリック
+
+**`isAdmin` フィールドの追加（重要）**:
+1. **フィールド名**: `isAdmin`
+2. **型**: **「boolean」** を選択
+3. **値**: **`true`** を選択（チェックボックスをオンにする）
+4. **「保存」** をクリック
+
+**`createdAt` フィールドの追加**:
+1. **フィールド名**: `createdAt`
+2. **型**: **「timestamp」** を選択
+3. **値**: **「現在」** を選択（自動的に現在の日時が設定されます）
+4. **「保存」** をクリック
+
+### ステップ7: ドキュメントを保存
+
+すべてのフィールドを追加したら、**「保存」** ボタンをクリックしてドキュメントを作成します。
+
+### ステップ8: 設定の確認
+
+1. Firestore Database のデータタブで、`admins` コレクションが表示されていることを確認
+2. ドキュメントIDが自分のUIDになっていることを確認
+3. `isAdmin` が `true` になっていることを確認
+4. サイトに戻り、ページを再読み込み
+5. 管理者メニューや管理者専用のボタンが表示されることを確認
+
+> **確認方法（推奨）**: ブラウザの開発者ツール（Console）で以下を実行すると、管理者権限が正しく設定されているか確認できます。
+> 
+> **方法1: 1行で実行（最も簡単）**
+> 
+> 以下のコードを**1行で**コピーして、Consoleに貼り付けて `Enter` キーを押してください：
+> ```javascript
+> firebase.firestore().collection('admins').doc(firebase.auth().currentUser.uid).get().then(doc => { if (doc.exists) { console.log('✅ 管理者権限:', doc.data()); } else { console.log('❌ 管理者権限が設定されていません'); } });
+> ```
+> 
+> **方法2: より簡単な確認（推奨）**
+> 
+> 以下のコードをコピーして実行してください：
+> ```javascript
+> firebase.firestore().collection('admins').doc(firebase.auth().currentUser.uid).get().then(doc => console.log(doc.exists ? '✅ 管理者権限あり: ' + JSON.stringify(doc.data(), null, 2) : '❌ 管理者権限なし'));
+> ```
+> 
+> **方法3: 段階的に確認**
+> 
+> 1. まず、現在のユーザーUIDを確認：
+>    ```javascript
+>    console.log('UID:', firebase.auth().currentUser.uid);
+>    ```
+> 2. 次に、管理者ドキュメントを確認：
+>    ```javascript
+>    firebase.firestore().collection('admins').doc(firebase.auth().currentUser.uid).get().then(doc => console.log(doc.exists ? doc.data() : 'ドキュメントが見つかりません'));
+>    ```
+> 
+> **エラーが出る場合の対処法**:
+> - `auth.local.js` のエラーは無視して問題ありません（開発用ファイルです）
+> - 複数行のコードを貼り付ける場合は、コンソールの「複数行モード」ボタン（`</>` アイコン）をクリックしてから貼り付けてください
+> - それでもエラーが出る場合は、**方法1** または **方法2** の1行コードを使用してください
+
+### ステップ9: 追加の管理者を登録する場合
+
+2人目以降の管理者を追加する場合も、同じ手順を繰り返します：
+
+1. 追加したい管理者にログインしてもらう
+2. そのユーザーのUIDを取得
+3. Firebase Console の `admins` コレクションで **「ドキュメントを追加」** をクリック
+4. ドキュメントIDに新しいUIDを入力
+5. 同じフィールドを追加（`isAdmin: true`, `role: 'super_admin'` など）
+
+### トラブルシューティング
+
+**問題**: `admins` コレクションが見つからない
+- **解決策**: Firestore Database の「データ」タブで、コレクション一覧を確認してください。`admins` が表示されない場合は、ステップ4からやり直してください。
+
+**問題**: `isAdmin` が `false` になっている
+- **解決策**: ドキュメントを編集して、`isAdmin` フィールドの値を `true` に変更してください。
+
+**問題**: 管理者メニューが表示されない
+- **解決策**: 
+  1. ページを再読み込み（`Ctrl + F5` または `Cmd + Shift + R`）
+  2. ブラウザのキャッシュをクリア
+  3. 開発者ツールのConsoleでエラーが出ていないか確認
+  4. `admin.js` が正しく読み込まれているか確認
+
+**問題**: セキュリティルールでエラーが出る
+- **解決策**: ステップ1で設定した Firestore セキュリティルールが正しく公開されているか確認してください。`admins` コレクションの読み取り権限が設定されている必要があります。
 
 ---
 
