@@ -1217,21 +1217,8 @@ body.toc-open .scroll-top-btn {
     height: 24px;
 }
 
-/* reCAPTCHA バッジの位置調整（スクロールトップボタンと重ならないようにする）
-   ※ transform は reCAPTCHA 本体の開閉アニメーションに使われているため、上書きしない */
-.grecaptcha-badge {
-    position: fixed !important;
-    right: 5.5rem !important;  /* 右端のボタン群から少し左にオフセット */
-    bottom: 1.75rem !important; /* スクロールトップボタンと縦位置を合わせつつ少し上 */
-    z-index: 9998 !important;
-}
-
-@media (max-width: 768px) {
-    .grecaptcha-badge {
-        right: 4.5rem !important;  /* モバイルでも右端ボタンと被らない程度に左へ */
-        bottom: 1.5rem !important;
-    }
-}
+/* reCAPTCHA バッジの位置はデフォルトのまま使用する（右端に接した折りたたみ表示）。
+   ※ transform / right / bottom を強制上書きすると、モバイルで常時展開バーになってしまうため触らない。 */
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
@@ -1310,11 +1297,12 @@ body.toc-open .scroll-top-btn {
         font-size: 3rem;
     }
 
+    /* モバイル時は reCAPTCHA バッジ（右下）と重ならないよう、少し左上にオフセット */
     .scroll-top-btn {
         width: 48px;
         height: 48px;
-        bottom: 1.5rem;
-        right: 1.5rem;
+        bottom: 4rem;
+        right: 4.5rem;
     }
 
     .scroll-top-btn svg {
