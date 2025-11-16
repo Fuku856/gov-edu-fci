@@ -324,8 +324,30 @@ function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (m) => map[m]);
 }
 
-// ハンバーガーメニューの制御
+// スクロールトップボタンの制御
 document.addEventListener('DOMContentLoaded', () => {
+  const scrollTopBtn = document.getElementById('scrollTopBtn');
+  
+  if (scrollTopBtn) {
+    // スクロール位置を監視してボタンの表示/非表示を制御
+    window.addEventListener('scroll', () => {
+      if (window.pageYOffset > 300) {
+        scrollTopBtn.classList.add('visible');
+      } else {
+        scrollTopBtn.classList.remove('visible');
+      }
+    });
+    
+    // ボタンをクリックしたらページの最上部にスムーズにスクロール
+    scrollTopBtn.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+  }
+
+  // ハンバーガーメニューの制御
   const hamburger = document.querySelector('.hamburger');
   const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
   const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
