@@ -1127,6 +1127,21 @@ body.toc-open .scroll-top-btn {
 }
 
 /* レスポンシブ対応 */
+
+/* reCAPTCHA の高さ（モバイル専用設定） */
+@media (max-width: 768px) {
+    .grecaptcha-badge {
+        bottom: 9rem !important;  /* 現在使っている高さをモバイル専用に */
+    }
+}
+
+/* reCAPTCHA の高さ（デスクトップ専用設定） */
+@media (min-width: 769px) {
+    .grecaptcha-badge {
+        bottom: 12rem !important; /* デスクトップ用の高さ。好みに応じて調整可 */
+    }
+}
+
 @media (max-width: 768px) {
     .toc-toggle-btn {
         right: 0;
@@ -1151,7 +1166,7 @@ body.toc-open .scroll-top-btn {
 
     /* モバイルのトップページボタン位置（右端・reCAPTCHA の少し上に浮かせる） */
     .scroll-top-btn {
-        bottom: 2rem;
+        bottom: 1.5rem;
         right: 1.25rem;
         border-radius: 50%;
     }
@@ -1221,11 +1236,7 @@ body.toc-open .scroll-top-btn {
 /* reCAPTCHA バッジ
    - 位置・表示状態は Google 提供のデフォルトに完全に任せる（折りたたみ挙動も含めて）
    - レイアウトの都合上、オーバーレイ系 UI（メニュー / 目次）が開いている間だけ前面 UI を優先する */
-   .grecaptcha-badge {
-    bottom: 9rem !important;  /* 好きな高さに調整 */
-}
-
-   body.menu-open .grecaptcha-badge,
+body.menu-open .grecaptcha-badge,
 body.toc-open .grecaptcha-badge {
     opacity: 0;
     pointer-events: none;
