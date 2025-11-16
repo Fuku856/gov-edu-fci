@@ -954,7 +954,7 @@ footer.visible {
     position: fixed;
     right: 0;
     bottom: 8rem;
-    background: white;
+    background: rgba(255, 255, 255, 0.88);
     color: var(--primary-blue);
     border: 2px solid var(--primary-blue);
     border-right: none;
@@ -964,7 +964,7 @@ footer.visible {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    box-shadow: -4px 0 16px rgba(0, 102, 255, 0.2);
+    box-shadow: -4px 0 16px rgba(0, 102, 255, 0.18);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 9998;
     font-weight: 600;
@@ -1166,8 +1166,8 @@ body.toc-open .scroll-top-btn {
 
     /* モバイルのトップページボタン位置（右端・reCAPTCHA の少し上に浮かせる） */
     .scroll-top-btn {
-        bottom: 1.5rem;
-        right: 1.25rem;
+        bottom: 1.5rem !important;
+        right: 1.25rem !important;
         border-radius: 50%;
     }
 }
@@ -1180,8 +1180,8 @@ body.toc-open .scroll-top-btn {
     }
     
     .scroll-top-btn {
-        bottom: 2rem;
-        right: 1.25rem;
+        bottom: 2rem !important;
+        right: 1.25rem !important;
     }
 }
 
@@ -1192,7 +1192,7 @@ body.toc-open .scroll-top-btn {
     right: 2rem;
     width: 56px;
     height: 56px;
-    background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+    background: linear-gradient(135deg, rgba(0, 82, 204, 0.9), rgba(0, 102, 217, 0.9));
     color: white;
     border: none;
     border-radius: 50%;
