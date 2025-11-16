@@ -1217,6 +1217,22 @@ body.toc-open .scroll-top-btn {
     height: 24px;
 }
 
+/* reCAPTCHA バッジの位置調整（スクロールトップボタンと重ならないようにする） */
+.grecaptcha-badge {
+    position: fixed !important;
+    left: 0.75rem !important;
+    right: auto !important;
+    bottom: 0.75rem !important;
+    z-index: 9998 !important;
+}
+
+@media (max-width: 768px) {
+    .grecaptcha-badge {
+        transform: scale(0.9);
+        transform-origin: bottom left;
+    }
+}
+
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
     .hero h1 {
