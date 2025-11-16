@@ -1217,8 +1217,13 @@ body.toc-open .scroll-top-btn {
     height: 24px;
 }
 
-/* reCAPTCHA バッジの位置はデフォルトのまま使用する（右端に接した折りたたみ表示）。
-   ※ transform / right / bottom を強制上書きすると、モバイルで常時展開バーになってしまうため触らない。 */
+/* reCAPTCHA バッジの位置調整
+   - デフォルトの折りたたみ挙動を維持するため、transform は変更しない
+   - 右端に接したまま、スクロールトップボタンと目次ボタンより少し上に配置 */
+.grecaptcha-badge {
+    right: 0.5rem !important;
+    bottom: 4.5rem !important;
+}
 
 /* レスポンシブ対応 */
 @media (max-width: 768px) {
