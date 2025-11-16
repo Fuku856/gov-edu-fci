@@ -1217,19 +1217,19 @@ body.toc-open .scroll-top-btn {
     height: 24px;
 }
 
-/* reCAPTCHA バッジの位置調整（スクロールトップボタンと重ならないようにする） */
+/* reCAPTCHA バッジの位置調整（スクロールトップボタンと重ならないようにする）
+   ※ transform は reCAPTCHA 本体の開閉アニメーションに使われているため、上書きしない */
 .grecaptcha-badge {
     position: fixed !important;
-    left: 0.75rem !important;
-    right: auto !important;
-    bottom: 0.75rem !important;
+    right: 5.5rem !important;  /* 右端のボタン群から少し左にオフセット */
+    bottom: 1.75rem !important; /* スクロールトップボタンと縦位置を合わせつつ少し上 */
     z-index: 9998 !important;
 }
 
 @media (max-width: 768px) {
     .grecaptcha-badge {
-        transform: scale(0.9);
-        transform-origin: bottom left;
+        right: 4.5rem !important;  /* モバイルでも右端ボタンと被らない程度に左へ */
+        bottom: 1.5rem !important;
     }
 }
 
