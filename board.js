@@ -324,3 +324,39 @@ function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (m) => map[m]);
 }
 
+// ハンバーガーメニューの制御
+document.addEventListener('DOMContentLoaded', () => {
+  const hamburger = document.querySelector('.hamburger');
+  const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
+  const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+  const body = document.body;
+
+  if (hamburger && mobileMenuOverlay) {
+    // ハンバーガーボタンのクリックイベント
+    hamburger.addEventListener('click', () => {
+      const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
+      hamburger.setAttribute('aria-expanded', !isExpanded);
+      mobileMenuOverlay.classList.toggle('active');
+      body.classList.toggle('menu-open');
+    });
+
+    // モバイルメニューのリンクをクリックしたらメニューを閉じる
+    mobileNavLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.setAttribute('aria-expanded', 'false');
+        mobileMenuOverlay.classList.remove('active');
+        body.classList.remove('menu-open');
+      });
+    });
+
+    // オーバーレイの背景をクリックしたらメニューを閉じる
+    mobileMenuOverlay.addEventListener('click', (e) => {
+      if (e.target === mobileMenuOverlay) {
+        hamburger.setAttribute('aria-expanded', 'false');
+        mobileMenuOverlay.classList.remove('active');
+        body.classList.remove('menu-open');
+      }
+    });
+  }
+});
+
