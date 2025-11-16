@@ -1218,11 +1218,19 @@ body.toc-open .scroll-top-btn {
 }
 
 /* reCAPTCHA バッジの位置調整
-   - デフォルトの折りたたみ挙動を維持するため、transform は変更しない
-   - 右端に接したまま、スクロールトップボタンと目次ボタンより少し上に配置 */
+   - デフォルトの挙動（展開/非展開）は維持するため、transform などは変更しない
+   - 常に右端に接しつつ、スクロールトップボタン / 目次ボタンのエリアより十分上に逃がす */
 .grecaptcha-badge {
-    right: 0.5rem !important;
-    bottom: 4.5rem !important;
+    position: fixed !important;
+    right: 0 !important;
+    bottom: 8rem !important;   /* デスクトップ: ボタン群よりかなり上 */
+    z-index: 9998 !important;
+}
+
+@media (max-width: 768px) {
+    .grecaptcha-badge {
+        bottom: 10rem !important;  /* モバイル: 目次 / トップボタンよりさらに上 */
+    }
 }
 
 /* レスポンシブ対応 */
