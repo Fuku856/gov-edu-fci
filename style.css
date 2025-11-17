@@ -26,12 +26,24 @@ body {
 
 /* 認証状態が確認されるまで、すべてのコンテンツを非表示 */
 /* これにより、ページ読み込み時の一瞬のコンテンツ表示を防ぐ */
+/* セキュリティ強化: 開発者ツールで要素を削除しても、メインコンテンツは非表示のまま */
 body:not(.auth-checked) #main-content,
+body:not(.auth-checked) #main-content *,
 body:not(.auth-checked) #login-page,
 body:not(.auth-checked) #main-content header {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* login.htmlページ以外では、認証確認前はメインコンテンツを完全に非表示 */
+body:not(.auth-checked):not([data-login-page]) #main-content {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
 }
 
 /* 認証確認後は、main-contentとその子要素を表示 */

@@ -168,26 +168,52 @@ function initializeAuth() {
             // サーバー側で許可されていない場合、クライアント側のチェックは使用しない（セキュリティのため）
             // ただし、学校のメールドメイン（@fcihs-satoyama.ed.jp）の場合は、Firestoreセキュリティルールで許可されているため、isServerAllowedがtrueになっている
             if (isServerAllowed) {
-              // 許可されたユーザー（GitHub開発者または学校アカウント）の場合、サイトを表示
+              // 許可されたユーザー（GitHub開発者または学校アカウント）の場合
+              
+              // login.htmlページの場合、リダイレクト先のURLに遷移
+              const urlParams = new URLSearchParams(window.location.search);
+              const redirectUrl = urlParams.get('redirect');
+              
+              if (redirectUrl && window.location.pathname.includes('login.html')) {
+                // 元のページにリダイレクト
+                window.location.href = redirectUrl;
+                return; // リダイレクトするので、以降の処理は実行しない
+              }
+              
+              // 通常のページの場合、サイトを表示
               hideLoginPage();
               showMainContent();
               
               // ユーザー情報を表示（ヘッダーにログアウトボタンを表示）
               await updateUserInfo(user);
             } else {
-              // 許可されていないユーザーの場合、ログアウト
+              // 許可されていないユーザーの場合、ログアウトしてログインページにリダイレクト
               hideUserInfo();
               const providerType = user.providerData.some(p => p.providerId === 'github.com') 
                 ? 'GitHubアカウント' 
                 : 'メールアドレス';
               alert('このサイトは学校関係者または開発者のみがアクセスできます。\n許可されていない' + providerType + 'です。\nメールアドレス: ' + email);
               firebase.auth().signOut().then(() => {
-                showLoginPage();
-                hideMainContent();
+                // ログインページにリダイレクト
+                const currentUrl = window.location.href;
+                const loginUrl = `login.html?redirect=${encodeURIComponent(currentUrl)}`;
+                window.location.href = loginUrl;
               });
             }
           } else {
             // ユーザーがログインしていない
+            // ログインページ（login.html）にリダイレクト
+            // 現在のURLをクエリパラメータに保存して、認証後に元のページに戻れるようにする
+            const currentUrl = window.location.href;
+            const loginUrl = `login.html?redirect=${encodeURIComponent(currentUrl)}`;
+            
+            // login.htmlページでない場合のみリダイレクト
+            if (!window.location.pathname.includes('login.html')) {
+              window.location.href = loginUrl;
+              return; // リダイレクトするので、以降の処理は実行しない
+            }
+            
+            // login.htmlページの場合は、ログインページを表示
             hideUserInfo();
             showLoginPage();
             hideMainContent();
@@ -704,6 +730,11 @@ function isAllowedEmailDomain(email) {
  * ログインページを表示
  */
 function showLoginPage() {
+  // login.htmlページの場合は何もしない（既にログインページが表示されている）
+  if (window.location.pathname.includes('login.html')) {
+    return;
+  }
+  
   const loginPage = document.getElementById('login-page');
   if (loginPage) {
     loginPage.style.display = 'flex';
@@ -719,6 +750,11 @@ function showLoginPage() {
  * ログインページを非表示
  */
 function hideLoginPage() {
+  // login.htmlページの場合は何もしない（リダイレクトでページを離れるため）
+  if (window.location.pathname.includes('login.html')) {
+    return;
+  }
+  
   const loginPage = document.getElementById('login-page');
   if (loginPage) {
     loginPage.style.opacity = '0';
@@ -803,9 +839,12 @@ function showMainContent() {
       initActiveNavLink();
     }
   } else {
-    // login.htmlを使用している場合は、index.htmlにリダイレクト
+    // login.htmlを使用している場合は、リダイレクト先のURLに遷移
     if (window.location.pathname.includes('login.html')) {
-      window.location.href = 'index.html';
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectUrl = urlParams.get('redirect');
+      const targetUrl = redirectUrl || 'index.html';
+      window.location.href = targetUrl;
       return;
     }
     
@@ -819,11 +858,15 @@ function showMainContent() {
  * メインコンテンツを非表示
  */
 function hideMainContent() {
+  // login.htmlページの場合は何もしない（ログインページ専用ページのため）
+  if (window.location.pathname.includes('login.html')) {
+    return;
+  }
+  
   const mainContent = document.getElementById('main-content');
   if (mainContent) {
     mainContent.style.visibility = 'hidden';
     mainContent.style.display = 'none';
-  } else {
   }
   
   // body要素のクラスを追加（ログアウト状態のスタイルを適用）

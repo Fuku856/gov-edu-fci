@@ -201,6 +201,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <!-- Firebase設定と認証スクリプト -->
     <script src="firebase-config.js"></script>
@@ -218,63 +219,7 @@
     <script src="auth.js"></script>
     <script src="admin.js"></script>
     
-    <!-- login.html専用の認証処理 -->
-    <script>
-        // login.htmlを使用している場合の認証処理
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof firebase === 'undefined') {
-                console.error('Firebase SDKが読み込まれていません');
-                return;
-            }
-            
-            // 認証状態を監視
-            firebase.auth().onAuthStateChanged((user) => {
-                if (user) {
-                    const email = user.email;
-                    console.log('ログイン中のメールアドレス:', email);
-                    
-                    // GitHubユーザーかどうかをチェック（開発者用）
-                    let isGitHubUser = false;
-                    if (typeof isAllowedGitHubUser === 'function') {
-                        isGitHubUser = isAllowedGitHubUser(user);
-                    }
-                    
-                    // メールアドレスのチェック（auth.jsの関数を使用）
-                    const isAllowed = typeof isAllowedEmailDomain === 'function' && isAllowedEmailDomain(email);
-                    
-                    if (isGitHubUser || isAllowed) {
-                        // 認証成功: index.htmlにリダイレクト
-                        console.log('認証成功: index.htmlにリダイレクトします', isGitHubUser ? '(GitHub開発者)' : '(学校アカウント)');
-                        window.location.href = 'index.html';
-                    } else {
-                        // 許可されていないユーザー
-                        console.log('許可されていないユーザー:', email);
-                        const providerType = user.providerData.some(p => p.providerId === 'github.com') 
-                            ? 'GitHubアカウント' 
-                            : 'メールアドレス';
-                        alert('このサイトは学校関係者または開発者のみがアクセスできます。\n許可されていない' + providerType + 'です。\nメールアドレス: ' + email);
-                        firebase.auth().signOut();
-                    }
-                } else {
-                    // ログインしていない場合は、このページを表示
-                    console.log('ログインしていません: login.htmlを表示');
-                    
-                    // ログインボタンの状態をリセット
-                    const loginButton = document.getElementById('google-login-btn');
-                    if (loginButton) {
-                        loginButton.disabled = false;
-                        // SVGアイコンを保持したままテキストをリセット
-                        const svg = loginButton.querySelector('svg');
-                        if (svg) {
-                            loginButton.innerHTML = svg.outerHTML + ' Googleでログイン';
-                        } else {
-                            loginButton.textContent = 'Googleでログイン';
-                        }
-                    }
-                }
-            });
-        });
-    </script>
+    <!-- login.html専用の認証処理は不要（auth.jsで処理されるため） -->
 </body>
 </html>
 
