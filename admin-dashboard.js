@@ -13,6 +13,11 @@ const state = {
     currentPage: 1,
     totalPages: 1
   },
+  rejectedPosts: {
+    allPosts: [],
+    currentPage: 1,
+    totalPages: 1
+  },
   loginHistory: {
     allHistory: [],
     currentPage: 1,
@@ -96,11 +101,32 @@ function initAdminDashboard() {
       }
     });
   }
+
+  // 却下済み投稿のページネーションボタンのイベントリスナー
+  const rejectedPrevBtn = document.getElementById('rejected-prev-btn');
+  const rejectedNextBtn = document.getElementById('rejected-next-btn');
+  if (rejectedPrevBtn) {
+    rejectedPrevBtn.addEventListener('click', () => {
+      if (state.rejectedPosts.currentPage > 1) {
+        state.rejectedPosts.currentPage--;
+        renderRejectedPosts();
+      }
+    });
+  }
+  if (rejectedNextBtn) {
+    rejectedNextBtn.addEventListener('click', () => {
+      if (state.rejectedPosts.currentPage < state.rejectedPosts.totalPages) {
+        state.rejectedPosts.currentPage++;
+        renderRejectedPosts();
+      }
+    });
+  }
 }
 
 async function refreshAdminDashboard() {
   await updateAdminStats();
   await loadPendingPosts();
+  await loadRejectedPosts();
   await loadLoginHistory();
 }
 
@@ -341,6 +367,194 @@ async function rejectPost(postId, feedbackEl) {
   }
 }
 
+async function loadRejectedPosts() {
+  const container = document.getElementById('rejected-posts');
+  if (!container) return;
+
+  try {
+    // 30日以上前の却下済み投稿を削除
+    await deleteOldRejectedPosts();
+
+    const snapshot = await db
+      .collection('posts')
+      .where('status', '==', 'rejected')
+      .orderBy('rejectedAt', 'desc')
+      .limit(1000) // 最新1000件まで取得
+      .get();
+
+    const allPosts = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      allPosts.push({
+        id: doc.id,
+        title: data.title,
+        content: data.content,
+        authorId: data.authorId,
+        authorName: data.authorName,
+        createdAt: data.createdAt,
+        rejectedAt: data.rejectedAt,
+        rejectedBy: data.rejectedBy,
+        rejectionReason: data.rejectionReason || ''
+      });
+    });
+
+    state.rejectedPosts.allPosts = allPosts;
+    state.rejectedPosts.totalPages = Math.max(1, Math.ceil(allPosts.length / ITEMS_PER_PAGE));
+    state.rejectedPosts.currentPage = 1;
+
+    renderRejectedPosts();
+  } catch (error) {
+    console.error('却下済み投稿の取得に失敗しました', error);
+    container.innerHTML = '<p class="empty-message">却下済み投稿を読み込めませんでした。</p>';
+  }
+}
+
+/**
+ * 30日以上前の却下済み投稿を削除
+ */
+async function deleteOldRejectedPosts() {
+  try {
+    // 30日前の日時を計算
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgoTimestamp = firebase.firestore.Timestamp.fromDate(thirtyDaysAgo);
+
+    // 30日以上前の却下済み投稿を取得
+    const oldPostsSnapshot = await db
+      .collection('posts')
+      .where('status', '==', 'rejected')
+      .where('rejectedAt', '<', thirtyDaysAgoTimestamp)
+      .limit(500) // 一度に削除する件数を制限（Firestoreの制限を考慮）
+      .get();
+
+    if (oldPostsSnapshot.empty) {
+      return; // 削除するデータがない
+    }
+
+    // バッチ削除（Firestoreの制限により、1回のバッチで最大500件まで）
+    const batch = db.batch();
+    let deleteCount = 0;
+
+    oldPostsSnapshot.forEach((doc) => {
+      batch.delete(doc.ref);
+      deleteCount++;
+    });
+
+    await batch.commit();
+    console.log(`${deleteCount}件の古い却下済み投稿を削除しました（30日以上前）`);
+
+    // 500件以上ある場合は、再帰的に削除を続ける
+    if (deleteCount === 500) {
+      // 少し待ってから再度実行（レート制限を避けるため）
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await deleteOldRejectedPosts();
+    }
+  } catch (error) {
+    console.error('古い却下済み投稿の削除に失敗しました:', error);
+    // エラーが発生しても処理は続行
+  }
+}
+
+function renderRejectedPosts() {
+  const container = document.getElementById('rejected-posts');
+  const paginationEl = document.getElementById('rejected-posts-pagination');
+  const prevBtn = document.getElementById('rejected-prev-btn');
+  const nextBtn = document.getElementById('rejected-next-btn');
+  const pageInfo = document.getElementById('rejected-page-info');
+  
+  if (!container) return;
+
+  const { allPosts, currentPage, totalPages } = state.rejectedPosts;
+  
+  if (allPosts.length === 0) {
+    container.innerHTML = '<p class="empty-message">却下済み投稿はありません。</p>';
+    if (paginationEl) paginationEl.style.display = 'none';
+    return;
+  }
+
+  // 現在のページの投稿を取得
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentPosts = allPosts.slice(startIndex, endIndex);
+
+  container.innerHTML = '';
+  currentPosts.forEach((post) => {
+    const card = createRejectedCard(post.id, post);
+    container.appendChild(card);
+  });
+
+  // ページネーションUIを更新
+  if (paginationEl) {
+    if (totalPages > 1) {
+      paginationEl.style.display = 'flex';
+      if (prevBtn) prevBtn.disabled = currentPage === 1;
+      if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+      if (pageInfo) {
+        pageInfo.textContent = `${currentPage} / ${totalPages} ページ (全 ${allPosts.length} 件)`;
+      }
+    } else {
+      paginationEl.style.display = 'none';
+    }
+  }
+}
+
+function createRejectedCard(postId, data) {
+  const card = document.createElement('article');
+  card.className = 'admin-post-card';
+
+  // 投稿日時
+  let createdAt = null;
+  if (data.createdAt) {
+    try {
+      if (data.createdAt.toDate && typeof data.createdAt.toDate === 'function') {
+        createdAt = data.createdAt.toDate();
+      } else if (data.createdAt instanceof Date) {
+        createdAt = data.createdAt;
+      } else if (data.createdAt.seconds) {
+        createdAt = new Date(data.createdAt.seconds * 1000 + (data.createdAt.nanoseconds || 0) / 1000000);
+      }
+    } catch (error) {
+      console.error('投稿日時の変換エラー:', error);
+    }
+  }
+  const createdText = createdAt
+    ? createdAt.toLocaleString('ja-JP', { dateStyle: 'medium', timeStyle: 'short' })
+    : '投稿日時不明';
+
+  // 却下日時
+  let rejectedAt = null;
+  if (data.rejectedAt) {
+    try {
+      if (data.rejectedAt.toDate && typeof data.rejectedAt.toDate === 'function') {
+        rejectedAt = data.rejectedAt.toDate();
+      } else if (data.rejectedAt instanceof Date) {
+        rejectedAt = data.rejectedAt;
+      } else if (data.rejectedAt.seconds) {
+        rejectedAt = new Date(data.rejectedAt.seconds * 1000 + (data.rejectedAt.nanoseconds || 0) / 1000000);
+      }
+    } catch (error) {
+      console.error('却下日時の変換エラー:', error);
+    }
+  }
+  const rejectedText = rejectedAt
+    ? rejectedAt.toLocaleString('ja-JP', { dateStyle: 'medium', timeStyle: 'short' })
+    : '却下日時不明';
+
+  card.innerHTML = `
+    <div class="post-card-header">
+      <h3>${escapeHtml(data.title || '無題の投稿')}</h3>
+      <p class="post-meta">
+        投稿者: ${escapeHtml(data.authorName || '匿名')}・投稿日時: ${createdText}<br>
+        却下日時: ${rejectedText}
+      </p>
+    </div>
+    <p class="post-content">${escapeHtml(data.content || '')}</p>
+    ${data.rejectionReason ? `<p class="rejection-reason"><strong>却下理由:</strong> ${escapeHtml(data.rejectionReason)}</p>` : ''}
+  `;
+
+  return card;
+}
+
 function getTodayKey() {
   const now = new Date();
   const year = now.getFullYear();
@@ -355,6 +569,9 @@ async function loadLoginHistory() {
   if (!container) return;
 
   try {
+    // 1週間以上前のログイン履歴を削除
+    await deleteOldLoginHistory();
+
     const snapshot = await db
       .collection('login_history')
       .orderBy('loginAt', 'desc')
@@ -363,9 +580,16 @@ async function loadLoginHistory() {
 
     const allHistory = [];
     snapshot.forEach((doc) => {
+      const data = doc.data();
       allHistory.push({
         id: doc.id,
-        ...doc.data()
+        userId: data.userId,
+        email: data.email,
+        displayName: data.displayName,
+        providerId: data.providerId,
+        loginAt: data.loginAt, // FirestoreのTimestampオブジェクトをそのまま保持
+        userAgent: data.userAgent,
+        ipAddress: data.ipAddress
       });
     });
 
@@ -378,6 +602,51 @@ async function loadLoginHistory() {
     console.error('ログイン履歴の取得に失敗しました', error);
     container.innerHTML = '<p class="empty-message">ログイン履歴を読み込めませんでした。</p>';
     if (paginationEl) paginationEl.style.display = 'none';
+  }
+}
+
+/**
+ * 1週間以上前のログイン履歴を削除
+ */
+async function deleteOldLoginHistory() {
+  try {
+    // 1週間前の日時を計算
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const oneWeekAgoTimestamp = firebase.firestore.Timestamp.fromDate(oneWeekAgo);
+
+    // 1週間以上前のログイン履歴を取得
+    const oldHistorySnapshot = await db
+      .collection('login_history')
+      .where('loginAt', '<', oneWeekAgoTimestamp)
+      .limit(500) // 一度に削除する件数を制限（Firestoreの制限を考慮）
+      .get();
+
+    if (oldHistorySnapshot.empty) {
+      return; // 削除するデータがない
+    }
+
+    // バッチ削除（Firestoreの制限により、1回のバッチで最大500件まで）
+    const batch = db.batch();
+    let deleteCount = 0;
+
+    oldHistorySnapshot.forEach((doc) => {
+      batch.delete(doc.ref);
+      deleteCount++;
+    });
+
+    await batch.commit();
+    console.log(`${deleteCount}件の古いログイン履歴を削除しました（1週間以上前）`);
+
+    // 500件以上ある場合は、再帰的に削除を続ける
+    if (deleteCount === 500) {
+      // 少し待ってから再度実行（レート制限を避けるため）
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await deleteOldLoginHistory();
+    }
+  } catch (error) {
+    console.error('古いログイン履歴の削除に失敗しました:', error);
+    // エラーが発生しても処理は続行
   }
 }
 
@@ -428,7 +697,31 @@ function createLoginHistoryCard(history) {
   const card = document.createElement('article');
   card.className = 'admin-login-history-card';
 
-  const loginAt = history.loginAt ? history.loginAt.toDate() : null;
+  // FirestoreのTimestampオブジェクトをDateオブジェクトに変換
+  let loginAt = null;
+  if (history.loginAt) {
+    try {
+      // FirestoreのTimestampオブジェクトの場合
+      if (history.loginAt.toDate && typeof history.loginAt.toDate === 'function') {
+        loginAt = history.loginAt.toDate();
+      } 
+      // 既にDateオブジェクトの場合
+      else if (history.loginAt instanceof Date) {
+        loginAt = history.loginAt;
+      }
+      // Timestampオブジェクトのsecondsとnanosecondsプロパティがある場合
+      else if (history.loginAt.seconds) {
+        loginAt = new Date(history.loginAt.seconds * 1000 + (history.loginAt.nanoseconds || 0) / 1000000);
+      }
+      // 数値（ミリ秒）の場合
+      else if (typeof history.loginAt === 'number') {
+        loginAt = new Date(history.loginAt);
+      }
+    } catch (error) {
+      console.error('ログイン日時の変換エラー:', error, history.loginAt);
+    }
+  }
+  
   const loginText = loginAt
     ? loginAt.toLocaleString('ja-JP', { dateStyle: 'medium', timeStyle: 'short' })
     : '日時不明';

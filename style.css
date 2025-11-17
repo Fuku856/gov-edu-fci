@@ -1918,6 +1918,29 @@ body.toc-open .grecaptcha-badge {
     gap: 1.5rem;
 }
 
+.admin-rejected-section {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+    margin-top: 2rem;
+}
+
+.admin-rejected-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.rejection-reason {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #fef2f2;
+    border-left: 4px solid #dc2626;
+    border-radius: 4px;
+    color: #991b1b;
+}
+
 .admin-post-card {
     background: white;
     border-radius: 16px;

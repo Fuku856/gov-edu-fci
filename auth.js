@@ -209,25 +209,23 @@ function initializeAuth() {
                                   window.location.href.includes('login.html') ||
                                   window.location.href.includes('/login');
               
-              if (redirectUrl && isLoginPage) {
-                // 元のページにリダイレクト
+              // login.htmlページの場合は、必ずリダイレクト処理を実行
+              if (isLoginPage) {
+                // ログイン履歴を保存（リダイレクト前に実行）
+                await saveLoginHistory(user);
+                
+                const targetUrl = redirectUrl || 'index.html';
                 console.log('認証成功: login.htmlページからリダイレクトします');
-                console.log('リダイレクト先:', redirectUrl);
+                console.log('リダイレクト先:', targetUrl);
                 console.log('現在のパス:', window.location.pathname);
                 console.log('現在のURL:', window.location.href);
                 
                 // 認証処理が完全に完了するまで待機（GitHub認証の自動登録処理も含む）
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, 500));
                 
                 // リダイレクト実行
-                window.location.href = redirectUrl;
+                window.location.href = targetUrl;
                 return; // リダイレクトするので、以降の処理は実行しない
-              } else if (isLoginPage && !redirectUrl) {
-                // redirectパラメータがない場合、index.htmlにリダイレクト
-                console.log('認証成功: redirectパラメータがないため、index.htmlにリダイレクトします');
-                await new Promise(resolve => setTimeout(resolve, 300));
-                window.location.href = 'index.html';
-                return;
               }
               
               // 通常のページの場合、サイトを表示
@@ -243,8 +241,8 @@ function initializeAuth() {
               // ユーザー情報を表示（ヘッダーにログアウトボタンを表示）
               await updateUserInfo(user);
               
-              // ログイン履歴を保存
-              await saveLoginHistory(user);
+              // ログイン履歴はlogin.htmlページからログインした場合のみ保存
+              // 通常のページリロード時には保存しない
             } else {
               // 許可されていないユーザーの場合、ログアウトしてログインページにリダイレクト
               hideUserInfo();
