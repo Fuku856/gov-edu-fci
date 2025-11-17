@@ -64,7 +64,80 @@ function initializeAuth() {
             // メールドメインをチェック（通常の学校アカウント用）
             const isAllowed = isAllowedEmailDomain(email);
             
-            if (isGitHubUser || isAllowed) {
+            // GitHub認証でログインし、許可されたGitHubユーザー名の場合、allowed_usersコレクションに自動追加を試みる
+            if (isGitHubUser) {
+              const isGitHubProvider = user.providerData.some(
+                provider => provider.providerId === 'github.com'
+              );
+              
+              if (isGitHubProvider) {
+                try {
+                  // GitHubユーザー名を取得
+                  const githubUsername = await getGitHubUsernameFromUser(user);
+                  
+                  if (githubUsername) {
+                    // allowed_usersコレクションに追加を試みる（既に存在する場合はスキップ）
+                    const allowedUserRef = firebase.firestore()
+                      .collection('allowed_users')
+                      .doc(user.uid);
+                    
+                    const allowedUserDoc = await allowedUserRef.get();
+                    
+                    if (!allowedUserDoc.exists) {
+                      // まだ登録されていない場合、追加を試みる
+                      try {
+                        await allowedUserRef.set({
+                          userId: user.uid,
+                          email: user.email || '',
+                          displayName: user.displayName || githubUsername,
+                          githubUsername: githubUsername,
+                          provider: 'github.com',
+                          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                          autoAdded: true
+                        }, { merge: true });
+                        console.log('GitHubユーザーをallowed_usersコレクションに追加しました:', githubUsername);
+                      } catch (addError) {
+                        // 権限エラーの場合、管理者が手動で追加する必要がある
+                        if (addError.code === 'permission-denied') {
+                          console.warn('allowed_usersコレクションへの追加に権限がありません。管理者に連絡してください。');
+                        } else {
+                          console.error('allowed_usersコレクションへの追加エラー:', addError);
+                        }
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.error('GitHubユーザー情報の取得エラー:', error);
+                }
+              }
+            }
+            
+            // サーバー側（Firestore）での認証チェックを試行
+            // これにより、クライアント側のチェックを回避してもFirestoreへのアクセスが拒否される
+            let isServerAllowed = false;
+            try {
+              // Firestoreのallowed_usersコレクションにアクセスを試みる
+              // セキュリティルールで保護されているため、許可されていないユーザーはアクセスできない
+              const allowedUserDoc = await firebase.firestore()
+                .collection('allowed_users')
+                .doc(user.uid)
+                .get();
+              
+              if (allowedUserDoc.exists) {
+                isServerAllowed = true;
+              }
+            } catch (error) {
+              // 権限エラーの場合、許可されていないユーザー
+              if (error.code === 'permission-denied') {
+                isServerAllowed = false;
+              } else {
+                console.error('サーバー側認証チェックエラー:', error);
+                // エラーの場合はクライアント側のチェックにフォールバック
+              }
+            }
+            
+            // クライアント側またはサーバー側で許可されている場合
+            if (isServerAllowed || isGitHubUser || isAllowed) {
               // 許可されたユーザー（GitHub開発者または学校アカウント）の場合、サイトを表示
               hideLoginPage();
               showMainContent();

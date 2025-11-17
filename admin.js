@@ -206,6 +206,113 @@ async function removeAdmin(adminId) {
   }
 }
 
+/**
+ * 許可されたユーザーリストを取得（管理者のみ）
+ * @returns {Promise<Array>} 許可されたユーザーリスト
+ */
+async function getAllowedUsers() {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    return [];
+  }
+  
+  try {
+    // 管理者かどうかをチェック
+    const admin = await isAdmin();
+    if (!admin) {
+      throw new Error('管理者権限が必要です。');
+    }
+    
+    const snapshot = await firebase.firestore()
+      .collection('allowed_users')
+      .get();
+    
+    return snapshot.docs.map(doc => ({
+      userId: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('許可されたユーザーリスト取得エラー:', error);
+    if (error.code === 'permission-denied') {
+      throw new Error('管理者権限が必要です。');
+    }
+    throw error;
+  }
+}
+
+/**
+ * 許可されたユーザーを追加（管理者のみ）
+ * GitHubユーザー名やメールアドレスで許可されたユーザーを追加
+ * @param {string} uid - ユーザーID（Firebase AuthenticationのUID）
+ * @param {string} email - メールアドレス
+ * @param {string} displayName - 表示名
+ * @param {string} githubUsername - GitHubユーザー名（オプション）
+ * @returns {Promise<void>}
+ */
+async function addAllowedUser(uid, email, displayName, githubUsername = null) {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    throw new Error('ログインが必要です。');
+  }
+  
+  // 管理者かどうかをチェック
+  const admin = await isAdmin();
+  if (!admin) {
+    throw new Error('管理者権限が必要です。');
+  }
+  
+  try {
+    await firebase.firestore()
+      .collection('allowed_users')
+      .doc(uid)
+      .set({
+        userId: uid,
+        email: email,
+        displayName: displayName || email.split('@')[0],
+        githubUsername: githubUsername,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: user.uid
+      });
+  } catch (error) {
+    console.error('許可されたユーザー追加エラー:', error);
+    if (error.code === 'permission-denied') {
+      throw new Error('管理者権限が必要です。');
+    }
+    throw error;
+  }
+}
+
+/**
+ * 許可されたユーザーを削除（管理者のみ）
+ * @param {string} userId - ユーザーID
+ * @returns {Promise<void>}
+ */
+async function removeAllowedUser(userId) {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    throw new Error('ログインが必要です。');
+  }
+  
+  // 管理者かどうかをチェック
+  const admin = await isAdmin();
+  if (!admin) {
+    throw new Error('管理者権限が必要です。');
+  }
+  
+  try {
+    await firebase.firestore()
+      .collection('allowed_users')
+      .doc(userId)
+      .delete();
+  } catch (error) {
+    console.error('許可されたユーザー削除エラー:', error);
+    if (error.code === 'permission-denied') {
+      throw new Error('管理者権限が必要です。');
+    }
+    throw error;
+  }
+}
+
 // グローバルに公開
 window.isAdmin = isAdmin;
 window.isSuperAdmin = isSuperAdmin;
@@ -213,3 +320,6 @@ window.getAdminInfo = getAdminInfo;
 window.getAdminList = getAdminList;
 window.addAdmin = addAdmin;
 window.removeAdmin = removeAdmin;
+window.getAllowedUsers = getAllowedUsers;
+window.addAllowedUser = addAllowedUser;
+window.removeAllowedUser = removeAllowedUser;
