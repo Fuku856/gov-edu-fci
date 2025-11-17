@@ -200,13 +200,34 @@ function initializeAuth() {
               const urlParams = new URLSearchParams(window.location.search);
               const redirectUrl = urlParams.get('redirect');
               
-              if (redirectUrl && window.location.pathname.includes('login.html')) {
+              // login.htmlページかどうかをチェック（パスの形式が異なる可能性があるため、複数のパターンをチェック）
+              const isLoginPage = window.location.pathname.includes('login') || 
+                                  window.location.pathname.endsWith('/login') ||
+                                  window.location.pathname.endsWith('/login.html') ||
+                                  window.location.pathname === '/login' ||
+                                  window.location.pathname === '/login.html' ||
+                                  window.location.href.includes('login.html') ||
+                                  window.location.href.includes('/login');
+              
+              if (redirectUrl && isLoginPage) {
                 // 元のページにリダイレクト
-                console.log('認証成功: リダイレクト先:', redirectUrl);
-                // 少し待ってからリダイレクト（認証処理が完全に完了するまで）
-                await new Promise(resolve => setTimeout(resolve, 100));
+                console.log('認証成功: login.htmlページからリダイレクトします');
+                console.log('リダイレクト先:', redirectUrl);
+                console.log('現在のパス:', window.location.pathname);
+                console.log('現在のURL:', window.location.href);
+                
+                // 認証処理が完全に完了するまで待機（GitHub認証の自動登録処理も含む）
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // リダイレクト実行
                 window.location.href = redirectUrl;
                 return; // リダイレクトするので、以降の処理は実行しない
+              } else if (isLoginPage && !redirectUrl) {
+                // redirectパラメータがない場合、index.htmlにリダイレクト
+                console.log('認証成功: redirectパラメータがないため、index.htmlにリダイレクトします');
+                await new Promise(resolve => setTimeout(resolve, 300));
+                window.location.href = 'index.html';
+                return;
               }
               
               // 通常のページの場合、サイトを表示
@@ -296,7 +317,15 @@ function initializeAuth() {
           
           // ログインしていない場合、ログインページにリダイレクト
           if (!firebase.auth().currentUser) {
-            if (!window.location.pathname.includes('login.html')) {
+            const isLoginPageCheck = window.location.pathname.includes('login') || 
+                                     window.location.pathname.endsWith('/login') ||
+                                     window.location.pathname.endsWith('/login.html') ||
+                                     window.location.pathname === '/login' ||
+                                     window.location.pathname === '/login.html' ||
+                                     window.location.href.includes('login.html') ||
+                                     window.location.href.includes('/login');
+            
+            if (!isLoginPageCheck) {
               // redirectパラメータを除去して無限リダイレクトを防ぐ
               const url = new URL(window.location.href);
               const redirectParam = url.searchParams.get('redirect');
@@ -320,7 +349,15 @@ function initializeAuth() {
         document.body.classList.add('auth-checked');
         
         // ログインページにリダイレクト（redirectパラメータを除去して無限リダイレクトを防ぐ）
-        if (!window.location.pathname.includes('login.html')) {
+        const isLoginPageCheck = window.location.pathname.includes('login') || 
+                                 window.location.pathname.endsWith('/login') ||
+                                 window.location.pathname.endsWith('/login.html') ||
+                                 window.location.pathname === '/login' ||
+                                 window.location.pathname === '/login.html' ||
+                                 window.location.href.includes('login.html') ||
+                                 window.location.href.includes('/login');
+        
+        if (!isLoginPageCheck) {
           const url = new URL(window.location.href);
           const redirectParam = url.searchParams.get('redirect');
           let redirectUrl = url.origin + url.pathname;
@@ -892,7 +929,15 @@ function isAllowedEmailDomain(email) {
  */
 function showLoginPage() {
   // login.htmlページの場合は何もしない（既にログインページが表示されている）
-  if (window.location.pathname.includes('login.html')) {
+  const isLoginPage = window.location.pathname.includes('login') || 
+                      window.location.pathname.endsWith('/login') ||
+                      window.location.pathname.endsWith('/login.html') ||
+                      window.location.pathname === '/login' ||
+                      window.location.pathname === '/login.html' ||
+                      window.location.href.includes('login.html') ||
+                      window.location.href.includes('/login');
+  
+  if (isLoginPage) {
     return;
   }
   
@@ -912,7 +957,15 @@ function showLoginPage() {
  */
 function hideLoginPage() {
   // login.htmlページの場合は何もしない（リダイレクトでページを離れるため）
-  if (window.location.pathname.includes('login.html')) {
+  const isLoginPage = window.location.pathname.includes('login') || 
+                      window.location.pathname.endsWith('/login') ||
+                      window.location.pathname.endsWith('/login.html') ||
+                      window.location.pathname === '/login' ||
+                      window.location.pathname === '/login.html' ||
+                      window.location.href.includes('login.html') ||
+                      window.location.href.includes('/login');
+  
+  if (isLoginPage) {
     return;
   }
   
@@ -931,6 +984,31 @@ function hideLoginPage() {
  * メインコンテンツを表示
  */
 function showMainContent() {
+  // login.htmlページの場合は何もしない（リダイレクトでページを離れるため）
+  const isLoginPage = window.location.pathname.includes('login') || 
+                      window.location.pathname.endsWith('/login') ||
+                      window.location.pathname.endsWith('/login.html') ||
+                      window.location.pathname === '/login' ||
+                      window.location.pathname === '/login.html' ||
+                      window.location.href.includes('login.html') ||
+                      window.location.href.includes('/login');
+  
+  if (isLoginPage) {
+    // login.htmlページの場合、リダイレクト先のURLに遷移
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get('redirect');
+    const targetUrl = redirectUrl || 'index.html';
+    console.log('showMainContent: login.htmlページからリダイレクトします');
+    console.log('リダイレクト先:', targetUrl);
+    console.log('現在のパス:', window.location.pathname);
+    
+    // 認証処理が完全に完了するまで待機
+    setTimeout(() => {
+      window.location.href = targetUrl;
+    }, 300);
+    return;
+  }
+  
   const mainContent = document.getElementById('main-content');
   if (mainContent) {
     // まず、bodyにauth-checkedクラスを追加（CSSの!importantルールを回避）
@@ -1001,15 +1079,27 @@ function showMainContent() {
     }
   } else {
     // login.htmlを使用している場合は、リダイレクト先のURLに遷移
-    if (window.location.pathname.includes('login.html')) {
+    // パスの形式が異なる可能性があるため、複数のパターンをチェック
+    const isLoginPage = window.location.pathname.includes('login') || 
+                        window.location.pathname.endsWith('/login') ||
+                        window.location.pathname.endsWith('/login.html') ||
+                        window.location.pathname === '/login' ||
+                        window.location.pathname === '/login.html' ||
+                        window.location.href.includes('login.html') ||
+                        window.location.href.includes('/login');
+    
+    if (isLoginPage) {
       const urlParams = new URLSearchParams(window.location.search);
       const redirectUrl = urlParams.get('redirect');
       const targetUrl = redirectUrl || 'index.html';
-      console.log('showMainContent: リダイレクト先:', targetUrl);
-      // 少し待ってからリダイレクト（認証処理が完全に完了するまで）
+      console.log('showMainContent: login.htmlページからリダイレクトします');
+      console.log('リダイレクト先:', targetUrl);
+      console.log('現在のパス:', window.location.pathname);
+      
+      // 認証処理が完全に完了するまで待機
       setTimeout(() => {
         window.location.href = targetUrl;
-      }, 100);
+      }, 300);
       return;
     }
     
@@ -1024,7 +1114,15 @@ function showMainContent() {
  */
 function hideMainContent() {
   // login.htmlページの場合は何もしない（ログインページ専用ページのため）
-  if (window.location.pathname.includes('login.html')) {
+  const isLoginPage = window.location.pathname.includes('login') || 
+                      window.location.pathname.endsWith('/login') ||
+                      window.location.pathname.endsWith('/login.html') ||
+                      window.location.pathname === '/login' ||
+                      window.location.pathname === '/login.html' ||
+                      window.location.href.includes('login.html') ||
+                      window.location.href.includes('/login');
+  
+  if (isLoginPage) {
     return;
   }
   

@@ -12,8 +12,28 @@ document.addEventListener('DOMContentLoaded', () => {
     currentUser = user;
 
     if (!user) {
+      console.log('board.js: ユーザーがログインしていません');
       cleanupSubscriptions();
       return;
+    }
+
+    console.log('board.js: ユーザーがログインしました', {
+      uid: user.uid,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      providerData: user.providerData
+    });
+
+    // 認証トークンを取得して確認
+    try {
+      const idTokenResult = await user.getIdTokenResult(true); // true: 強制的にトークンを更新
+      console.log('board.js: 認証トークン情報', {
+        email: idTokenResult.claims.email,
+        email_verified: idTokenResult.claims.email_verified,
+        auth_time: idTokenResult.claims.auth_time
+      });
+    } catch (tokenError) {
+      console.error('board.js: 認証トークンの取得に失敗しました', tokenError);
     }
 
     if (!boardInitialized) {
@@ -21,6 +41,8 @@ document.addEventListener('DOMContentLoaded', () => {
       boardInitialized = true;
     }
 
+    // 少し待ってからデータを取得（認証トークンが確実に更新されるまで）
+    await new Promise(resolve => setTimeout(resolve, 100));
     await refreshBoardData();
   });
 });
@@ -50,6 +72,20 @@ function updateDailyUsage() {
   const usageEl = document.getElementById('daily-usage');
   if (!usageEl || !currentUser) return;
 
+  // 認証状態を確認
+  const authUser = firebase.auth().currentUser;
+  if (!authUser) {
+    console.error('updateDailyUsage: ユーザーが認証されていません');
+    usageEl.textContent = '認証されていません';
+    return;
+  }
+
+  console.log('updateDailyUsage: ユーザー情報', {
+    uid: authUser.uid,
+    email: authUser.email,
+    emailVerified: authUser.emailVerified
+  });
+
   const today = getTodayKey();
   return db
     .collection('daily_counters')
@@ -66,6 +102,12 @@ function updateDailyUsage() {
     })
     .catch((error) => {
       console.error('日次カウンターの取得に失敗しました', error);
+      console.error('エラー詳細:', {
+        code: error.code,
+        message: error.message,
+        userEmail: authUser?.email,
+        userUid: authUser?.uid
+      });
       usageEl.textContent = '利用状況を取得できませんでした';
     });
 }
@@ -73,6 +115,20 @@ function updateDailyUsage() {
 function subscribeApprovedPosts() {
   const container = document.getElementById('posts-container');
   if (!container) return;
+
+  // 認証状態を確認
+  const authUser = firebase.auth().currentUser;
+  if (!authUser) {
+    console.error('subscribeApprovedPosts: ユーザーが認証されていません');
+    container.innerHTML = '<p class="empty-message">認証されていません。ログインしてください。</p>';
+    return;
+  }
+
+  console.log('subscribeApprovedPosts: ユーザー情報', {
+    uid: authUser.uid,
+    email: authUser.email,
+    emailVerified: authUser.emailVerified
+  });
 
   if (unsubscribePosts) {
     unsubscribePosts();
@@ -102,7 +158,13 @@ function subscribeApprovedPosts() {
       },
       (error) => {
         console.error('投稿の取得に失敗しました', error);
-        container.innerHTML = '<p class="empty-message">投稿を読み込めませんでした。</p>';
+        console.error('エラー詳細:', {
+          code: error.code,
+          message: error.message,
+          userEmail: authUser?.email,
+          userUid: authUser?.uid
+        });
+        container.innerHTML = '<p class="empty-message">投稿を読み込めませんでした。権限エラーの可能性があります。ページをリロードしてください。</p>';
       }
     );
 }

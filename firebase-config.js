@@ -43,13 +43,6 @@ const ALLOWED_GITHUB_USERNAMES = [
   // 例: 'your-github-username',
 ];
 
-// 開発者用: 許可されたGitHubアカウントのメールアドレスリスト
-// ⚠️ 注意: このリストはGitHubに公開されます。必要に応じてメールアドレスを追加できます
-// GitHubユーザー名よりも柔軟な認証が可能ですが、プライバシーに注意してください
-const ALLOWED_GITHUB_EMAILS = [
-  // 開発者用: GitHubアカウントのメールアドレスを追加してください
-  // 例: 'developer@example.com',
-];
 
 // Firebase初期化
 if (typeof firebase !== 'undefined') {
