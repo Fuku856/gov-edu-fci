@@ -50,13 +50,23 @@ function initializeAuth() {
       // 認証状態確認済みフラグは、認証チェック完了後に追加
       // これにより、読み込み中のちらつきを防ぐ
       
+      // タイムアウト処理：認証チェックが10秒以内に完了しない場合、ローディング画面を非表示にする
+      const authCheckTimeout = setTimeout(() => {
+        console.warn('認証チェックがタイムアウトしました。ローディング画面を非表示にします。');
+        document.body.classList.add('auth-checked');
+      }, 10000);
+      
       // 認証状態の監視
       firebase.auth().onAuthStateChanged((user) => {
+        // タイムアウトをクリア
+        clearTimeout(authCheckTimeout);
+        
         // 非同期処理を実行するための即時実行関数
         (async () => {
-          if (user) {
+          try {
+            if (user) {
             // ユーザーがログインしている
-            const email = user.email;
+            const userEmail = user.email;
             
             // GitHub認証でログインしている場合、開発者用のチェックを行う
             console.log('認証状態変更: ユーザーがログインしました', user.email, user.uid);
@@ -64,7 +74,7 @@ function initializeAuth() {
             // 認証チェックを並列化して高速化
             const [isGitHubUser, isAllowed] = await Promise.all([
               isAllowedGitHubUser(user),
-              Promise.resolve(isAllowedEmailDomain(email))
+              Promise.resolve(isAllowedEmailDomain(userEmail))
             ]);
             
             console.log('GitHubユーザーチェック結果:', isGitHubUser);
@@ -122,8 +132,7 @@ function initializeAuth() {
             // これにより、クライアント側のチェックを回避してもFirestoreへのアクセスが拒否される
             // メールドメインチェックとFirestoreチェックを並列化して高速化
             let isServerAllowed = false;
-            const email = user.email;
-            const isSchoolDomain = email && email.toLowerCase().endsWith('@fcihs-satoyama.ed.jp');
+            const isSchoolDomain = userEmail && userEmail.toLowerCase().endsWith('@fcihs-satoyama.ed.jp');
             
             try {
               // Firestoreのallowed_usersコレクションにアクセスを試みる
@@ -212,11 +221,19 @@ function initializeAuth() {
               const providerType = user.providerData.some(p => p.providerId === 'github.com') 
                 ? 'GitHubアカウント' 
                 : 'メールアドレス';
-              alert('このサイトは学校関係者または開発者のみがアクセスできます。\n許可されていない' + providerType + 'です。\nメールアドレス: ' + email);
+              alert('このサイトは学校関係者または開発者のみがアクセスできます。\n許可されていない' + providerType + 'です。\nメールアドレス: ' + userEmail);
               firebase.auth().signOut().then(() => {
-                // ログインページにリダイレクト
-                const currentUrl = window.location.href;
-                const loginUrl = `login.html?redirect=${encodeURIComponent(currentUrl)}`;
+                // ログインページにリダイレクト（redirectパラメータを除去して無限リダイレクトを防ぐ）
+                const url = new URL(window.location.href);
+                const redirectParam = url.searchParams.get('redirect');
+                let redirectUrl = url.origin + url.pathname;
+                
+                // redirectパラメータがあり、それがlogin.htmlでない場合、そのURLを使用
+                if (redirectParam && !redirectParam.includes('login.html')) {
+                  redirectUrl = redirectParam;
+                }
+                
+                const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
                 window.location.href = loginUrl;
               });
             }
@@ -224,13 +241,26 @@ function initializeAuth() {
             // ユーザーがログインしていない
             // ログインページ（login.html）にリダイレクト
             // 現在のURLをクエリパラメータに保存して、認証後に元のページに戻れるようにする
-            const currentUrl = window.location.href;
-            const loginUrl = `login.html?redirect=${encodeURIComponent(currentUrl)}`;
-            
             // login.htmlページでない場合のみリダイレクト
             if (!window.location.pathname.includes('login.html')) {
+              // 現在のURLからredirectパラメータを除去（無限リダイレクトを防ぐ）
+              const url = new URL(window.location.href);
+              const redirectParam = url.searchParams.get('redirect');
+              
+              // redirectパラメータがない場合、またはredirect先がlogin.htmlでない場合のみ、現在のURLをredirectパラメータに設定
+              let redirectUrl = window.location.href;
+              
+              // 既にredirectパラメータがあり、それがlogin.htmlを指していない場合、そのURLを使用
+              if (redirectParam && !redirectParam.includes('login.html')) {
+                redirectUrl = redirectParam;
+              } else if (redirectParam && redirectParam.includes('login.html')) {
+                // redirect先がlogin.htmlの場合、パラメータなしの現在のページのベースURLを使用
+                redirectUrl = url.origin + url.pathname;
+              }
+              
               // auth-checkedクラスを削除してメインコンテンツを非表示にしてからリダイレクト
               document.body.classList.remove('auth-checked');
+              const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
               window.location.href = loginUrl;
               return; // リダイレクトするので、以降の処理は実行しない
             }
@@ -243,8 +273,59 @@ function initializeAuth() {
             
             // ログインボタンの状態をリセット
             resetLoginButton();
+            
+            // login.htmlページの場合、ローディング画面を非表示にする
+            document.body.classList.add('auth-checked');
           }
+          
+          // 認証チェック完了後、必ずauth-checkedクラスを追加してローディング画面を非表示にする
+          // （エラーが発生した場合でも、ローディング画面が残らないようにする）
+          if (!document.body.classList.contains('auth-checked')) {
+            document.body.classList.add('auth-checked');
+          }
+        } catch (error) {
+          console.error('認証チェック中にエラーが発生しました:', error);
+          // エラーが発生した場合でも、ローディング画面を非表示にする
+          document.body.classList.add('auth-checked');
+          
+          // ログインしていない場合、ログインページにリダイレクト
+          if (!firebase.auth().currentUser) {
+            if (!window.location.pathname.includes('login.html')) {
+              // redirectパラメータを除去して無限リダイレクトを防ぐ
+              const url = new URL(window.location.href);
+              const redirectParam = url.searchParams.get('redirect');
+              let redirectUrl = url.origin + url.pathname;
+              
+              if (redirectParam && !redirectParam.includes('login.html')) {
+                redirectUrl = redirectParam;
+              }
+              
+              const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
+              window.location.href = loginUrl;
+            }
+          }
+        }
         })(); // 即時実行関数の終了
+      }, (error) => {
+        // onAuthStateChangedのエラーハンドラー
+        console.error('認証状態の監視中にエラーが発生しました:', error);
+        clearTimeout(authCheckTimeout);
+        // エラーが発生した場合でも、ローディング画面を非表示にする
+        document.body.classList.add('auth-checked');
+        
+        // ログインページにリダイレクト（redirectパラメータを除去して無限リダイレクトを防ぐ）
+        if (!window.location.pathname.includes('login.html')) {
+          const url = new URL(window.location.href);
+          const redirectParam = url.searchParams.get('redirect');
+          let redirectUrl = url.origin + url.pathname;
+          
+          if (redirectParam && !redirectParam.includes('login.html')) {
+            redirectUrl = redirectParam;
+          }
+          
+          const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
+          window.location.href = loginUrl;
+        }
       });
     });
   });
@@ -531,8 +612,16 @@ async function signOut() {
     hideMainContent();
     
     // ログインページに即座にリダイレクト（ログアウト処理はバックグラウンドで実行）
-    const currentUrl = window.location.href;
-    const loginUrl = `login.html?redirect=${encodeURIComponent(currentUrl)}`;
+    // redirectパラメータを除去して無限リダイレクトを防ぐ
+    const url = new URL(window.location.href);
+    const redirectParam = url.searchParams.get('redirect');
+    let redirectUrl = url.origin + url.pathname;
+    
+    if (redirectParam && !redirectParam.includes('login.html')) {
+      redirectUrl = redirectParam;
+    }
+    
+    const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
     
     // 即座にリダイレクト（signOut()は並行して実行）
     window.location.href = loginUrl;
@@ -545,9 +634,16 @@ async function signOut() {
     });
   } catch (error) {
     console.error('ログアウトエラー:', error);
-    // エラーが発生した場合もリダイレクト
-    const currentUrl = window.location.href;
-    const loginUrl = `login.html?redirect=${encodeURIComponent(currentUrl)}`;
+    // エラーが発生した場合もリダイレクト（redirectパラメータを除去）
+    const url = new URL(window.location.href);
+    const redirectParam = url.searchParams.get('redirect');
+    let redirectUrl = url.origin + url.pathname;
+    
+    if (redirectParam && !redirectParam.includes('login.html')) {
+      redirectUrl = redirectParam;
+    }
+    
+    const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
     window.location.href = loginUrl;
   }
 }
