@@ -25,12 +25,50 @@ function initializeAuth() {
   if (typeof firebase === 'undefined') {
     console.error('Firebase SDKが読み込まれていません');
     // Firebase SDKが読み込まれていない場合でも、初期状態を設定
-    waitForElement('login-page', () => showLoginPage());
-    waitForElement('main-content', () => hideMainContent());
+    // login.htmlページの場合は、login-page要素がないのでスキップ
+    const isLoginPage = window.location.pathname.includes('login') || 
+                        window.location.pathname.endsWith('/login') ||
+                        window.location.pathname.endsWith('/login.html') ||
+                        window.location.pathname === '/login' ||
+                        window.location.pathname === '/login.html' ||
+                        window.location.href.includes('login.html') ||
+                        window.location.href.includes('/login');
+    
+    if (!isLoginPage) {
+      waitForElement('login-page', () => showLoginPage());
+      waitForElement('main-content', () => hideMainContent());
+    }
     return;
   }
   
-  // 認証状態の監視（要素の存在を確認してから実行）
+  // login.htmlページかどうかをチェック
+  const isLoginPage = window.location.pathname.includes('login') || 
+                      window.location.pathname.endsWith('/login') ||
+                      window.location.pathname.endsWith('/login.html') ||
+                      window.location.pathname === '/login' ||
+                      window.location.pathname === '/login.html' ||
+                      window.location.href.includes('login.html') ||
+                      window.location.href.includes('/login');
+  
+  // login.htmlページの場合は、要素を待たずに直接認証状態を監視
+  if (isLoginPage) {
+    // タイムアウト処理：認証チェックが10秒以内に完了しない場合、ローディング画面を非表示にする
+    const authCheckTimeout = setTimeout(() => {
+      console.warn('認証チェックがタイムアウトしました。');
+      if (document.body) {
+        document.body.classList.add('auth-checked');
+      }
+    }, 10000);
+    
+    // 認証状態の監視（login.html専用）
+    firebase.auth().onAuthStateChanged((user) => {
+      clearTimeout(authCheckTimeout);
+      handleAuthStateChange(user, true); // isLoginPage = true
+    }, createAuthErrorHandler(authCheckTimeout));
+    return;
+  }
+  
+  // 通常のページの場合、要素の存在を確認してから実行
   waitForElement('login-page', () => {
     waitForElement('main-content', () => {
       // 初期状態: 認証状態をチェックするまで何も表示しない
@@ -58,321 +96,368 @@ function initializeAuth() {
       
       // 認証状態の監視
       firebase.auth().onAuthStateChanged((user) => {
-        // タイムアウトをクリア
         clearTimeout(authCheckTimeout);
+        handleAuthStateChange(user, false); // isLoginPage = false
+      });
+    });
+  });
+}
+
+// 認証状態変更の処理を共通化
+async function handleAuthStateChange(user, forceIsLoginPage) {
+  try {
+    if (user) {
+      // ユーザーがログインしている
+      const userEmail = user.email;
+      
+      // GitHub認証でログインしている場合、開発者用のチェックを行う
+      console.log('認証状態変更: ユーザーがログインしました', user.email, user.uid);
+      
+      // 認証チェックを並列化して高速化
+      const [isGitHubUser, isAllowed] = await Promise.all([
+        isAllowedGitHubUser(user),
+        Promise.resolve(isAllowedEmailDomain(userEmail))
+      ]);
+      
+      console.log('GitHubユーザーチェック結果:', isGitHubUser);
+      console.log('メールドメインチェック結果:', isAllowed);
+      
+      // GitHub認証でログインし、許可されたGitHubユーザー名の場合、allowed_usersコレクションに自動追加を試みる
+      if (isGitHubUser) {
+        const isGitHubProvider = user.providerData.some(
+          provider => provider.providerId === 'github.com'
+        );
         
-        // 非同期処理を実行するための即時実行関数
-        (async () => {
+        if (isGitHubProvider) {
           try {
-            if (user) {
-            // ユーザーがログインしている
-            const userEmail = user.email;
+            // GitHubユーザー名を取得
+            const githubUsername = await getGitHubUsernameFromUser(user);
             
-            // GitHub認証でログインしている場合、開発者用のチェックを行う
-            console.log('認証状態変更: ユーザーがログインしました', user.email, user.uid);
-            
-            // 認証チェックを並列化して高速化
-            const [isGitHubUser, isAllowed] = await Promise.all([
-              isAllowedGitHubUser(user),
-              Promise.resolve(isAllowedEmailDomain(userEmail))
-            ]);
-            
-            console.log('GitHubユーザーチェック結果:', isGitHubUser);
-            console.log('メールドメインチェック結果:', isAllowed);
-            
-            // GitHub認証でログインし、許可されたGitHubユーザー名の場合、allowed_usersコレクションに自動追加を試みる
-            if (isGitHubUser) {
-              const isGitHubProvider = user.providerData.some(
-                provider => provider.providerId === 'github.com'
-              );
-              
-              if (isGitHubProvider) {
-                try {
-                  // GitHubユーザー名を取得
-                  const githubUsername = await getGitHubUsernameFromUser(user);
-                  
-                  if (githubUsername) {
-                    // allowed_usersコレクションに追加を試みる（既に存在する場合はスキップ）
-                    const allowedUserRef = firebase.firestore()
-                      .collection('allowed_users')
-                      .doc(user.uid);
-                    
-                    const allowedUserDoc = await allowedUserRef.get();
-                    
-                    if (!allowedUserDoc.exists) {
-                      // まだ登録されていない場合、追加を試みる
-                      try {
-                        await allowedUserRef.set({
-                          userId: user.uid,
-                          email: user.email || '',
-                          displayName: user.displayName || githubUsername,
-                          githubUsername: githubUsername,
-                          provider: 'github.com',
-                          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                          autoAdded: true
-                        }, { merge: true });
-                        console.log('GitHubユーザーをallowed_usersコレクションに追加しました:', githubUsername);
-                      } catch (addError) {
-                        // 権限エラーの場合、管理者が手動で追加する必要がある
-                        if (addError.code === 'permission-denied') {
-                          console.warn('allowed_usersコレクションへの追加に権限がありません。管理者に連絡してください。');
-                        } else {
-                          console.error('allowed_usersコレクションへの追加エラー:', addError);
-                        }
-                      }
-                    }
-                  }
-                } catch (error) {
-                  console.error('GitHubユーザー情報の取得エラー:', error);
-                }
-              }
-            }
-            
-            // サーバー側（Firestore）での認証チェックを試行
-            // これにより、クライアント側のチェックを回避してもFirestoreへのアクセスが拒否される
-            // メールドメインチェックとFirestoreチェックを並列化して高速化
-            let isServerAllowed = false;
-            const isSchoolDomain = userEmail && (
-              userEmail.toLowerCase().endsWith('@fcihs-satoyama.ed.jp') ||
-              userEmail.toLowerCase().endsWith('@fcidux.dpdns.org')
-            );
-            
-            try {
-              // Firestoreのallowed_usersコレクションにアクセスを試みる
-              // セキュリティルールで保護されているため、許可されていないユーザーはアクセスできない
-              const allowedUserDoc = await firebase.firestore()
+            if (githubUsername) {
+              // allowed_usersコレクションに追加を試みる（既に存在する場合はスキップ）
+              const allowedUserRef = firebase.firestore()
                 .collection('allowed_users')
-                .doc(user.uid)
-                .get();
+                .doc(user.uid);
               
-              if (allowedUserDoc.exists) {
-                isServerAllowed = true;
-              } else if (isSchoolDomain) {
-                // allowed_usersに存在しないが、学校のメールドメインまたはテスト用ドメインの場合
-                // Firestoreセキュリティルールでメールドメイン（@fcihs-satoyama.ed.jp または @fcidux.dpdns.org）が許可されている
-                isServerAllowed = true;
-              }
-            } catch (error) {
-              // 権限エラーの場合、許可されていないユーザー（ただし、学校ドメインの場合は許可）
-              if (error.code === 'permission-denied') {
-                isServerAllowed = isSchoolDomain; // 学校ドメインなら許可
-              } else {
-                console.error('サーバー側認証チェックエラー:', error);
-                // エラーの場合は、メールドメインをチェック（フォールバック）
-                isServerAllowed = isSchoolDomain;
-              }
-            }
-            
-            // GitHub認証の場合、自動登録処理が実行されているため、少し待ってから再チェック
-            if (!isServerAllowed && isGitHubUser) {
-              console.log('GitHubユーザーの自動登録を待機中...');
-              // 自動登録処理が完了するまで最大3秒待機（500ms間隔で6回チェック）
-              for (let i = 0; i < 6; i++) {
-                await new Promise(resolve => setTimeout(resolve, 500));
+              const allowedUserDoc = await allowedUserRef.get();
+              
+              if (!allowedUserDoc.exists) {
+                // まだ登録されていない場合、追加を試みる
                 try {
-                  const allowedUserDoc = await firebase.firestore()
-                    .collection('allowed_users')
-                    .doc(user.uid)
-                    .get();
-                  if (allowedUserDoc.exists) {
-                    console.log('GitHubユーザーがallowed_usersコレクションに登録されました');
-                    isServerAllowed = true;
-                    break;
+                  await allowedUserRef.set({
+                    userId: user.uid,
+                    email: user.email || '',
+                    displayName: user.displayName || githubUsername,
+                    githubUsername: githubUsername,
+                    provider: 'github.com',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    autoAdded: true
+                  }, { merge: true });
+                  console.log('GitHubユーザーをallowed_usersコレクションに追加しました:', githubUsername);
+                } catch (addError) {
+                  // 権限エラーの場合、管理者が手動で追加する必要がある
+                  if (addError.code === 'permission-denied') {
+                    console.warn('allowed_usersコレクションへの追加に権限がありません。管理者に連絡してください。');
+                  } else {
+                    console.error('allowed_usersコレクションへの追加エラー:', addError);
                   }
-                } catch (error) {
-                  console.error('GitHub認証後の再チェックエラー:', error);
                 }
               }
-              if (!isServerAllowed) {
-                console.warn('GitHubユーザーの自動登録が完了しませんでした');
-              }
             }
-            
-            console.log('サーバー側認証チェック結果:', isServerAllowed);
-            
-            // サーバー側のチェックを優先
-            // サーバー側で許可されていない場合、クライアント側のチェックは使用しない（セキュリティのため）
-            // ただし、学校のメールドメイン（@fcihs-satoyama.ed.jp）またはテスト用ドメイン（@fcidux.dpdns.org）の場合は、Firestoreセキュリティルールで許可されているため、isServerAllowedがtrueになっている
-            if (isServerAllowed) {
-              // 許可されたユーザー（GitHub開発者または学校アカウント）の場合
-              
-              // login.htmlページの場合、リダイレクト先のURLに遷移
-              const urlParams = new URLSearchParams(window.location.search);
-              const redirectUrl = urlParams.get('redirect');
-              
-              // login.htmlページかどうかをチェック（パスの形式が異なる可能性があるため、複数のパターンをチェック）
-              const isLoginPage = window.location.pathname.includes('login') || 
-                                  window.location.pathname.endsWith('/login') ||
-                                  window.location.pathname.endsWith('/login.html') ||
-                                  window.location.pathname === '/login' ||
-                                  window.location.pathname === '/login.html' ||
-                                  window.location.href.includes('login.html') ||
-                                  window.location.href.includes('/login');
-              
-              // login.htmlページの場合は、必ずリダイレクト処理を実行
-              if (isLoginPage) {
-                // ログイン履歴を保存（リダイレクト前に実行）
-                await saveLoginHistory(user);
-                
-                const targetUrl = redirectUrl || 'index.html';
-                console.log('認証成功: login.htmlページからリダイレクトします');
-                console.log('リダイレクト先:', targetUrl);
-                console.log('現在のパス:', window.location.pathname);
-                console.log('現在のURL:', window.location.href);
-                
-                // 認証処理が完全に完了するまで待機（GitHub認証の自動登録処理も含む）
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // リダイレクト実行
-                window.location.href = targetUrl;
-                return; // リダイレクトするので、以降の処理は実行しない
-              }
-              
-              // 通常のページの場合、サイトを表示
-              // auth-checkedクラスを追加して、CSSで一括表示
-              document.body.classList.add('auth-checked');
-              
-              // 少し待ってから要素を表示（CSSアニメーションが正常に動作するように）
-              await new Promise(resolve => setTimeout(resolve, 10));
-              
-              hideLoginPage();
-              showMainContent();
-              
-              // ユーザー情報を表示（ヘッダーにログアウトボタンを表示）
-              await updateUserInfo(user);
-              
-              // ログイン履歴はlogin.htmlページからログインした場合のみ保存
-              // 通常のページリロード時には保存しない
-            } else {
-              // 許可されていないユーザーの場合、ログアウトしてログインページにリダイレクト
-              hideUserInfo();
-              const providerType = user.providerData.some(p => p.providerId === 'github.com') 
-                ? 'GitHubアカウント' 
-                : 'メールアドレス';
-              alert('このサイトは学校関係者または開発者のみがアクセスできます。\n許可されていない' + providerType + 'です。\nメールアドレス: ' + userEmail);
-              firebase.auth().signOut().then(() => {
-                // ログインページにリダイレクト（redirectパラメータを除去して無限リダイレクトを防ぐ）
-                const url = new URL(window.location.href);
-                const redirectParam = url.searchParams.get('redirect');
-                let redirectUrl = url.origin + url.pathname;
-                
-                // redirectパラメータがあり、それがlogin.htmlでない場合、そのURLを使用
-                if (redirectParam && !redirectParam.includes('login.html')) {
-                  redirectUrl = redirectParam;
-                }
-                
-                const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
-                window.location.href = loginUrl;
-              });
-            }
-          } else {
-            // ユーザーがログインしていない
-            // ログインページ（login.html）にリダイレクト
-            // 現在のURLをクエリパラメータに保存して、認証後に元のページに戻れるようにする
-            // login.htmlページでない場合のみリダイレクト
-            if (!window.location.pathname.includes('login.html')) {
-              // 現在のURLからredirectパラメータを除去（無限リダイレクトを防ぐ）
-              const url = new URL(window.location.href);
-              const redirectParam = url.searchParams.get('redirect');
-              
-              // redirectパラメータがない場合、またはredirect先がlogin.htmlでない場合のみ、現在のURLをredirectパラメータに設定
-              let redirectUrl = window.location.href;
-              
-              // 既にredirectパラメータがあり、それがlogin.htmlを指していない場合、そのURLを使用
-              if (redirectParam && !redirectParam.includes('login.html')) {
-                redirectUrl = redirectParam;
-              } else if (redirectParam && redirectParam.includes('login.html')) {
-                // redirect先がlogin.htmlの場合、パラメータなしの現在のページのベースURLを使用
-                redirectUrl = url.origin + url.pathname;
-              }
-              
-              // auth-checkedクラスを削除してメインコンテンツを非表示にしてからリダイレクト
-              document.body.classList.remove('auth-checked');
-              const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
-              window.location.href = loginUrl;
-              return; // リダイレクトするので、以降の処理は実行しない
-            }
-            
-            // login.htmlページの場合は、ログインページを表示
-            document.body.classList.remove('auth-checked');
-            hideUserInfo();
-            showLoginPage();
-            hideMainContent();
-            
-            // ログインボタンの状態をリセット
-            resetLoginButton();
-            
-            // login.htmlページの場合、ローディング画面を非表示にする
-            document.body.classList.add('auth-checked');
-          }
-          
-          // 認証チェック完了後、必ずauth-checkedクラスを追加してローディング画面を非表示にする
-          // （エラーが発生した場合でも、ローディング画面が残らないようにする）
-          if (!document.body.classList.contains('auth-checked')) {
-            document.body.classList.add('auth-checked');
-          }
-        } catch (error) {
-          console.error('認証チェック中にエラーが発生しました:', error);
-          // エラーが発生した場合でも、ローディング画面を非表示にする
-          document.body.classList.add('auth-checked');
-          
-          // ログインしていない場合、ログインページにリダイレクト
-          if (!firebase.auth().currentUser) {
-            const isLoginPageCheck = window.location.pathname.includes('login') || 
-                                     window.location.pathname.endsWith('/login') ||
-                                     window.location.pathname.endsWith('/login.html') ||
-                                     window.location.pathname === '/login' ||
-                                     window.location.pathname === '/login.html' ||
-                                     window.location.href.includes('login.html') ||
-                                     window.location.href.includes('/login');
-            
-            if (!isLoginPageCheck) {
-              // redirectパラメータを除去して無限リダイレクトを防ぐ
-              const url = new URL(window.location.href);
-              const redirectParam = url.searchParams.get('redirect');
-              let redirectUrl = url.origin + url.pathname;
-              
-              if (redirectParam && !redirectParam.includes('login.html')) {
-                redirectUrl = redirectParam;
-              }
-              
-              const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
-              window.location.href = loginUrl;
-            }
+          } catch (error) {
+            console.error('GitHubユーザー情報の取得エラー:', error);
           }
         }
-        })(); // 即時実行関数の終了
-      }, (error) => {
-        // onAuthStateChangedのエラーハンドラー
-        console.error('認証状態の監視中にエラーが発生しました:', error);
-        clearTimeout(authCheckTimeout);
-        // エラーが発生した場合でも、ローディング画面を非表示にする
-        document.body.classList.add('auth-checked');
+      }
+      
+      // サーバー側（Firestore）での認証チェックを試行
+      // これにより、クライアント側のチェックを回避してもFirestoreへのアクセスが拒否される
+      // メールドメインチェックとFirestoreチェックを並列化して高速化
+      let isServerAllowed = false;
+      const isSchoolDomain = userEmail && (
+        userEmail.toLowerCase().endsWith('@fcihs-satoyama.ed.jp') ||
+        userEmail.toLowerCase().endsWith('@fcidux.dpdns.org')
+      );
+      
+      try {
+        // Firestoreのallowed_usersコレクションにアクセスを試みる
+        // セキュリティルールで保護されているため、許可されていないユーザーはアクセスできない
+        const allowedUserDoc = await firebase.firestore()
+          .collection('allowed_users')
+          .doc(user.uid)
+          .get();
         
-        // ログインページにリダイレクト（redirectパラメータを除去して無限リダイレクトを防ぐ）
-        const isLoginPageCheck = window.location.pathname.includes('login') || 
-                                 window.location.pathname.endsWith('/login') ||
-                                 window.location.pathname.endsWith('/login.html') ||
-                                 window.location.pathname === '/login' ||
-                                 window.location.pathname === '/login.html' ||
-                                 window.location.href.includes('login.html') ||
-                                 window.location.href.includes('/login');
+        if (allowedUserDoc.exists) {
+          isServerAllowed = true;
+        } else if (isSchoolDomain) {
+          // allowed_usersに存在しないが、学校のメールドメインまたはテスト用ドメインの場合
+          // Firestoreセキュリティルールでメールドメイン（@fcihs-satoyama.ed.jp または @fcidux.dpdns.org）が許可されている
+          isServerAllowed = true;
+        }
+      } catch (error) {
+        // 権限エラーの場合、許可されていないユーザー（ただし、学校ドメインの場合は許可）
+        if (error.code === 'permission-denied') {
+          isServerAllowed = isSchoolDomain; // 学校ドメインなら許可
+        } else {
+          console.error('サーバー側認証チェックエラー:', error);
+          // エラーの場合は、メールドメインをチェック（フォールバック）
+          isServerAllowed = isSchoolDomain;
+        }
+      }
+      
+      // GitHub認証の場合、自動登録処理が実行されているため、少し待ってから再チェック
+      if (!isServerAllowed && isGitHubUser) {
+        console.log('GitHubユーザーの自動登録を待機中...');
+        // 自動登録処理が完了するまで最大3秒待機（500ms間隔で6回チェック）
+        for (let i = 0; i < 6; i++) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          try {
+            const allowedUserDoc = await firebase.firestore()
+              .collection('allowed_users')
+              .doc(user.uid)
+              .get();
+            if (allowedUserDoc.exists) {
+              console.log('GitHubユーザーがallowed_usersコレクションに登録されました');
+              isServerAllowed = true;
+              break;
+            }
+          } catch (error) {
+            console.error('GitHub認証後の再チェックエラー:', error);
+          }
+        }
+        if (!isServerAllowed) {
+          console.warn('GitHubユーザーの自動登録が完了しませんでした');
+        }
+      }
+      
+      console.log('サーバー側認証チェック結果:', isServerAllowed);
+      
+      // サーバー側のチェックを優先
+      // サーバー側で許可されていない場合、クライアント側のチェックは使用しない（セキュリティのため）
+      // ただし、学校のメールドメイン（@fcihs-satoyama.ed.jp）またはテスト用ドメイン（@fcidux.dpdns.org）の場合は、Firestoreセキュリティルールで許可されているため、isServerAllowedがtrueになっている
+      if (isServerAllowed) {
+        // 許可されたユーザー（GitHub開発者または学校アカウント）の場合
         
-        if (!isLoginPageCheck) {
+        // login.htmlページの場合、リダイレクト先のURLに遷移
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectUrl = urlParams.get('redirect');
+        
+        // login.htmlページかどうかをチェック（forceIsLoginPageがtrueの場合は強制的にlogin.htmlとして扱う）
+        const isLoginPage = forceIsLoginPage || 
+                            window.location.pathname.includes('login') || 
+                            window.location.pathname.endsWith('/login') ||
+                            window.location.pathname.endsWith('/login.html') ||
+                            window.location.pathname === '/login' ||
+                            window.location.pathname === '/login.html' ||
+                            window.location.href.includes('login.html') ||
+                            window.location.href.includes('/login');
+        
+        // login.htmlページの場合は、必ずリダイレクト処理を実行
+        if (isLoginPage) {
+          console.log('login.htmlページからログイン成功 - リダイレクト処理を開始');
+          console.log('現在のURL:', window.location.href);
+          console.log('redirectUrl:', redirectUrl);
+          console.log('isLoginPage:', isLoginPage);
+          console.log('forceIsLoginPage:', forceIsLoginPage);
+          
+          // ログイン履歴を保存（リダイレクト前に実行、完了を待つ）
+          try {
+            console.log('ログイン履歴の保存を開始します...');
+            await saveLoginHistory(user);
+            console.log('ログイン履歴の保存が完了しました');
+          } catch (historyError) {
+            console.error('ログイン履歴の保存エラー（続行）:', historyError);
+            console.error('エラー詳細:', {
+              code: historyError.code,
+              message: historyError.message,
+              stack: historyError.stack
+            });
+          }
+          
+          const targetUrl = redirectUrl || 'index.html';
+          console.log('リダイレクト先:', targetUrl);
+          
+          // 認証処理が完全に完了するまで待機（GitHub認証の自動登録処理も含む）
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // リダイレクト実行（強制的に）
+          console.log('リダイレクトを実行します:', targetUrl);
+          window.location.replace(targetUrl);
+          return; // リダイレクトするので、以降の処理は実行しない
+        }
+        
+        // 通常のページの場合、サイトを表示
+        if (!isLoginPage && document.body) {
+          // auth-checkedクラスを追加して、CSSで一括表示
+          document.body.classList.add('auth-checked');
+          
+          // 少し待ってから要素を表示（CSSアニメーションが正常に動作するように）
+          await new Promise(resolve => setTimeout(resolve, 10));
+          
+          hideLoginPage();
+          showMainContent();
+          
+          // ユーザー情報を表示（ヘッダーにログアウトボタンを表示）
+          await updateUserInfo(user);
+          
+          // ログイン履歴はlogin.htmlページからログインした場合のみ保存
+          // 通常のページリロード時には保存しない
+        }
+      } else {
+        // 許可されていないユーザーの場合、ログアウトしてログインページにリダイレクト
+        if (document.body) {
+          hideUserInfo();
+        }
+        const providerType = user.providerData.some(p => p.providerId === 'github.com') 
+          ? 'GitHubアカウント' 
+          : 'メールアドレス';
+        alert('このサイトは学校関係者または開発者のみがアクセスできます。\n許可されていない' + providerType + 'です。\nメールアドレス: ' + userEmail);
+        firebase.auth().signOut().then(() => {
+          // ログインページにリダイレクト（redirectパラメータを除去して無限リダイレクトを防ぐ）
           const url = new URL(window.location.href);
           const redirectParam = url.searchParams.get('redirect');
           let redirectUrl = url.origin + url.pathname;
           
+          // redirectパラメータがあり、それがlogin.htmlでない場合、そのURLを使用
           if (redirectParam && !redirectParam.includes('login.html')) {
             redirectUrl = redirectParam;
           }
           
           const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
           window.location.href = loginUrl;
+        });
+      }
+    } else {
+      // ユーザーがログインしていない
+      // login.htmlページかどうかをチェック
+      const isLoginPage = forceIsLoginPage || 
+                          window.location.pathname.includes('login') || 
+                          window.location.pathname.endsWith('/login') ||
+                          window.location.pathname.endsWith('/login.html') ||
+                          window.location.pathname === '/login' ||
+                          window.location.pathname === '/login.html' ||
+                          window.location.href.includes('login.html') ||
+                          window.location.href.includes('/login');
+      
+      // ログインページ（login.html）にリダイレクト
+      // 現在のURLをクエリパラメータに保存して、認証後に元のページに戻れるようにする
+      // login.htmlページでない場合のみリダイレクト
+      if (!isLoginPage) {
+        // 現在のURLからredirectパラメータを除去（無限リダイレクトを防ぐ）
+        const url = new URL(window.location.href);
+        const redirectParam = url.searchParams.get('redirect');
+        
+        // redirectパラメータがない場合、またはredirect先がlogin.htmlでない場合のみ、現在のURLをredirectパラメータに設定
+        let redirectUrl = window.location.href;
+        
+        // 既にredirectパラメータがあり、それがlogin.htmlを指していない場合、そのURLを使用
+        if (redirectParam && !redirectParam.includes('login.html')) {
+          redirectUrl = redirectParam;
+        } else if (redirectParam && redirectParam.includes('login.html')) {
+          // redirect先がlogin.htmlの場合、パラメータなしの現在のページのベースURLを使用
+          redirectUrl = url.origin + url.pathname;
         }
-      });
-    });
-  });
+        
+        // auth-checkedクラスを削除してメインコンテンツを非表示にしてからリダイレクト
+        if (document.body) {
+          document.body.classList.remove('auth-checked');
+        }
+        const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
+        window.location.href = loginUrl;
+        return; // リダイレクトするので、以降の処理は実行しない
+      }
+      
+      // login.htmlページの場合は、ログインページを表示
+      // login.htmlにはlogin-page要素がないので、showLoginPage()は呼ばない
+      if (document.body) {
+        document.body.classList.remove('auth-checked');
+        hideUserInfo();
+        // login.htmlにはlogin-page要素がないので、showLoginPage()は呼ばない
+        // showLoginPage();
+        // hideMainContent();
+      }
+      
+      // ログインボタンの状態をリセット
+      resetLoginButton();
+      
+      // login.htmlページの場合、ローディング画面を非表示にする
+      if (document.body) {
+        document.body.classList.add('auth-checked');
+      }
+    }
+    
+    // 認証チェック完了後、必ずauth-checkedクラスを追加してローディング画面を非表示にする
+    // （エラーが発生した場合でも、ローディング画面が残らないようにする）
+    if (document.body && !document.body.classList.contains('auth-checked')) {
+      document.body.classList.add('auth-checked');
+    }
+  } catch (error) {
+    console.error('認証チェック中にエラーが発生しました:', error);
+    // エラーが発生した場合でも、ローディング画面を非表示にする
+    if (document.body) {
+      document.body.classList.add('auth-checked');
+    }
+    
+    // ログインしていない場合、ログインページにリダイレクト
+    if (!firebase.auth().currentUser) {
+      const isLoginPageCheck = window.location.pathname.includes('login') || 
+                               window.location.pathname.endsWith('/login') ||
+                               window.location.pathname.endsWith('/login.html') ||
+                               window.location.pathname === '/login' ||
+                               window.location.pathname === '/login.html' ||
+                               window.location.href.includes('login.html') ||
+                               window.location.href.includes('/login');
+      
+      if (!isLoginPageCheck) {
+        // redirectパラメータを除去して無限リダイレクトを防ぐ
+        const url = new URL(window.location.href);
+        const redirectParam = url.searchParams.get('redirect');
+        let redirectUrl = url.origin + url.pathname;
+        
+        if (redirectParam && !redirectParam.includes('login.html')) {
+          redirectUrl = redirectParam;
+        }
+        
+        const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
+        window.location.href = loginUrl;
+      }
+    }
+  }
+}
+
+// 通常のページ用のonAuthStateChangedエラーハンドラー
+function createAuthErrorHandler(authCheckTimeout) {
+  return (error) => {
+    // onAuthStateChangedのエラーハンドラー
+    console.error('認証状態の監視中にエラーが発生しました:', error);
+    clearTimeout(authCheckTimeout);
+    // エラーが発生した場合でも、ローディング画面を非表示にする
+    if (document.body) {
+      document.body.classList.add('auth-checked');
+    }
+    
+    // ログインページにリダイレクト（redirectパラメータを除去して無限リダイレクトを防ぐ）
+    const isLoginPageCheck = window.location.pathname.includes('login') || 
+                             window.location.pathname.endsWith('/login') ||
+                             window.location.pathname.endsWith('/login.html') ||
+                             window.location.pathname === '/login' ||
+                             window.location.pathname === '/login.html' ||
+                             window.location.href.includes('login.html') ||
+                             window.location.href.includes('/login');
+    
+    if (!isLoginPageCheck) {
+      const url = new URL(window.location.href);
+      const redirectParam = url.searchParams.get('redirect');
+      let redirectUrl = url.origin + url.pathname;
+      
+      if (redirectParam && !redirectParam.includes('login.html')) {
+        redirectUrl = redirectParam;
+      }
+      
+      const loginUrl = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
+      window.location.href = loginUrl;
+    }
+  };
 }
 
 // DOMが読み込まれた後に実行
@@ -1369,12 +1454,20 @@ async function getIdToken() {
 async function saveLoginHistory(user) {
   if (!user || typeof firebase === 'undefined') {
     console.warn('ログイン履歴の保存をスキップ: ユーザーまたはFirebaseが未定義');
+    console.warn('user:', user);
+    console.warn('firebase:', typeof firebase);
     return;
   }
   
   try {
     console.log('ログイン履歴の保存を開始:', user.uid, user.email);
     const db = firebase.firestore();
+    
+    if (!db) {
+      console.error('Firestoreデータベースが取得できませんでした');
+      return;
+    }
+    
     const loginHistoryRef = db.collection('login_history').doc();
     
     const providerData = user.providerData && user.providerData.length > 0 
@@ -1393,9 +1486,12 @@ async function saveLoginHistory(user) {
     };
     
     console.log('ログイン履歴データ:', historyData);
+    console.log('Firestoreに書き込みを試行します...');
+    
     await loginHistoryRef.set(historyData);
     
     console.log('ログイン履歴を保存しました:', user.uid, loginHistoryRef.id);
+    console.log('保存されたドキュメントID:', loginHistoryRef.id);
   } catch (error) {
     // ログイン履歴の保存に失敗してもログイン処理は続行
     console.error('ログイン履歴の保存に失敗しました:', error);
@@ -1404,6 +1500,15 @@ async function saveLoginHistory(user) {
       message: error.message,
       stack: error.stack
     });
+    
+    // 権限エラーの場合は特に詳しくログを出力
+    if (error.code === 'permission-denied') {
+      console.error('権限エラー: login_historyコレクションへの書き込み権限がありません');
+      console.error('現在のユーザー:', user.uid, user.email);
+    }
+    
+    // エラーを再スローして、呼び出し元で処理できるようにする
+    throw error;
   }
 }
 
