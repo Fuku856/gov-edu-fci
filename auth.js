@@ -47,8 +47,8 @@ function initializeAuth() {
         mainContent.style.visibility = 'hidden';
       }
       
-      // 認証状態確認済みフラグを設定
-      document.body.classList.add('auth-checked');
+      // 認証状態確認済みフラグは、認証チェック完了後に追加
+      // これにより、読み込み中のちらつきを防ぐ
       
       // 認証状態の監視
       firebase.auth().onAuthStateChanged((user) => {
@@ -59,10 +59,16 @@ function initializeAuth() {
             const email = user.email;
             
             // GitHub認証でログインしている場合、開発者用のチェックを行う
-            const isGitHubUser = await isAllowedGitHubUser(user);
+            console.log('認証状態変更: ユーザーがログインしました', user.email, user.uid);
             
-            // メールドメインをチェック（通常の学校アカウント用）
-            const isAllowed = isAllowedEmailDomain(email);
+            // 認証チェックを並列化して高速化
+            const [isGitHubUser, isAllowed] = await Promise.all([
+              isAllowedGitHubUser(user),
+              Promise.resolve(isAllowedEmailDomain(email))
+            ]);
+            
+            console.log('GitHubユーザーチェック結果:', isGitHubUser);
+            console.log('メールドメインチェック結果:', isAllowed);
             
             // GitHub認証でログインし、許可されたGitHubユーザー名の場合、allowed_usersコレクションに自動追加を試みる
             if (isGitHubUser) {
@@ -114,7 +120,11 @@ function initializeAuth() {
             
             // サーバー側（Firestore）での認証チェックを試行
             // これにより、クライアント側のチェックを回避してもFirestoreへのアクセスが拒否される
+            // メールドメインチェックとFirestoreチェックを並列化して高速化
             let isServerAllowed = false;
+            const email = user.email;
+            const isSchoolDomain = email && email.toLowerCase().endsWith('@fcihs-satoyama.ed.jp');
+            
             try {
               // Firestoreのallowed_usersコレクションにアクセスを試みる
               // セキュリティルールで保護されているため、許可されていないユーザーはアクセスできない
@@ -125,44 +135,48 @@ function initializeAuth() {
               
               if (allowedUserDoc.exists) {
                 isServerAllowed = true;
-              } else {
-                // allowed_usersに存在しない場合、メールドメインをチェック
-                // Firestoreセキュリティルールでメールドメイン（@fcihs-satoyama.ed.jp）が許可されているか確認
-                const email = user.email;
-                if (email && email.toLowerCase().endsWith('@fcihs-satoyama.ed.jp')) {
-                  // 学校のメールドメインの場合、Firestoreセキュリティルールで許可されている
-                  isServerAllowed = true;
-                }
+              } else if (isSchoolDomain) {
+                // allowed_usersに存在しないが、学校のメールドメインの場合
+                // Firestoreセキュリティルールでメールドメイン（@fcihs-satoyama.ed.jp）が許可されている
+                isServerAllowed = true;
               }
             } catch (error) {
-              // 権限エラーの場合、許可されていないユーザー
+              // 権限エラーの場合、許可されていないユーザー（ただし、学校ドメインの場合は許可）
               if (error.code === 'permission-denied') {
-                isServerAllowed = false;
+                isServerAllowed = isSchoolDomain; // 学校ドメインなら許可
               } else {
                 console.error('サーバー側認証チェックエラー:', error);
                 // エラーの場合は、メールドメインをチェック（フォールバック）
-                const email = user.email;
-                if (email && email.toLowerCase().endsWith('@fcihs-satoyama.ed.jp')) {
-                  isServerAllowed = true;
-                }
+                isServerAllowed = isSchoolDomain;
               }
             }
             
             // GitHub認証の場合、自動登録処理が実行されているため、少し待ってから再チェック
             if (!isServerAllowed && isGitHubUser) {
-              await new Promise(resolve => setTimeout(resolve, 500));
-              try {
-                const allowedUserDoc = await firebase.firestore()
-                  .collection('allowed_users')
-                  .doc(user.uid)
-                  .get();
-                if (allowedUserDoc.exists) {
-                  isServerAllowed = true;
+              console.log('GitHubユーザーの自動登録を待機中...');
+              // 自動登録処理が完了するまで最大3秒待機（500ms間隔で6回チェック）
+              for (let i = 0; i < 6; i++) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                try {
+                  const allowedUserDoc = await firebase.firestore()
+                    .collection('allowed_users')
+                    .doc(user.uid)
+                    .get();
+                  if (allowedUserDoc.exists) {
+                    console.log('GitHubユーザーがallowed_usersコレクションに登録されました');
+                    isServerAllowed = true;
+                    break;
+                  }
+                } catch (error) {
+                  console.error('GitHub認証後の再チェックエラー:', error);
                 }
-              } catch (error) {
-                console.error('GitHub認証後の再チェックエラー:', error);
+              }
+              if (!isServerAllowed) {
+                console.warn('GitHubユーザーの自動登録が完了しませんでした');
               }
             }
+            
+            console.log('サーバー側認証チェック結果:', isServerAllowed);
             
             // サーバー側のチェックを優先
             // サーバー側で許可されていない場合、クライアント側のチェックは使用しない（セキュリティのため）
@@ -181,6 +195,12 @@ function initializeAuth() {
               }
               
               // 通常のページの場合、サイトを表示
+              // auth-checkedクラスを追加して、CSSで一括表示
+              document.body.classList.add('auth-checked');
+              
+              // 少し待ってから要素を表示（CSSアニメーションが正常に動作するように）
+              await new Promise(resolve => setTimeout(resolve, 10));
+              
               hideLoginPage();
               showMainContent();
               
@@ -209,11 +229,14 @@ function initializeAuth() {
             
             // login.htmlページでない場合のみリダイレクト
             if (!window.location.pathname.includes('login.html')) {
+              // auth-checkedクラスを削除してメインコンテンツを非表示にしてからリダイレクト
+              document.body.classList.remove('auth-checked');
               window.location.href = loginUrl;
               return; // リダイレクトするので、以降の処理は実行しない
             }
             
             // login.htmlページの場合は、ログインページを表示
+            document.body.classList.remove('auth-checked');
             hideUserInfo();
             showLoginPage();
             hideMainContent();
@@ -329,31 +352,44 @@ async function signInWithGitHub() {
     }
     
     // GitHubログインを実行
+    console.log('GitHub認証を開始します...');
     const result = await firebase.auth().signInWithPopup(provider);
     const user = result.user;
+    console.log('GitHub認証成功:', user.email, user.uid);
     
     // GitHub OAuthアクセストークンを取得
     const githubCredential = result.credential;
     if (githubCredential && githubCredential.accessToken) {
       // アクセストークンをsessionStorageに保存
       sessionStorage.setItem('github_access_token', githubCredential.accessToken);
+      console.log('GitHubアクセストークンを保存しました');
       
       // GitHub APIを使用してユーザー名を取得
       try {
         const githubResponse = await fetch('https://api.github.com/user', {
           headers: {
-            'Authorization': `token ${githubCredential.accessToken}`
+            'Authorization': `Bearer ${githubCredential.accessToken}`
           }
         });
         if (githubResponse.ok) {
           const githubUser = await githubResponse.json();
           // ユーザー名をsessionStorageに保存（認証チェック時に使用）
           sessionStorage.setItem('github_username', githubUser.login);
+          console.log('GitHubユーザー名を保存しました:', githubUser.login);
+        } else {
+          console.error('GitHub API呼び出し失敗:', githubResponse.status, githubResponse.statusText);
         }
       } catch (error) {
         console.error('GitHub API呼び出しエラー:', error);
       }
+    } else {
+      console.warn('GitHubアクセストークンが取得できませんでした');
     }
+    
+    // 認証成功後、onAuthStateChangedが発火するまで少し待つ
+    // ただし、onAuthStateChangedが既に発火している可能性もあるため、
+    // ここではボタンの状態のみリセット（リダイレクトはonAuthStateChangedで処理）
+    console.log('GitHub認証が完了しました。onAuthStateChangedの処理を待ちます...');
     
   } catch (error) {
     console.error('GitHubログインエラー:', error);
@@ -489,17 +525,30 @@ async function linkGitHubProvider() {
  */
 async function signOut() {
   try {
-    await firebase.auth().signOut();
-    console.log('ログアウト成功');
+    // ログアウト前に即座にメインコンテンツを非表示にして、ちらつきを防ぐ
+    document.body.classList.remove('auth-checked');
     hideUserInfo();
-    showLoginPage();
     hideMainContent();
     
-    // ログインボタンの状態をリセット
-    resetLoginButton();
+    // ログインページに即座にリダイレクト（ログアウト処理はバックグラウンドで実行）
+    const currentUrl = window.location.href;
+    const loginUrl = `login.html?redirect=${encodeURIComponent(currentUrl)}`;
+    
+    // 即座にリダイレクト（signOut()は並行して実行）
+    window.location.href = loginUrl;
+    
+    // ログアウト処理はリダイレクトと並行して実行（リダイレクト後に完了する可能性もあるが問題ない）
+    firebase.auth().signOut().then(() => {
+      console.log('ログアウト成功');
+    }).catch((error) => {
+      console.error('ログアウトエラー:', error);
+    });
   } catch (error) {
     console.error('ログアウトエラー:', error);
-    alert('ログアウトに失敗しました');
+    // エラーが発生した場合もリダイレクト
+    const currentUrl = window.location.href;
+    const loginUrl = `login.html?redirect=${encodeURIComponent(currentUrl)}`;
+    window.location.href = loginUrl;
   }
 }
 
@@ -560,7 +609,7 @@ async function getGitHubUsernameFromUser(user) {
     try {
       const githubResponse = await fetch('https://api.github.com/user', {
         headers: {
-          'Authorization': `token ${accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       if (githubResponse.ok) {
@@ -585,7 +634,9 @@ async function getGitHubUsernameFromUser(user) {
  * GitHubユーザーが許可されているかチェック
  */
 async function isAllowedGitHubUser(user) {
+  console.log('isAllowedGitHubUser: チェック開始', user?.email, user?.uid);
   if (!user) {
+    console.log('isAllowedGitHubUser: ユーザーがnull');
     return false;
   }
   
@@ -593,8 +644,10 @@ async function isAllowedGitHubUser(user) {
   const isGitHubProvider = user.providerData.some(
     provider => provider.providerId === 'github.com'
   );
+  console.log('isAllowedGitHubUser: GitHubプロバイダーチェック:', isGitHubProvider);
   
   if (!isGitHubProvider) {
+    console.log('isAllowedGitHubUser: GitHubプロバイダーではありません');
     return false;
   }
   
@@ -617,13 +670,17 @@ async function isAllowedGitHubUser(user) {
   
   // sessionStorageからGitHubユーザー名を取得
   let username = await getGitHubUsernameFromUser(user);
+  console.log('isAllowedGitHubUser: 取得したユーザー名:', username);
+  console.log('isAllowedGitHubUser: 許可されたユーザー名リスト:', allowedGitHubUsernames);
   
   if (!username) {
     // sessionStorageにない場合、少し待ってから再度試す（最大3回、500ms間隔でリトライ）
+    console.log('isAllowedGitHubUser: ユーザー名が取得できなかったため、リトライします');
     for (let i = 0; i < 3; i++) {
       await new Promise(resolve => setTimeout(resolve, 500));
       username = await getGitHubUsernameFromUser(user);
       if (username) {
+        console.log('isAllowedGitHubUser: リトライでユーザー名を取得:', username);
         break;
       }
     }
@@ -631,9 +688,11 @@ async function isAllowedGitHubUser(user) {
   
   if (username) {
     const usernameLower = username.toLowerCase().trim();
-    if (allowedGitHubUsernames.some(allowedUsername => 
+    const isAllowed = allowedGitHubUsernames.some(allowedUsername => 
       allowedUsername.toLowerCase().trim() === usernameLower
-    )) {
+    );
+    console.log('isAllowedGitHubUser: ユーザー名チェック結果:', isAllowed);
+    if (isAllowed) {
       return true;
     }
   }
