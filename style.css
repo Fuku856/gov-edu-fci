@@ -1946,6 +1946,121 @@ body.toc-open .grecaptcha-badge {
     background: rgba(220, 38, 38, 0.08);
 }
 
+/* ページネーション */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1rem;
+}
+
+.pagination-btn {
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--secondary-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 82, 204, 0.3);
+}
+
+.pagination-btn:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pagination-info {
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    font-weight: 500;
+    min-width: 200px;
+    text-align: center;
+}
+
+/* ログイン履歴セクション */
+.admin-login-history-section {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+    margin-top: 2rem;
+}
+
+.admin-login-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.admin-login-history-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.75rem;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    transition: all 0.3s ease;
+}
+
+.admin-login-history-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.login-history-header {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.login-history-header h3 {
+    color: var(--primary-blue);
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.login-meta {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.login-history-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.login-history-details p {
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.login-history-details strong {
+    color: var(--text-dark);
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.login-history-details code {
+    background: rgba(0, 82, 204, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--primary-blue);
+}
+
 @media (max-width: 768px) {
     .board-limits {
         grid-template-columns: 1fr;
@@ -1957,5 +2072,14 @@ body.toc-open .grecaptcha-badge {
 
     .admin-actions {
         flex-direction: column;
+    }
+
+    .pagination {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .pagination-info {
+        min-width: auto;
     }
 }

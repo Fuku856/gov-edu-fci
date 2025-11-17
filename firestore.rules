@@ -97,5 +97,15 @@ service cloud.firestore {
       allow read: if isAuthenticatedAndAllowed();
       allow write: if isAuthenticatedAndAllowed();
     }
+
+    // ログイン履歴
+    // 読み取り: 管理者のみ
+    // 書き込み: 認証済みユーザー（自分自身のログイン履歴を保存）
+    match /login_history/{historyId} {
+      allow read: if isAdmin();
+      allow create: if request.auth != null && 
+                      request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
   }
 }

@@ -242,6 +242,9 @@ function initializeAuth() {
               
               // ユーザー情報を表示（ヘッダーにログアウトボタンを表示）
               await updateUserInfo(user);
+              
+              // ログイン履歴を保存
+              await saveLoginHistory(user);
             } else {
               // 許可されていないユーザーの場合、ログアウトしてログインページにリダイレクト
               hideUserInfo();
@@ -1359,6 +1362,41 @@ async function getIdToken() {
     return await user.getIdToken();
   }
   return null;
+}
+
+/**
+ * ログイン履歴を保存
+ * @param {Object} user - Firebase Authentication のユーザーオブジェクト
+ */
+async function saveLoginHistory(user) {
+  if (!user || typeof firebase === 'undefined') {
+    return;
+  }
+  
+  try {
+    const db = firebase.firestore();
+    const loginHistoryRef = db.collection('login_history').doc();
+    
+    const providerData = user.providerData && user.providerData.length > 0 
+      ? user.providerData[0] 
+      : null;
+    const providerId = providerData ? providerData.providerId : 'unknown';
+    
+    await loginHistoryRef.set({
+      userId: user.uid,
+      email: user.email || '',
+      displayName: user.displayName || (user.email ? user.email.split('@')[0] : '匿名'),
+      providerId: providerId,
+      loginAt: firebase.firestore.FieldValue.serverTimestamp(),
+      userAgent: navigator.userAgent || '',
+      ipAddress: null // クライアント側では取得できないためnull
+    });
+    
+    console.log('ログイン履歴を保存しました:', user.uid);
+  } catch (error) {
+    // ログイン履歴の保存に失敗してもログイン処理は続行
+    console.error('ログイン履歴の保存に失敗しました:', error);
+  }
 }
 
 // グローバルに公開
