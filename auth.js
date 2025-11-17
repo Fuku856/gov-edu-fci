@@ -1368,10 +1368,12 @@ async function getIdToken() {
  */
 async function saveLoginHistory(user) {
   if (!user || typeof firebase === 'undefined') {
+    console.warn('ログイン履歴の保存をスキップ: ユーザーまたはFirebaseが未定義');
     return;
   }
   
   try {
+    console.log('ログイン履歴の保存を開始:', user.uid, user.email);
     const db = firebase.firestore();
     const loginHistoryRef = db.collection('login_history').doc();
     
@@ -1380,7 +1382,7 @@ async function saveLoginHistory(user) {
       : null;
     const providerId = providerData ? providerData.providerId : 'unknown';
     
-    await loginHistoryRef.set({
+    const historyData = {
       userId: user.uid,
       email: user.email || '',
       displayName: user.displayName || (user.email ? user.email.split('@')[0] : '匿名'),
@@ -1388,12 +1390,20 @@ async function saveLoginHistory(user) {
       loginAt: firebase.firestore.FieldValue.serverTimestamp(),
       userAgent: navigator.userAgent || '',
       ipAddress: null // クライアント側では取得できないためnull
-    });
+    };
     
-    console.log('ログイン履歴を保存しました:', user.uid);
+    console.log('ログイン履歴データ:', historyData);
+    await loginHistoryRef.set(historyData);
+    
+    console.log('ログイン履歴を保存しました:', user.uid, loginHistoryRef.id);
   } catch (error) {
     // ログイン履歴の保存に失敗してもログイン処理は続行
     console.error('ログイン履歴の保存に失敗しました:', error);
+    console.error('エラー詳細:', {
+      code: error.code,
+      message: error.message,
+      stack: error.stack
+    });
   }
 }
 

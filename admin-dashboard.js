@@ -566,17 +566,25 @@ function getTodayKey() {
 async function loadLoginHistory() {
   const container = document.getElementById('login-history');
   const paginationEl = document.getElementById('login-history-pagination');
-  if (!container) return;
+  if (!container) {
+    console.error('ログイン履歴コンテナが見つかりません');
+    return;
+  }
 
   try {
+    console.log('ログイン履歴の読み込みを開始...');
+    
     // 1週間以上前のログイン履歴を削除
     await deleteOldLoginHistory();
 
+    console.log('ログイン履歴を取得中...');
     const snapshot = await db
       .collection('login_history')
       .orderBy('loginAt', 'desc')
       .limit(1000) // 最新1000件まで取得
       .get();
+
+    console.log(`取得したログイン履歴: ${snapshot.size}件`);
 
     const allHistory = [];
     snapshot.forEach((doc) => {
@@ -593,14 +601,22 @@ async function loadLoginHistory() {
       });
     });
 
+    console.log(`処理したログイン履歴: ${allHistory.length}件`);
+
     state.loginHistory.allHistory = allHistory;
     state.loginHistory.totalPages = Math.max(1, Math.ceil(allHistory.length / ITEMS_PER_PAGE));
     state.loginHistory.currentPage = 1;
 
     renderLoginHistory();
+    console.log('ログイン履歴の表示を完了');
   } catch (error) {
     console.error('ログイン履歴の取得に失敗しました', error);
-    container.innerHTML = '<p class="empty-message">ログイン履歴を読み込めませんでした。</p>';
+    console.error('エラー詳細:', {
+      code: error.code,
+      message: error.message,
+      stack: error.stack
+    });
+    container.innerHTML = `<p class="empty-message">ログイン履歴を読み込めませんでした。<br>エラー: ${error.message || error.code || '不明なエラー'}</p>`;
     if (paginationEl) paginationEl.style.display = 'none';
   }
 }
@@ -657,9 +673,14 @@ function renderLoginHistory() {
   const nextBtn = document.getElementById('history-next-btn');
   const pageInfo = document.getElementById('history-page-info');
   
-  if (!container) return;
+  if (!container) {
+    console.error('ログイン履歴コンテナが見つかりません（renderLoginHistory）');
+    return;
+  }
 
   const { allHistory, currentPage, totalPages } = state.loginHistory;
+  
+  console.log(`ログイン履歴を表示中: ${allHistory.length}件, 現在のページ: ${currentPage}/${totalPages}`);
   
   if (allHistory.length === 0) {
     container.innerHTML = '<p class="empty-message">ログイン履歴がありません。</p>';
