@@ -3,7 +3,10 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // 許可されたメールアドレスが許可されているかチェック
     function isAllowedEmail(email) {
-      return email != null && email.lower().split('@')[1] == 'fcihs-satoyama.ed.jp';
+      return email != null && (
+        email.lower().split('@')[1] == 'fcihs-satoyama.ed.jp' ||
+        email.lower().split('@')[1] == 'fcidux.dpdns.org'
+      );
     }
     
     // 許可されたユーザーかチェック（Firestoreのallowed_usersコレクションから）

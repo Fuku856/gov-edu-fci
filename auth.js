@@ -132,7 +132,10 @@ function initializeAuth() {
             // これにより、クライアント側のチェックを回避してもFirestoreへのアクセスが拒否される
             // メールドメインチェックとFirestoreチェックを並列化して高速化
             let isServerAllowed = false;
-            const isSchoolDomain = userEmail && userEmail.toLowerCase().endsWith('@fcihs-satoyama.ed.jp');
+            const isSchoolDomain = userEmail && (
+              userEmail.toLowerCase().endsWith('@fcihs-satoyama.ed.jp') ||
+              userEmail.toLowerCase().endsWith('@fcidux.dpdns.org')
+            );
             
             try {
               // Firestoreのallowed_usersコレクションにアクセスを試みる
@@ -145,8 +148,8 @@ function initializeAuth() {
               if (allowedUserDoc.exists) {
                 isServerAllowed = true;
               } else if (isSchoolDomain) {
-                // allowed_usersに存在しないが、学校のメールドメインの場合
-                // Firestoreセキュリティルールでメールドメイン（@fcihs-satoyama.ed.jp）が許可されている
+                // allowed_usersに存在しないが、学校のメールドメインまたはテスト用ドメインの場合
+                // Firestoreセキュリティルールでメールドメイン（@fcihs-satoyama.ed.jp または @fcidux.dpdns.org）が許可されている
                 isServerAllowed = true;
               }
             } catch (error) {
@@ -189,7 +192,7 @@ function initializeAuth() {
             
             // サーバー側のチェックを優先
             // サーバー側で許可されていない場合、クライアント側のチェックは使用しない（セキュリティのため）
-            // ただし、学校のメールドメイン（@fcihs-satoyama.ed.jp）の場合は、Firestoreセキュリティルールで許可されているため、isServerAllowedがtrueになっている
+            // ただし、学校のメールドメイン（@fcihs-satoyama.ed.jp）またはテスト用ドメイン（@fcidux.dpdns.org）の場合は、Firestoreセキュリティルールで許可されているため、isServerAllowedがtrueになっている
             if (isServerAllowed) {
               // 許可されたユーザー（GitHub開発者または学校アカウント）の場合
               
@@ -199,6 +202,9 @@ function initializeAuth() {
               
               if (redirectUrl && window.location.pathname.includes('login.html')) {
                 // 元のページにリダイレクト
+                console.log('認証成功: リダイレクト先:', redirectUrl);
+                // 少し待ってからリダイレクト（認証処理が完全に完了するまで）
+                await new Promise(resolve => setTimeout(resolve, 100));
                 window.location.href = redirectUrl;
                 return; // リダイレクトするので、以降の処理は実行しない
               }
@@ -999,7 +1005,11 @@ function showMainContent() {
       const urlParams = new URLSearchParams(window.location.search);
       const redirectUrl = urlParams.get('redirect');
       const targetUrl = redirectUrl || 'index.html';
-      window.location.href = targetUrl;
+      console.log('showMainContent: リダイレクト先:', targetUrl);
+      // 少し待ってからリダイレクト（認証処理が完全に完了するまで）
+      setTimeout(() => {
+        window.location.href = targetUrl;
+      }, 100);
       return;
     }
     

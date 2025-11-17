@@ -18,6 +18,7 @@ const firebaseConfig = {
 // 例: ['your-school.edu', 'example.edu']
 const ALLOWED_EMAIL_DOMAINS = [
   'fcihs-satoyama.ed.jp',  // 学校のメールドメイン
+  'fcidux.dpdns.org',  // テスト用ドメイン
   // 'gmail.com',  // 動作確認用: テストが必要な場合のみコメントアウトを外す（すべてのGmailアカウントが許可されます）
   // 'yahoo.co.jp',  // 動作確認用: 必要に応じて追加
 ];
