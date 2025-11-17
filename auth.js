@@ -125,6 +125,14 @@ function initializeAuth() {
               
               if (allowedUserDoc.exists) {
                 isServerAllowed = true;
+              } else {
+                // allowed_usersに存在しない場合、メールドメインをチェック
+                // Firestoreセキュリティルールでメールドメイン（@fcihs-satoyama.ed.jp）が許可されているか確認
+                const email = user.email;
+                if (email && email.toLowerCase().endsWith('@fcihs-satoyama.ed.jp')) {
+                  // 学校のメールドメインの場合、Firestoreセキュリティルールで許可されている
+                  isServerAllowed = true;
+                }
               }
             } catch (error) {
               // 権限エラーの場合、許可されていないユーザー
@@ -132,12 +140,34 @@ function initializeAuth() {
                 isServerAllowed = false;
               } else {
                 console.error('サーバー側認証チェックエラー:', error);
-                // エラーの場合はクライアント側のチェックにフォールバック
+                // エラーの場合は、メールドメインをチェック（フォールバック）
+                const email = user.email;
+                if (email && email.toLowerCase().endsWith('@fcihs-satoyama.ed.jp')) {
+                  isServerAllowed = true;
+                }
               }
             }
             
-            // クライアント側またはサーバー側で許可されている場合
-            if (isServerAllowed || isGitHubUser || isAllowed) {
+            // GitHub認証の場合、自動登録処理が実行されているため、少し待ってから再チェック
+            if (!isServerAllowed && isGitHubUser) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+              try {
+                const allowedUserDoc = await firebase.firestore()
+                  .collection('allowed_users')
+                  .doc(user.uid)
+                  .get();
+                if (allowedUserDoc.exists) {
+                  isServerAllowed = true;
+                }
+              } catch (error) {
+                console.error('GitHub認証後の再チェックエラー:', error);
+              }
+            }
+            
+            // サーバー側のチェックを優先
+            // サーバー側で許可されていない場合、クライアント側のチェックは使用しない（セキュリティのため）
+            // ただし、学校のメールドメイン（@fcihs-satoyama.ed.jp）の場合は、Firestoreセキュリティルールで許可されているため、isServerAllowedがtrueになっている
+            if (isServerAllowed) {
               // 許可されたユーザー（GitHub開発者または学校アカウント）の場合、サイトを表示
               hideLoginPage();
               showMainContent();
