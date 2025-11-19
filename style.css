@@ -2106,3 +2106,407 @@ body.toc-open .grecaptcha-badge {
         min-width: auto;
     }
 }
+/* 掲示板の並び替えコントロール */
+.board-controls {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.sort-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sort-container label {
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.select-wrapper select {
+    appearance: none;
+    background: transparent;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary-blue);
+    padding-right: 1.5rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.select-wrapper::after {
+    content: '';
+    font-size: 0.7rem;
+    color: var(--primary-blue);
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* 投票ボタンのデザイン改善 (Reddit風) */
+.vote-actions {
+    display: flex;
+    gap: 0.5rem;
+    background: #f1f5f9;
+    padding: 0.25rem;
+    border-radius: 8px;
+    width: fit-content;
+    flex-direction: row !important; /* モバイルでも横並びを維持 */
+}
+
+.vote-btn {
+    background: transparent !important;
+    color: var(--text-light) !important;
+    padding: 0.4rem 0.8rem !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+    box-shadow: none !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+}
+
+.vote-btn:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.05) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.vote-btn.agree:hover:not(:disabled),
+.vote-btn.agree.selected {
+    color: #16a34a !important;
+    background: rgba(22, 163, 74, 0.1) !important;
+}
+
+.vote-btn.disagree:hover:not(:disabled),
+.vote-btn.disagree.selected {
+    color: #ea580c !important;
+    background: rgba(234, 88, 12, 0.1) !important;
+}
+
+.vote-btn.neutral:hover:not(:disabled),
+.vote-btn.neutral.selected {
+    color: #6366f1 !important;
+    background: rgba(99, 102, 241, 0.1) !important;
+}
+
+/* 投稿カードのデザイン調整 */
+.post-card {
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.post-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Reddit風投票ボタンスタイル (アイコン版) */
+.vote-actions-reddit {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.vote-group {
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    border-radius: 24px;
+    padding: 2px;
+    transition: background 0.2s;
+}
+
+.vote-group:hover {
+    background: #e2e8f0;
+}
+
+.vote-btn-icon {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.vote-btn-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.5px;
+}
+
+.vote-btn-icon:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.05);
+    color: #334155;
+}
+
+.vote-count-text {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #475569;
+    margin: 0 8px 0 4px;
+    min-width: 1.5ch;
+    text-align: center;
+}
+
+/* 賛成 (Upvote) */
+.vote-btn-icon.agree:hover:not(:disabled),
+.vote-btn-icon.agree.selected {
+    color: #d93025; /* Reddit Orange-Red */
+    background: rgba(217, 48, 37, 0.1);
+}
+
+.vote-group:has(.vote-btn-icon.agree.selected) {
+    background: rgba(217, 48, 37, 0.05);
+    border: 1px solid rgba(217, 48, 37, 0.2);
+}
+
+.vote-group:has(.vote-btn-icon.agree.selected) .vote-count-text {
+    color: #d93025;
+}
+
+/* 中立 (Neutral) */
+.vote-btn-icon.neutral:hover:not(:disabled),
+.vote-btn-icon.neutral.selected {
+    color: #6366f1;
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.vote-group:has(.vote-btn-icon.neutral.selected) {
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.vote-group:has(.vote-btn-icon.neutral.selected) .vote-count-text {
+    color: #6366f1;
+}
+
+/* 反対 (Downvote) */
+.vote-btn-icon.disagree:hover:not(:disabled),
+.vote-btn-icon.disagree.selected {
+    color: #7193ff; /* Reddit Periwinkle Blue */
+    background: rgba(113, 147, 255, 0.1);
+}
+
+.vote-group:has(.vote-btn-icon.disagree.selected) {
+    background: rgba(113, 147, 255, 0.05);
+    border: 1px solid rgba(113, 147, 255, 0.2);
+}
+
+.vote-group:has(.vote-btn-icon.disagree.selected) .vote-count-text {
+    color: #7193ff;
+}
+
+/* 投票済み状態の他のボタン */
+.vote-btn-icon.voted-state:not(.selected) {
+    opacity: 0.3;
+    cursor: default;
+}
+
+/* アニメーション定義 */
+@keyframes votePop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+@keyframes voteSlideUp {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+    100% { transform: translateY(0); }
+}
+
+@keyframes voteSlideDown {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+    100% { transform: translateY(0); }
+}
+
+/* 投票ボタンのアニメーション適用 */
+.vote-btn-icon {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vote-btn-icon:active {
+    transform: scale(0.85);
+}
+
+/* 選択された瞬間の動き（クラス付与時に再生） */
+.vote-btn-icon.agree.selected svg {
+    animation: voteSlideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.vote-btn-icon.disagree.selected svg {
+    animation: voteSlideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.vote-btn-icon.neutral.selected svg {
+    animation: votePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 並び替えエリアのアニメーション */
+.sort-container {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.sort-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 102, 255, 0.12);
+    border-color: rgba(0, 102, 255, 0.3);
+}
+
+.sort-container:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 102, 255, 0.1);
+}
+
+.select-wrapper select {
+    transition: color 0.3s;
+}
+
+.sort-container:hover select {
+    color: var(--secondary-blue);
+}
+
+/* ドロップダウンの矢印も連動して動かす */
+.select-wrapper::after {
+    transition: transform 0.3s ease;
+}
+
+.sort-container:hover .select-wrapper::after {
+    transform: translateY(-50%) scale(1.2);
+    color: var(--secondary-blue);
+}
+
+/* カスタムドロップダウン */
+.custom-select-container {
+    position: relative;
+    min-width: 220px;
+}
+
+.custom-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.6rem 1rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.custom-select-trigger:hover {
+    border-color: var(--light-blue);
+    box-shadow: 0 4px 12px rgba(0, 102, 255, 0.1);
+}
+
+.sort-label-prefix {
+    color: var(--text-light);
+    margin-right: 0.5rem;
+    font-weight: 500;
+}
+
+.current-value {
+    font-weight: 600;
+    color: var(--primary-blue);
+    flex: 1;
+    text-align: left;
+}
+
+.dropdown-arrow {
+    color: var(--text-light);
+    transition: transform 0.3s ease;
+}
+
+.custom-select-container.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.custom-options-wrapper {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.custom-select-container.open .custom-options-wrapper {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.custom-options {
+    list-style: none;
+    padding: 0.5rem;
+    margin: 0;
+}
+
+.custom-options li {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 0.8rem;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.custom-options li:hover {
+    background: #f1f5f9;
+    color: var(--primary-blue);
+}
+
+.custom-options li.selected {
+    background: rgba(0, 102, 255, 0.1);
+    color: var(--primary-blue);
+    font-weight: 600;
+}
+
+.option-icon {
+    margin-right: 0.75rem;
+    font-size: 1.1rem;
+    width: 1.5rem;
+    text-align: center;
+}

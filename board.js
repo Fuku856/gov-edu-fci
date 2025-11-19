@@ -52,11 +52,55 @@ function setupBoardPage() {
   if (postForm) {
     postForm.addEventListener('submit', handlePostSubmit);
   }
+
+  // カスタムドロップダウンの制御
+  const sortDropdown = document.getElementById('sort-dropdown');
+  if (sortDropdown) {
+    const trigger = sortDropdown.querySelector('.custom-select-trigger');
+    const options = sortDropdown.querySelectorAll('.custom-options li');
+    const valueSpan = sortDropdown.querySelector('.current-value');
+
+    // ドロップダウンの開閉
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+      trigger.setAttribute('aria-expanded', !isExpanded);
+      sortDropdown.classList.toggle('open');
+    });
+
+    // オプション選択
+    options.forEach(option => {
+      option.addEventListener('click', () => {
+        // 選択状態の更新
+        options.forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+
+        // 表示の更新
+        const text = option.querySelector('span:last-child').textContent;
+        valueSpan.textContent = text;
+
+        // ドロップダウンを閉じる
+        trigger.setAttribute('aria-expanded', 'false');
+        sortDropdown.classList.remove('open');
+
+        // データの再取得
+        refreshBoardData(option.dataset.value);
+      });
+    });
+
+    // 外側クリックで閉じる
+    document.addEventListener('click', (e) => {
+      if (!sortDropdown.contains(e.target)) {
+        trigger.setAttribute('aria-expanded', 'false');
+        sortDropdown.classList.remove('open');
+      }
+    });
+  }
 }
 
-async function refreshBoardData() {
+async function refreshBoardData(sortBy = 'newest') {
   await updateDailyUsage();
-  subscribeApprovedPosts();
+  subscribeApprovedPosts(sortBy);
 }
 
 function cleanupSubscriptions() {
@@ -112,7 +156,7 @@ function updateDailyUsage() {
     });
 }
 
-function subscribeApprovedPosts() {
+function subscribeApprovedPosts(sortBy = 'newest') {
   const container = document.getElementById('posts-container');
   if (!container) return;
 
@@ -136,37 +180,52 @@ function subscribeApprovedPosts() {
   voteSubscriptions.forEach((unsubscribe) => unsubscribe());
   voteSubscriptions.clear();
 
-  unsubscribePosts = db
-    .collection('posts')
-    .where('status', '==', 'approved')
-    .orderBy('createdAt', 'desc')
-    .onSnapshot(
-      (snapshot) => {
-        container.innerHTML = '';
+  let query = db.collection('posts').where('status', '==', 'approved');
 
-        if (snapshot.empty) {
-          container.innerHTML = '<p class="empty-message">まだ承認済みの投稿はありません。新しい提案を投稿してみましょう！</p>';
-          return;
-        }
+  switch (sortBy) {
+    case 'newest':
+      query = query.orderBy('createdAt', 'desc');
+      break;
+    case 'oldest':
+      query = query.orderBy('createdAt', 'asc');
+      break;
+    case 'popular':
+      query = query.orderBy('agreeCount', 'desc');
+      break;
+    case 'controversial':
+      query = query.orderBy('disagreeCount', 'desc');
+      break;
+    default:
+      query = query.orderBy('createdAt', 'desc');
+  }
 
-        snapshot.forEach((doc) => {
-          const postData = doc.data();
-          const card = createPostCard(doc.id, postData);
-          container.appendChild(card);
-          subscribeToVotes(doc.id, card);
-        });
-      },
-      (error) => {
-        console.error('投稿の取得に失敗しました', error);
-        console.error('エラー詳細:', {
-          code: error.code,
-          message: error.message,
-          userEmail: authUser?.email,
-          userUid: authUser?.uid
-        });
-        container.innerHTML = '<p class="empty-message">投稿を読み込めませんでした。権限エラーの可能性があります。ページをリロードしてください。</p>';
+  unsubscribePosts = query.onSnapshot(
+    (snapshot) => {
+      container.innerHTML = '';
+
+      if (snapshot.empty) {
+        container.innerHTML = '<p class="empty-message">まだ承認済みの投稿はありません。新しい提案を投稿してみましょう！</p>';
+        return;
       }
-    );
+
+      snapshot.forEach((doc) => {
+        const postData = doc.data();
+        const card = createPostCard(doc.id, postData);
+        container.appendChild(card);
+        subscribeToVotes(doc.id, card);
+      });
+    },
+    (error) => {
+      console.error('投稿の取得に失敗しました', error);
+      console.error('エラー詳細:', {
+        code: error.code,
+        message: error.message,
+        userEmail: authUser?.email,
+        userUid: authUser?.uid
+      });
+      container.innerHTML = '<p class="empty-message">投稿を読み込めませんでした。権限エラーの可能性があります。ページをリロードしてください。</p>';
+    }
+  );
 }
 
 function createPostCard(postId, data) {
@@ -183,21 +242,41 @@ function createPostCard(postId, data) {
       <h3>${escapeHtml(data.title || '無題の投稿')}</h3>
       <p class="post-meta">投稿者: ${escapeHtml(data.authorName || '匿名')}・${createdText}</p>
     </div>
-    <p class="post-content">${escapeHtml(data.content || '')}</p>
-    <div class="vote-summary" data-post-id="${postId}">
-      <div><span class="vote-count" data-vote="agree">0</span><span>賛成</span></div>
-      <div><span class="vote-count" data-vote="neutral">0</span><span>中立</span></div>
-      <div><span class="vote-count" data-vote="disagree">0</span><span>反対</span></div>
-    </div>
-    <div class="vote-actions">
-      <button class="vote-btn agree" data-action="agree" data-post-id="${postId}">賛成</button>
-      <button class="vote-btn neutral" data-action="neutral" data-post-id="${postId}">中立</button>
-      <button class="vote-btn disagree" data-action="disagree" data-post-id="${postId}">反対</button>
+    <div class="post-content">${escapeHtml(data.content || '')}</div>
+    
+    <div class="vote-actions-reddit" data-post-id="${postId}">
+      <div class="vote-group">
+        <button class="vote-btn-icon agree" data-action="agree" data-post-id="${postId}" aria-label="賛成">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 19V5M5 12l7-7 7 7"/>
+          </svg>
+        </button>
+        <span class="vote-count-text" data-vote="agree">0</span>
+      </div>
+
+      <div class="vote-group">
+        <button class="vote-btn-icon neutral" data-action="neutral" data-post-id="${postId}" aria-label="中立">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </button>
+        <span class="vote-count-text" data-vote="neutral">0</span>
+      </div>
+
+      <div class="vote-group">
+        <button class="vote-btn-icon disagree" data-action="disagree" data-post-id="${postId}" aria-label="反対">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12l7 7 7-7"/>
+          </svg>
+        </button>
+        <span class="vote-count-text" data-vote="disagree">0</span>
+      </div>
     </div>
     <p class="feedback-message" data-feedback-for="${postId}"></p>
   `;
 
-  card.querySelectorAll('.vote-btn').forEach((button) => {
+  card.querySelectorAll('.vote-btn-icon').forEach((button) => {
     button.addEventListener('click', () => handleVote(postId, button.dataset.action, card));
   });
 
@@ -228,14 +307,14 @@ function subscribeToVotes(postId, card) {
 }
 
 function updateVoteDisplay(card, counts, userVoteType) {
-  const summary = card.querySelector('.vote-summary');
-  if (summary) {
-    summary.querySelector('[data-vote="agree"]').textContent = counts.agree;
-    summary.querySelector('[data-vote="neutral"]').textContent = counts.neutral;
-    summary.querySelector('[data-vote="disagree"]').textContent = counts.disagree;
+  const container = card.querySelector('.vote-actions-reddit');
+  if (container) {
+    container.querySelector('[data-vote="agree"]').textContent = counts.agree;
+    container.querySelector('[data-vote="neutral"]').textContent = counts.neutral;
+    container.querySelector('[data-vote="disagree"]').textContent = counts.disagree;
   }
 
-  const buttons = card.querySelectorAll('.vote-btn');
+  const buttons = card.querySelectorAll('.vote-btn-icon');
   buttons.forEach((btn) => {
     if (!currentUser) {
       btn.disabled = true;
@@ -244,8 +323,19 @@ function updateVoteDisplay(card, counts, userVoteType) {
     }
 
     const isSelected = userVoteType === btn.dataset.action;
-    btn.disabled = Boolean(userVoteType);
+    btn.disabled = Boolean(userVoteType); // 投票済みなら無効化（変更不可の場合）
+    // 変更可能にするなら btn.disabled = false; ですが、仕様によります。
+    // 元のコードが btn.disabled = Boolean(userVoteType) だったので維持します。
+    // ただし、自分の投票したボタンだけはアクティブに見せたいのでclassはつけます。
+
     btn.classList.toggle('selected', isSelected);
+
+    // 投票済みの場合、選択されていないボタンは薄くするなどのスタイル調整が可能
+    if (userVoteType) {
+      btn.classList.add('voted-state');
+    } else {
+      btn.classList.remove('voted-state');
+    }
   });
 }
 
@@ -307,7 +397,10 @@ function createPost(title, content) {
       authorId: user.uid,
       authorName,
       status: 'pending',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      agreeCount: 0,
+      neutralCount: 0,
+      disagreeCount: 0
     });
   });
 }
@@ -364,6 +457,11 @@ function submitVote(postId, voteType) {
       voteType,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+
+    // 投稿ドキュメントのカウンターも更新
+    const postUpdate = {};
+    postUpdate[`${voteType}Count`] = firebase.firestore.FieldValue.increment(1);
+    transaction.set(db.collection('posts').doc(postId), postUpdate, { merge: true });
   });
 }
 
@@ -389,7 +487,7 @@ function escapeHtml(text) {
 // スクロールトップボタンの制御
 document.addEventListener('DOMContentLoaded', () => {
   const scrollTopBtn = document.getElementById('scrollTopBtn');
-  
+
   if (scrollTopBtn) {
     // スクロール位置を監視してボタンの表示/非表示を制御
     window.addEventListener('scroll', () => {
@@ -399,7 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollTopBtn.classList.remove('visible');
       }
     });
-    
+
     // ボタンをクリックしたらページの最上部にスムーズにスクロール
     scrollTopBtn.addEventListener('click', () => {
       window.scrollTo({
