@@ -106,6 +106,8 @@ function setupBoardPage() {
 
 async function refreshBoardData(sortBy = 'newest') {
   await updateDailyUsage();
+  // データの整合性をチェック・修復
+  repairVoteCounts();
   subscribeApprovedPosts(sortBy);
 }
 
@@ -186,25 +188,9 @@ function subscribeApprovedPosts(sortBy = 'newest') {
   voteSubscriptions.forEach((unsubscribe) => unsubscribe());
   voteSubscriptions.clear();
 
-  // Firestoreのクエリでソートを行う（インデックスが必要な場合はコンソールのリンクから作成してください）
+  // 確実に並び替えるため、クライアントサイドソートを採用
+  // FirestoreのorderByは使用せず、フィルタリングのみ行う
   let query = db.collection('posts').where('status', '==', 'approved');
-
-  switch (sortBy) {
-    case 'newest':
-      query = query.orderBy('createdAt', 'desc');
-      break;
-    case 'oldest':
-      query = query.orderBy('createdAt', 'asc');
-      break;
-    case 'popular':
-      query = query.orderBy('agreeCount', 'desc');
-      break;
-    case 'controversial':
-      query = query.orderBy('disagreeCount', 'desc');
-      break;
-    default:
-      query = query.orderBy('createdAt', 'desc');
-  }
 
   unsubscribePosts = query.onSnapshot(
     (snapshot) => {
@@ -215,11 +201,77 @@ function subscribeApprovedPosts(sortBy = 'newest') {
         return;
       }
 
+      // 1. まずデータを全て配列に変換
+      let posts = [];
       snapshot.forEach((doc) => {
-        const postData = doc.data();
-        const card = createPostCard(doc.id, postData);
+        posts.push({
+          id: doc.id,
+          data: doc.data()
+        });
+      });
+
+      // 2. ブラウザ側で厳密にソート
+      posts.sort((a, b) => {
+        const dataA = a.data;
+        const dataB = b.data;
+
+        // 値を安全に取得するヘルパー関数（文字列も数値に変換）
+        const getCount = (data, key) => {
+          const val = data[key];
+          const num = Number(val);
+          return isNaN(num) ? 0 : num;
+        };
+
+        const getTime = (data) => {
+          if (!data.createdAt) return 0;
+          // Firestore Timestamp
+          if (typeof data.createdAt.toMillis === 'function') return data.createdAt.toMillis();
+          // Date Object
+          if (typeof data.createdAt.getTime === 'function') return data.createdAt.getTime();
+          return 0;
+        };
+
+        const timeA = getTime(dataA);
+        const timeB = getTime(dataB);
+
+        const agreeA = getCount(dataA, 'agreeCount');
+        const agreeB = getCount(dataB, 'agreeCount');
+        const neutralA = getCount(dataA, 'neutralCount');
+        const neutralB = getCount(dataB, 'neutralCount');
+        const disagreeA = getCount(dataA, 'disagreeCount');
+        const disagreeB = getCount(dataB, 'disagreeCount');
+
+        // デバッグログ: データの状態を確認
+        // デバッグログ: データの状態を確認
+        console.log(`[${sortBy}] ID:${a.id.substr(0, 4)} A:${agreeA} N:${neutralA} D:${disagreeA} | vs | ID:${b.id.substr(0, 4)} A:${agreeB} N:${neutralB} D:${disagreeB}`);
+
+        switch (sortBy) {
+          case 'newest':
+            return timeB - timeA;
+          case 'oldest':
+            return timeA - timeB;
+          case 'popular':
+            // 人気順 (賛成 > 中立 > 反対 > 日時)
+            if (agreeB !== agreeA) return agreeB - agreeA;
+            if (neutralB !== neutralA) return neutralB - neutralA;
+            if (disagreeB !== disagreeA) return disagreeB - disagreeA;
+            return timeB - timeA;
+          case 'controversial':
+            // 反対順 (反対 > 中立 > 賛成 > 日時)
+            if (disagreeB !== disagreeA) return disagreeB - disagreeA;
+            if (neutralB !== neutralA) return neutralB - neutralA;
+            if (agreeB !== agreeA) return agreeB - agreeA;
+            return timeB - timeA;
+          default:
+            return timeB - timeA;
+        }
+      });
+
+      // 3. ソートされた順序で表示
+      posts.forEach((post) => {
+        const card = createPostCard(post.id, post.data);
         container.appendChild(card);
-        subscribeToVotes(doc.id, card);
+        subscribeToVotes(post.id, card);
       });
     },
     (error) => {
@@ -233,6 +285,47 @@ function subscribeApprovedPosts(sortBy = 'newest') {
       container.innerHTML = '<p class="empty-message">投稿を読み込めませんでした。権限エラーの可能性があります。ページをリロードしてください。</p>';
     }
   );
+}
+
+// データの整合性を修復する関数（投票数がズレている場合に修正）
+async function repairVoteCounts() {
+  console.log('Starting vote count repair...');
+  try {
+    const snapshot = await db.collection('posts').where('status', '==', 'approved').get();
+
+    const updates = [];
+    for (const doc of snapshot.docs) {
+      const votesSnap = await doc.ref.collection('votes').get();
+      let agree = 0, neutral = 0, disagree = 0;
+
+      votesSnap.forEach(v => {
+        const type = v.data().voteType;
+        if (type === 'agree') agree++;
+        else if (type === 'neutral') neutral++;
+        else if (type === 'disagree') disagree++;
+      });
+
+      // データが異なる場合のみ更新
+      const data = doc.data();
+      if (data.agreeCount !== agree || data.disagreeCount !== disagree || data.neutralCount !== neutral) {
+        console.log(`Repairing post ${doc.id}: Agree ${data.agreeCount}->${agree}`);
+        updates.push(doc.ref.update({
+          agreeCount: agree,
+          neutralCount: neutral,
+          disagreeCount: disagree
+        }));
+      }
+    }
+
+    if (updates.length > 0) {
+      await Promise.all(updates);
+      console.log(`Repaired ${updates.length} posts.`);
+    } else {
+      console.log('No repairs needed.');
+    }
+  } catch (e) {
+    console.error('Repair failed:', e);
+  }
 }
 
 function createPostCard(postId, data) {
