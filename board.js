@@ -186,6 +186,7 @@ function subscribeApprovedPosts(sortBy = 'newest') {
   voteSubscriptions.forEach((unsubscribe) => unsubscribe());
   voteSubscriptions.clear();
 
+  // Firestoreのクエリでソートを行う（インデックスが必要な場合はコンソールのリンクから作成してください）
   let query = db.collection('posts').where('status', '==', 'approved');
 
   switch (sortBy) {
