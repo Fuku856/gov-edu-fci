@@ -154,6 +154,14 @@
                     <div class="custom-select-container" id="sort-dropdown">
                         <button class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
                             <span class="sort-label-prefix">並び替え:</span>
+                            <span class="selected-icon">
+                                <!-- 初期アイコン: New (Clock) -->
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </span>
                             <span class="current-value">投稿日新しい順</span>
                             <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -163,19 +171,58 @@
                         <div class="custom-options-wrapper">
                             <ul class="custom-options" role="listbox">
                                 <li role="option" data-value="newest" class="selected" tabindex="0">
-                                    <span class="option-icon">🆕</span>
+                                    <span class="option-icon">
+                                        <!-- New (Clock) -->
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                    </span>
                                     <span>投稿日新しい順</span>
                                 </li>
                                 <li role="option" data-value="oldest" tabindex="0">
-                                    <span class="option-icon">📅</span>
+                                    <span class="option-icon">
+                                        <!-- Old (Archive Box) -->
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                                            <rect x="1" y="3" width="22" height="5"></rect>
+                                            <line x1="10" y1="12" x2="14" y2="12"></line>
+                                        </svg>
+                                    </span>
                                     <span>投稿日古い順</span>
                                 </li>
                                 <li role="option" data-value="popular" tabindex="0">
-                                    <span class="option-icon">🔥</span>
+                                    <span class="option-icon">
+                                        <!-- Best (Rocket) -->
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path
+                                                d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z">
+                                            </path>
+                                            <path
+                                                d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z">
+                                            </path>
+                                            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
+                                            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
+                                        </svg>
+                                    </span>
                                     <span>人気(賛成)多い順</span>
                                 </li>
                                 <li role="option" data-value="controversial" tabindex="0">
-                                    <span class="option-icon">⚡</span>
+                                    <span class="option-icon">
+                                        <!-- Controversial (Trending Down) -->
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+                                            <polyline points="17 18 23 18 23 12"></polyline>
+                                        </svg>
+                                    </span>
                                     <span>反対多い順</span>
                                 </li>
                             </ul>

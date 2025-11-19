@@ -2510,3 +2510,28 @@ body.toc-open .grecaptcha-badge {
     width: 1.5rem;
     text-align: center;
 }
+
+/* 並び替えアイコンのスタイル */
+.option-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    color: #64748b;
+}
+
+.custom-options li:hover .option-icon,
+.custom-options li.selected .option-icon {
+    color: var(--primary-blue);
+}
+
+.selected-icon {
+    display: flex;
+    align-items: center;
+    margin-right: 0.5rem;
+    color: #64748b;
+}
+
+.custom-select-trigger:hover .selected-icon {
+    color: var(--secondary-blue);
+}

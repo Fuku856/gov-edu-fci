@@ -75,9 +75,15 @@ function setupBoardPage() {
         options.forEach(opt => opt.classList.remove('selected'));
         option.classList.add('selected');
 
-        // 表示の更新
+        // 表示の更新 (テキストとアイコン)
         const text = option.querySelector('span:last-child').textContent;
+        const iconHtml = option.querySelector('.option-icon').innerHTML;
+
         valueSpan.textContent = text;
+        const triggerIcon = trigger.querySelector('.selected-icon');
+        if (triggerIcon) {
+          triggerIcon.innerHTML = iconHtml;
+        }
 
         // ドロップダウンを閉じる
         trigger.setAttribute('aria-expanded', 'false');
