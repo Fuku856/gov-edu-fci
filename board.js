@@ -193,24 +193,9 @@ function subscribeApprovedPosts(sortBy = 'newest') {
   voteSubscriptions.forEach((unsubscribe) => unsubscribe());
   voteSubscriptions.clear();
 
+  // 確実に並び替えるため、クライアントサイドソートを採用
+  // FirestoreのorderByは使用せず、フィルタリングのみ行う
   let query = db.collection('posts').where('status', '==', 'approved');
-
-  switch (sortBy) {
-    case 'newest':
-      query = query.orderBy('createdAt', 'desc');
-      break;
-    case 'oldest':
-      query = query.orderBy('createdAt', 'asc');
-      break;
-    case 'popular':
-      query = query.orderBy('agreeCount', 'desc');
-      break;
-    case 'controversial':
-      query = query.orderBy('disagreeCount', 'desc');
-      break;
-    default:
-      query = query.orderBy('createdAt', 'desc');
-  }
 
   unsubscribePosts = query.onSnapshot(
     (snapshot) => {
@@ -276,7 +261,7 @@ function subscribeApprovedPosts(sortBy = 'newest') {
       posts.forEach((post) => {
         const card = createPostCard(post.id, post.data);
         container.appendChild(card);
-        subscribeToVotes(doc.id, card);
+        subscribeToVotes(post.id, card);
       });
     },
     (error) => {
