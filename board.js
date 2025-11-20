@@ -409,189 +409,175 @@ function updateVoteDisplay(card, counts, userVoteType) {
             btn.style.opacity = '0.5';
           }
         } else {
-          // 未投票の場合
-          btn.disabled = false;
-          btn.style.pointerEvents = 'auto';
-          btn.classList.remove('active');
-          btn.style.opacity = '1';
-        }
-      });
-    }
+          const titleInput = form.querySelector('#post-title');
+          const contentInput = form.querySelector('#post-content');
+          const feedback = document.getElementById('post-feedback');
+          const submitBtn = form.querySelector('button[type="submit"]');
 
-async function handlePostSubmit(event) {
-      event.preventDefault();
-      if (!currentUser) return;
+          const title = (titleInput.value || '').trim();
+          const content = (contentInput.value || '').trim();
 
-      const form = event.target;
-      const titleInput = form.querySelector('#post-title');
-      const contentInput = form.querySelector('#post-content');
-      const feedback = document.getElementById('post-feedback');
-      const submitBtn = form.querySelector('button[type="submit"]');
+          if (!title || !content) {
+            feedback.textContent = 'タイトルと内容は必須です。';
+            return;
+          }
 
-      const title = (titleInput.value || '').trim();
-      const content = (contentInput.value || '').trim();
+          submitBtn.disabled = true;
+          feedback.textContent = '送信中...';
 
-      if (!title || !content) {
-        feedback.textContent = 'タイトルと内容は必須です。';
-        return;
-      }
+          try {
+            await createPost(title, content);
+            feedback.textContent = '';
+            form.reset();
 
-      submitBtn.disabled = true;
-      feedback.textContent = '送信中...';
+            document.getElementById('post-modal').classList.remove('open');
+            document.body.style.overflow = '';
 
-      try {
-        await createPost(title, content);
-        feedback.textContent = '';
-        form.reset();
-
-        document.getElementById('post-modal').classList.remove('open');
-        document.body.style.overflow = '';
-
-        alert('投稿を受け付けました。承認までしばらくお待ちください。');
-        await updateDailyUsage();
-      } catch (error) {
-        console.error('投稿に失敗しました', error);
-        feedback.textContent = error.message || '投稿に失敗しました。';
-      } finally {
-        submitBtn.disabled = false;
-      }
-    }
-
-function createPost(title, content) {
-      const user = currentUser;
-      const today = getTodayKey();
-      const counterRef = db.collection('daily_counters').doc(today);
-      const postsRef = db.collection('posts').doc();
-
-      const authorName = user.displayName || (user.email ? user.email.split('@')[0] : '匿名');
-
-      return db.runTransaction(async (transaction) => {
-        const counterSnap = await transaction.get(counterRef);
-        const currentCount = counterSnap.exists ? (counterSnap.data().postCount || 0) : 0;
-        if (currentCount >= DAILY_POST_LIMIT) {
-          throw new Error('本日の投稿上限に達しています。明日改めて投稿してください。');
+            alert('投稿を受け付けました。承認までしばらくお待ちください。');
+            await updateDailyUsage();
+          } catch (error) {
+            console.error('投稿に失敗しました', error);
+            feedback.textContent = error.message || '投稿に失敗しました。';
+          } finally {
+            submitBtn.disabled = false;
+          }
         }
 
-        transaction.set(counterRef, {
-          postCount: firebase.firestore.FieldValue.increment(1),
-          voteCount: firebase.firestore.FieldValue.increment(0),
-          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        function createPost(title, content) {
+          const user = currentUser;
+          const today = getTodayKey();
+          const counterRef = db.collection('daily_counters').doc(today);
+          const postsRef = db.collection('posts').doc();
 
-        transaction.set(postsRef, {
-          title,
-          content,
-          authorId: user.uid,
-          authorName,
-          status: 'pending',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          agreeCount: 0,
-          neutralCount: 0,
-          disagreeCount: 0
-        });
-      });
-    }
+          const authorName = user.displayName || (user.email ? user.email.split('@')[0] : '匿名');
 
-// 独自ダイアログを使った投票確認
-function handleVoteWithConfirm(postId, voteType) {
-      if (!currentUser) return;
+          return db.runTransaction(async (transaction) => {
+            const counterSnap = await transaction.get(counterRef);
+            const currentCount = counterSnap.exists ? (counterSnap.data().postCount || 0) : 0;
+            if (currentCount >= DAILY_POST_LIMIT) {
+              throw new Error('本日の投稿上限に達しています。明日改めて投稿してください。');
+            }
 
-      const dialog = document.getElementById('confirm-dialog');
-      const okBtn = document.getElementById('confirm-ok-btn');
-      const cancelBtn = document.getElementById('confirm-cancel-btn');
+            transaction.set(counterRef, {
+              postCount: firebase.firestore.FieldValue.increment(1),
+              voteCount: firebase.firestore.FieldValue.increment(0),
+              lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
 
-      if (!dialog || !okBtn || !cancelBtn) {
-        console.error('確認ダイアログの要素が見つかりません');
-        return;
-      }
-
-      // ダイアログ表示
-      dialog.classList.add('open');
-      document.body.style.overflow = 'hidden';
-
-      // イベントリスナーの一時的な定義（重複登録を防ぐため、新しい関数を作成して登録・削除）
-      const handleOk = async () => {
-        cleanup();
-        try {
-          await submitVote(postId, voteType);
-          await updateDailyUsage();
-        } catch (error) {
-          console.error('投票に失敗しました', error);
-          alert(error.message || '投票に失敗しました。');
-        }
-      };
-
-      const handleCancel = () => {
-        cleanup();
-      };
-
-      const cleanup = () => {
-        dialog.classList.remove('open');
-        document.body.style.overflow = '';
-        okBtn.removeEventListener('click', handleOk);
-        cancelBtn.removeEventListener('click', handleCancel);
-      };
-
-      okBtn.addEventListener('click', handleOk);
-      cancelBtn.addEventListener('click', handleCancel);
-    }
-
-function submitVote(postId, voteType) {
-      const user = currentUser;
-      const today = getTodayKey();
-
-      const counterRef = db.collection('daily_counters').doc(today);
-      const voteRef = db.collection('posts').doc(postId).collection('votes').doc(user.uid);
-
-      return db.runTransaction(async (transaction) => {
-        const [counterSnap, voteSnap] = await Promise.all([
-          transaction.get(counterRef),
-          transaction.get(voteRef)
-        ]);
-
-        if (voteSnap.exists) {
-          throw new Error('この投稿には既に投票しています。');
+            transaction.set(postsRef, {
+              title,
+              content,
+              authorId: user.uid,
+              authorName,
+              status: 'pending',
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              agreeCount: 0,
+              neutralCount: 0,
+              disagreeCount: 0
+            });
+          });
         }
 
-        const voteCount = counterSnap.exists ? (counterSnap.data().voteCount || 0) : 0;
-        if (voteCount >= DAILY_VOTE_LIMIT) {
-          throw new Error('本日の投票上限に達しています。');
+        // 独自ダイアログを使った投票確認
+        function handleVoteWithConfirm(postId, voteType) {
+          if (!currentUser) return;
+
+          const dialog = document.getElementById('confirm-dialog');
+          const okBtn = document.getElementById('confirm-ok-btn');
+          const cancelBtn = document.getElementById('confirm-cancel-btn');
+
+          if (!dialog || !okBtn || !cancelBtn) {
+            console.error('確認ダイアログの要素が見つかりません');
+            return;
+          }
+
+          // ダイアログ表示
+          dialog.classList.add('open');
+          document.body.style.overflow = 'hidden';
+
+          // イベントリスナーの一時的な定義（重複登録を防ぐため、新しい関数を作成して登録・削除）
+          const handleOk = async () => {
+            cleanup();
+            try {
+              await submitVote(postId, voteType);
+              await updateDailyUsage();
+            } catch (error) {
+              console.error('投票に失敗しました', error);
+              alert(error.message || '投票に失敗しました。');
+            }
+          };
+
+          const handleCancel = () => {
+            cleanup();
+          };
+
+          const cleanup = () => {
+            dialog.classList.remove('open');
+            document.body.style.overflow = '';
+            okBtn.removeEventListener('click', handleOk);
+            cancelBtn.removeEventListener('click', handleCancel);
+          };
+
+          okBtn.addEventListener('click', handleOk);
+          cancelBtn.addEventListener('click', handleCancel);
         }
 
-        transaction.set(counterRef, {
-          voteCount: firebase.firestore.FieldValue.increment(1),
-          postCount: firebase.firestore.FieldValue.increment(0),
-          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        function submitVote(postId, voteType) {
+          const user = currentUser;
+          const today = getTodayKey();
 
-        transaction.set(voteRef, {
-          postId,
-          userId: user.uid,
-          voteType,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+          const counterRef = db.collection('daily_counters').doc(today);
+          const voteRef = db.collection('posts').doc(postId).collection('votes').doc(user.uid);
 
-        const postUpdate = {};
-        postUpdate[`${voteType}Count`] = firebase.firestore.FieldValue.increment(1);
-        transaction.set(db.collection('posts').doc(postId), postUpdate, { merge: true });
-      });
-    }
+          return db.runTransaction(async (transaction) => {
+            const [counterSnap, voteSnap] = await Promise.all([
+              transaction.get(counterRef),
+              transaction.get(voteRef)
+            ]);
 
-function getTodayKey() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
+            if (voteSnap.exists) {
+              throw new Error('この投稿には既に投票しています。');
+            }
 
-function escapeHtml(text) {
-      const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-      };
-      return String(text).replace(/[&<>"']/g, (m) => map[m]);
-    }
+            const voteCount = counterSnap.exists ? (counterSnap.data().voteCount || 0) : 0;
+            if (voteCount >= DAILY_VOTE_LIMIT) {
+              throw new Error('本日の投票上限に達しています。');
+            }
+
+            transaction.set(counterRef, {
+              voteCount: firebase.firestore.FieldValue.increment(1),
+              postCount: firebase.firestore.FieldValue.increment(0),
+              lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            transaction.set(voteRef, {
+              postId,
+              userId: user.uid,
+              voteType,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            const postUpdate = {};
+            postUpdate[`${voteType}Count`] = firebase.firestore.FieldValue.increment(1);
+            transaction.set(db.collection('posts').doc(postId), postUpdate, { merge: true });
+          });
+        }
+
+        function getTodayKey() {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+
+        function escapeHtml(text) {
+          const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+          };
+          return String(text).replace(/[&<>"']/g, (m) => map[m]);
+        }
