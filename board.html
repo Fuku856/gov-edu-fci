@@ -3,9 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>掲示板 - 生徒会活動資金見える化プロジェクト</title>
+    <!-- 既存のスタイル -->
     <link rel="stylesheet" href="style.css">
+    <!-- 新しいボードスタイル (キャッシュ対策バージョン付与) -->
+    <link rel="stylesheet" href="board-modern.css?v=12">
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -64,7 +67,7 @@
                 style="background: #24292e; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; width: 100%; min-height: 3.5rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0; box-sizing: border-box;">
                 <svg style="width: 20px; height: 20px; fill: currentColor; flex-shrink: 0;" viewBox="0 0 24 24">
                     <path
-                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                        d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                 </svg>
                 <span>GitHubでログイン（開発者用）</span>
             </button>
@@ -73,6 +76,7 @@
 
     <!-- メインコンテンツ -->
     <div id="main-content" style="display: none; visibility: hidden;">
+        <!-- 共通ヘッダー -->
         <header>
             <nav>
                 <div class="nav-left">
@@ -108,186 +112,148 @@
             </div>
         </header>
 
-        <main class="board-container">
-            <section class="board-intro">
-                <h1>掲示板</h1>
-                <p>生徒会に伝えたいアイデアや意見を投稿してください。管理者が承認した投稿が公開され、全員が賛成・反対・中立の投票を行えます。</p>
-                <div class="board-limits">
-                    <div>
-                        <h3>投稿制限</h3>
-                        <p>1日あたり最大 <strong>30件</strong></p>
-                    </div>
-                    <div>
-                        <h3>投票制限</h3>
-                        <p>1日あたり最大 <strong>3,000票</strong></p>
-                    </div>
-                    <div>
-                        <h3>現在の利用状況</h3>
-                        <p id="daily-usage">読み込み中...</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="board-form-section">
-                <h2>新規投稿</h2>
-                <form id="post-form" class="board-form">
-                    <div class="form-group">
-                        <label for="post-title">タイトル</label>
-                        <input type="text" id="post-title" name="post-title" maxlength="80" required
-                            placeholder="例: 文化祭の新しい企画について">
-                    </div>
-                    <div class="form-group">
-                        <label for="post-content">内容</label>
-                        <textarea id="post-content" name="post-content" rows="5" maxlength="1000" required
-                            placeholder="提案内容や背景などを詳しく書いてください。"></textarea>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn-primary">承認申請として投稿</button>
-                        <p id="post-feedback" class="feedback-message"></p>
-                    </div>
-                </form>
-            </section>
-
-            <section class="board-posts-section">
-                <h2>承認済み投稿</h2>
-                <div class="board-controls">
-                    <div class="custom-select-container" id="sort-dropdown">
-                        <button class="custom-select-trigger" aria-haspopup="listbox" aria-expanded="false">
-                            <span class="sort-label-prefix">並び替え:</span>
-                            <span class="selected-icon">
-                                <!-- 初期アイコン: New (Clock) -->
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <polyline points="12 6 12 12 16 14"></polyline>
+        <!-- ボードレイアウト -->
+        <div class="board-layout">
+            <main class="main-feed">
+                <!-- フィードヘッダー -->
+                <div class="feed-header">
+                    <h1 class="feed-title">ホーム</h1>
+                    <div class="feed-controls">
+                        <!-- ソートボタン -->
+                        <div style="position: relative;">
+                            <button id="sort-trigger" class="info-menu-btn" aria-label="並び替え">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M3 6h18M6 12h12M9 18h6" stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
-                            </span>
-                            <span class="current-value">投稿日新しい順</span>
-                            <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 9l6 6 6-6" />
+                            </button>
+                            <!-- ソートメニュー -->
+                            <div id="sort-menu" class="sort-menu-dropdown">
+                                <div class="sort-option selected" data-sort="newest">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
+                                    </svg>
+                                    最新順
+                                </div>
+                                <div class="sort-option" data-sort="oldest">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                    古い順
+                                </div>
+                                <div class="sort-option" data-sort="popular">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                    </svg>
+                                    人気順
+                                </div>
+                                <div class="sort-option" data-sort="controversial">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon
+                                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                    </svg>
+                                    議論中
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 情報ボタン -->
+                        <button id="info-menu-btn" class="info-menu-btn" aria-label="掲示板情報">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="16" x2="12" y2="12" />
+                                <line x1="12" y1="8" x2="12.01" y2="8" />
                             </svg>
                         </button>
-                        <div class="custom-options-wrapper">
-                            <ul class="custom-options" role="listbox">
-                                <li role="option" data-value="newest" class="selected" tabindex="0">
-                                    <span class="option-icon">
-                                        <!-- New (Clock) -->
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <circle cx="12" cy="12" r="10"></circle>
-                                            <polyline points="12 6 12 12 16 14"></polyline>
-                                        </svg>
-                                    </span>
-                                    <span>投稿日新しい順</span>
-                                </li>
-                                <li role="option" data-value="oldest" tabindex="0">
-                                    <span class="option-icon">
-                                        <!-- Old (Archive Box) -->
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <polyline points="21 8 21 21 3 21 3 8"></polyline>
-                                            <rect x="1" y="3" width="22" height="5"></rect>
-                                            <line x1="10" y1="12" x2="14" y2="12"></line>
-                                        </svg>
-                                    </span>
-                                    <span>投稿日古い順</span>
-                                </li>
-                                <li role="option" data-value="popular" tabindex="0">
-                                    <span class="option-icon">
-                                        <!-- Best (Rocket) -->
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <path
-                                                d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z">
-                                            </path>
-                                            <path
-                                                d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z">
-                                            </path>
-                                            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
-                                            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
-                                        </svg>
-                                    </span>
-                                    <span>人気(賛成)多い順</span>
-                                </li>
-                                <li role="option" data-value="controversial" tabindex="0">
-                                    <span class="option-icon">
-                                        <!-- Controversial (Trending Down) -->
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
-                                            <polyline points="17 18 23 18 23 12"></polyline>
-                                        </svg>
-                                    </span>
-                                    <span>反対多い順</span>
-                                </li>
-                            </ul>
-                        </div>
                     </div>
                 </div>
-                <div id="posts-container" class="board-posts">
-                    <p class="empty-message">承認済みの投稿が表示されます。</p>
-                </div>
-            </section>
-        </main>
 
-        <footer>
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>プロジェクトについて</h3>
-                    <ul>
-                        <li><a href="index.html#goals">目的</a></li>
-                        <li><a href="features.html">特徴・目標の詳細</a></li>
-                        <li><a href="members.html">メンバー</a></li>
-                        <li><a href="project-members.html">プロジェクトメンバー</a></li>
-                    </ul>
+                <!-- 投稿一覧コンテナ -->
+                <div id="posts-container">
+                    <!-- 投稿がここに動的に追加されます -->
                 </div>
-                <div class="footer-section">
-                    <h3>情報公開</h3>
-                    <ul>
-                        <li><a href="#">予算・決算</a></li>
-                        <li><a href="#">月次レポート</a></li>
-                        <li><a href="#">活動記録</a></li>
-                    </ul>
+            </main>
+        </div>
+
+        <!-- フローティング投稿ボタン (FAB) -->
+        <button id="fab-post" class="fab-post" aria-label="新規投稿">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
+
+        <!-- 新規投稿モーダル -->
+        <div id="post-modal" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button id="close-post-modal" class="modal-close-btn">×</button>
                 </div>
-                <div class="footer-section">
-                    <h3>参加する</h3>
-                    <ul>
-                        <li><a href="contact.html">意見を送る</a></li>
-                        <li><a href="contact.html">質問する</a></li>
-                        <li><a href="contact.html">改善提案</a></li>
-                    </ul>
+                <form id="post-form">
+                    <div style="display: flex; gap: 12px;">
+                        <div class="post-avatar">
+                            <span id="current-user-initial">?</span>
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="text" id="post-title" name="post-title" placeholder="タイトル"
+                                style="width: 100%; border: none; font-weight: 700; font-size: 18px; outline: none; margin-bottom: 8px;">
+                            <textarea id="post-content" name="post-content" class="post-form-textarea"
+                                placeholder="いまどうしてる？（提案内容）"></textarea>
+                        </div>
+                    </div>
+                    <div class="post-form-actions">
+                        <span id="post-feedback" style="margin-right: auto; font-size: 12px; color: red;"></span>
+                        <button type="submit" class="btn-tweet">投稿する</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 情報メニューモーダル -->
+        <div id="info-modal" class="modal-overlay">
+            <div class="modal-content info-modal-content">
+                <div class="modal-header">
+                    <h2 style="font-size: 20px; font-weight: 700; margin: 0;">掲示板情報</h2>
+                    <button id="close-info-modal" class="modal-close-btn">×</button>
                 </div>
-                <div class="footer-section">
-                    <h3>技術情報</h3>
-                    <ul>
-                        <li><a href="https://github.com/Fuku856/gov-edu-fci" target="_blank"
-                                rel="noopener noreferrer">GitHub</a></li>
-                        <li><a href="documents.html">ドキュメント</a></li>
-                        <li><a href="faq.html">FAQ</a></li>
-                        <li><a href="glossary.html">用語集</a></li>
-                        <li><a href="contact.html">お問い合わせ</a></li>
-                    </ul>
+                <div class="info-stats">
+                    <div class="info-stat-item">
+                        <span>本日の投稿数</span>
+                        <span id="daily-post-count">Loading...</span>
+                    </div>
+                    <div class="info-stat-item">
+                        <span>本日の投票数</span>
+                        <span id="daily-vote-count">Loading...</span>
+                    </div>
+                    <div style="margin-top: 16px; font-size: 14px; color: var(--twitter-medium-gray);">
+                        <p>1日あたりの制限: 投稿 30件 / 投票 3,000票</p>
+                        <p>管理者が承認した投稿のみ公開されます。</p>
+                    </div>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 生徒会活動資金見える化プロジェクト Created by Ryoichiro Onoe</p>
+        </div>
+
+        <!-- 独自確認ダイアログ -->
+        <div id="confirm-dialog" class="modal-overlay" style="z-index: 4000;">
+            <div class="modal-content confirm-dialog-content">
+                <h3 class="confirm-title">投票しますか？</h3>
+                <p class="confirm-message">一度投票すると変更できません。</p>
+                <div class="confirm-actions">
+                    <button id="confirm-ok-btn" class="btn-confirm-primary">投票する</button>
+                    <button id="confirm-cancel-btn" class="btn-confirm-secondary">キャンセル</button>
+                </div>
             </div>
-        </footer>
+        </div>
     </div>
 
-    <button id="scrollTopBtn" class="scroll-top-btn" aria-label="ページの先頭に戻る">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 15l-6-6-6 6" />
-        </svg>
-    </button>
-
-    <script src="board.js?v=9"></script>
+    <script src="board.js?v=11"></script>
 </body>
 
 </html>
