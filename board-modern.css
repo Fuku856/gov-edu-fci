@@ -1,0 +1,503 @@
+/* board-modern.css */
+:root {
+    --twitter-blue: #1d9bf0;
+    --twitter-black: #000000;
+    --twitter-dark-gray: #0f1419;
+    --twitter-medium-gray: #536471;
+    --twitter-light-gray: #eff3f4;
+    --twitter-extra-light-gray: #f7f9f9;
+    --twitter-border: #cfd9de;
+    --twitter-hover: rgba(15, 20, 25, 0.1);
+    --twitter-white: #ffffff;
+
+    /* アクションカラー */
+    --like-color: #f91880;
+    --retweet-color: #00ba7c;
+    --reply-color: #1d9bf0;
+    --disagree-color: #536471;
+    /* 反対はグレーまたはダーク */
+}
+
+body {
+    background-color: var(--twitter-white) !important;
+    color: var(--twitter-dark-gray);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* レイアウト構造 - サイドバー削除、中央寄せ */
+.board-layout {
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    max-width: 100%;
+    margin: 0 auto;
+    padding-top: 0;
+    /* ヘッダーの高さ分はJSまたはHTMLで調整 */
+}
+
+/* メインフィード */
+.main-feed {
+    flex: 1;
+    max-width: 600px;
+    border-right: 1px solid var(--twitter-border);
+    border-left: 1px solid var(--twitter-border);
+    min-height: 100vh;
+    position: relative;
+    padding-bottom: 80px;
+    margin-top: 0;
+}
+
+/* フィードヘッダー (サブヘッダー) */
+.feed-header {
+    position: sticky;
+    top: 70px;
+    /* 共通ヘッダーの高さに合わせて調整 (style.cssのheader高さ依存) */
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 90;
+    /* 共通ヘッダー(100)より低く */
+    border-bottom: 1px solid var(--twitter-border);
+    padding: 0 16px;
+    height: 53px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* モバイルなど画面幅が狭い時の調整 */
+@media (max-width: 768px) {
+    .feed-header {
+        top: 60px;
+        /* モバイルヘッダーの高さに合わせる */
+    }
+}
+
+.feed-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.feed-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    /* ボタン間の隙間 */
+}
+
+/* 情報メニューボタン & ソートボタン */
+.info-menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--twitter-dark-gray);
+}
+
+.info-menu-btn:hover {
+    background-color: var(--twitter-hover);
+}
+
+/* 投稿カード */
+.post-card {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--twitter-border);
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.post-card:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.post-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--twitter-light-gray);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--twitter-medium-gray);
+}
+
+.post-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.post-header {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 2px;
+    font-size: 15px;
+}
+
+.post-author-name {
+    font-weight: 700;
+    color: var(--twitter-dark-gray);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.post-meta {
+    color: var(--twitter-medium-gray);
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.post-content {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--twitter-dark-gray);
+    margin-bottom: 12px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+/* アクションバー (投票ボタン) */
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    max-width: 425px;
+    margin-top: 12px;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--twitter-medium-gray);
+    font-size: 13px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    /* パディングは内部のSVGで調整 */
+    transition: color 0.2s;
+    position: relative;
+    /* クリック判定用 */
+    z-index: 1;
+}
+
+/* クリック領域を広げるための擬似要素 */
+.action-item::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+}
+
+.action-item svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    /* デフォルトは塗りつぶしなし */
+    stroke: currentColor;
+    /* ストローク色を使用 */
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s, stroke 0.2s;
+    box-sizing: content-box;
+}
+
+/* 賛成 (Agree) - ピンク/ハート系 */
+.action-item.agree:hover {
+    color: var(--like-color);
+}
+
+.action-item.agree:hover svg {
+    background-color: rgba(249, 24, 128, 0.1);
+    stroke: var(--like-color);
+}
+
+.action-item.agree.active {
+    color: var(--like-color);
+}
+
+.action-item.agree.active svg {
+    stroke: var(--like-color);
+    /* 塗りつぶさず、色を変える */
+    stroke-width: 3px;
+    /* 太くして強調 */
+    fill: none;
+}
+
+/* 中立 (Neutral) - 青/リプライ系 */
+.action-item.neutral:hover {
+    color: var(--reply-color);
+}
+
+.action-item.neutral:hover svg {
+    background-color: rgba(29, 155, 240, 0.1);
+    stroke: var(--reply-color);
+}
+
+.action-item.neutral.active {
+    color: var(--reply-color);
+}
+
+.action-item.neutral.active svg {
+    stroke: var(--reply-color);
+    stroke-width: 3px;
+    fill: none;
+}
+
+.action-item.neutral.active svg circle {
+    stroke: var(--reply-color);
+    fill: none;
+}
+
+/* 反対 (Disagree) - グレー/その他 */
+.action-item.disagree:hover {
+    color: var(--twitter-dark-gray);
+}
+
+.action-item.disagree:hover svg {
+    background-color: rgba(15, 20, 25, 0.1);
+    stroke: var(--twitter-dark-gray);
+}
+
+.action-item.disagree.active {
+    color: var(--twitter-dark-gray);
+}
+
+.action-item.disagree.active svg {
+    stroke: var(--twitter-dark-gray);
+    stroke-width: 3px;
+    fill: none;
+}
+
+/* フローティング投稿ボタン (FAB) */
+.fab-post {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--twitter-blue);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2000;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.fab-post:hover {
+    background-color: #1a8cd8;
+    transform: scale(1.05);
+}
+
+.fab-post svg {
+    width: 24px;
+    height: 24px;
+    fill: white;
+}
+
+/* モーダル共通 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.open {
+    display: flex;
+}
+
+.modal-content {
+    background-color: white;
+    width: 100%;
+    max-width: 600px;
+    border-radius: 16px;
+    padding: 16px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+    .modal-content {
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        padding-top: 50px;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.modal-close-btn:hover {
+    background-color: var(--twitter-hover);
+}
+
+/* 投稿フォーム */
+.post-form-textarea {
+    width: 100%;
+    border: none;
+    resize: none;
+    font-size: 18px;
+    font-family: inherit;
+    outline: none;
+    min-height: 150px;
+    padding: 8px 0;
+}
+
+.post-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 12px;
+    border-top: 1px solid var(--twitter-border);
+}
+
+.btn-tweet {
+    background-color: var(--twitter-blue);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-tweet:hover {
+    background-color: #1a8cd8;
+}
+
+/* 独自確認ダイアログ */
+.confirm-dialog-content {
+    max-width: 320px;
+    padding: 32px;
+    text-align: center;
+    border-radius: 16px;
+}
+
+.confirm-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--twitter-dark-gray);
+}
+
+.confirm-message {
+    font-size: 15px;
+    color: var(--twitter-medium-gray);
+    margin-bottom: 24px;
+}
+
+.confirm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-confirm-primary {
+    background-color: var(--twitter-black);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.btn-confirm-secondary {
+    background-color: white;
+    color: var(--twitter-black);
+    border: 1px solid var(--twitter-border);
+    padding: 12px;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* ソートメニュー */
+.sort-menu-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--twitter-border);
+    width: 200px;
+    display: none;
+    z-index: 2000;
+    overflow: hidden;
+}
+
+.sort-menu-dropdown.show {
+    display: block;
+}
+
+.sort-option {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 15px;
+    color: var(--twitter-dark-gray);
+}
+
+.sort-option:hover {
+    background-color: var(--twitter-extra-light-gray);
+}
+
+.sort-option.selected {
+    font-weight: 700;
+    color: var(--twitter-blue);
+}
+
+.sort-option svg {
+    width: 18px;
+    height: 18px;
+}
