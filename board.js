@@ -250,43 +250,57 @@ function createPostCard(postId, data) {
     </div>
     <div class="post-content">${escapeHtml(data.content || '')}</div>
     
-    <div class="vote-actions-reddit" data-post-id="${postId}">
-      <div class="vote-group">
-        <button class="vote-btn-icon agree" data-action="agree" data-post-id="${postId}" aria-label="賛成">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 19V5M5 12l7-7 7 7"/>
-          </svg>
-        </button>
+    <div class="post-actions" data-post-id="${postId}">
+      <button class="action-item agree" data-action="agree" data-post-id="${postId}" aria-label="賛成">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 19V5M5 12l7-7 7 7"/>
+        </svg>
         <span class="vote-count-text" data-vote="agree">0</span>
-      </div>
+      </button>
 
-      <div class="vote-group">
-        <button class="vote-btn-icon neutral" data-action="neutral" data-post-id="${postId}" aria-label="中立">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="8" y1="12" x2="16" y2="12"/>
-          </svg>
-        </button>
+      <button class="action-item neutral" data-action="neutral" data-post-id="${postId}" aria-label="中立">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
         <span class="vote-count-text" data-vote="neutral">0</span>
-      </div>
+      </button>
 
-      <div class="vote-group">
-        <button class="vote-btn-icon disagree" data-action="disagree" data-post-id="${postId}" aria-label="反対">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 5v14M5 12l7 7 7-7"/>
-          </svg>
-        </button>
+      <button class="action-item disagree" data-action="disagree" data-post-id="${postId}" aria-label="反対">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12l7 7 7-7"/>
+        </svg>
         <span class="vote-count-text" data-vote="disagree">0</span>
-      </div>
+      </button>
     </div>
     <p class="feedback-message" data-feedback-for="${postId}"></p>
   `;
 
-  card.querySelectorAll('.vote-btn-icon').forEach((button) => {
+  card.querySelectorAll('.action-item').forEach((button) => {
     button.addEventListener('click', () => handleVote(postId, button.dataset.action, card));
   });
 
   return card;
+}
+
+function updateVoteDisplay(card, counts, userVoteType) {
+  const container = card.querySelector('.post-actions');
+  if (container) {
+    const agreeBtn = container.querySelector('[data-action="agree"]');
+    if (agreeBtn) agreeBtn.querySelector('.vote-count-text').textContent = counts.agree;
+
+    const neutralBtn = container.querySelector('[data-action="neutral"]');
+    if (neutralBtn) neutralBtn.querySelector('.vote-count-text').textContent = counts.neutral;
+
+    const disagreeBtn = container.querySelector('[data-action="disagree"]');
+    if (disagreeBtn) disagreeBtn.querySelector('.vote-count-text').textContent = counts.disagree;
+  }
+
+  const buttons = card.querySelectorAll('.action-item');
+  buttons.forEach((btn) => {
+    const isSelected = userVoteType === btn.dataset.action;
+    btn.classList.toggle('active', isSelected);
+  });
 }
 
 function subscribeToVotes(postId, card) {
@@ -309,40 +323,7 @@ function subscribeToVotes(postId, card) {
     updateVoteDisplay(card, counts, userVoteType);
   });
 
-  voteSubscriptions.set(postId, unsubscribe);
-}
-
-function updateVoteDisplay(card, counts, userVoteType) {
-  const container = card.querySelector('.vote-actions-reddit');
-  if (container) {
-    container.querySelector('[data-vote="agree"]').textContent = counts.agree;
-    container.querySelector('[data-vote="neutral"]').textContent = counts.neutral;
-    container.querySelector('[data-vote="disagree"]').textContent = counts.disagree;
-  }
-
-  const buttons = card.querySelectorAll('.vote-btn-icon');
-  buttons.forEach((btn) => {
-    if (!currentUser) {
-      btn.disabled = true;
-      btn.classList.remove('selected');
-      return;
-    }
-
-    const isSelected = userVoteType === btn.dataset.action;
-    btn.disabled = Boolean(userVoteType); // 投票済みなら無効化（変更不可の場合）
-    // 変更可能にするなら btn.disabled = false; ですが、仕様によります。
-    // 元のコードが btn.disabled = Boolean(userVoteType) だったので維持します。
-    // ただし、自分の投票したボタンだけはアクティブに見せたいのでclassはつけます。
-
-    btn.classList.toggle('selected', isSelected);
-
-    // 投票済みの場合、選択されていないボタンは薄くするなどのスタイル調整が可能
-    if (userVoteType) {
-      btn.classList.add('voted-state');
-    } else {
-      btn.classList.remove('voted-state');
-    }
-  });
+  return unsubscribe;
 }
 
 async function handlePostSubmit(event) {
