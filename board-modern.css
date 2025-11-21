@@ -147,23 +147,6 @@ body {
 
 .post-author-name {
     font-weight: 700;
-    color: var(--twitter-dark-gray);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.post-meta {
-    color: var(--twitter-medium-gray);
-    font-size: 14px;
-    white-space: nowrap;
-}
-
-.post-content {
-    font-size: 15px;
-    line-height: 1.5;
-    color: var(--twitter-dark-gray);
-    margin-bottom: 12px;
     word-wrap: break-word;
     white-space: pre-wrap;
 }
