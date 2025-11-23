@@ -5,6 +5,7 @@ const DAILY_VOTE_LIMIT = 3000;
 let currentUser = null;
 let boardInitialized = false;
 let unsubscribePosts = null;
+let pendingVote = null; // 投票保留用
 const voteSubscriptions = new Map();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -71,6 +72,7 @@ function setupModalHandlers() {
   const closePostBtn = document.getElementById('close-post-modal');
   const closeInfoBtn = document.getElementById('close-info-modal');
   const cancelConfirmBtn = document.getElementById('confirm-cancel-btn');
+  const confirmOkBtn = document.getElementById('confirm-ok-btn');
 
   // 新規投稿モーダル
   if (fabPost && postModal) {
@@ -107,6 +109,23 @@ function setupModalHandlers() {
   if (cancelConfirmBtn && confirmDialog) {
     cancelConfirmBtn.addEventListener('click', () => {
       confirmDialog.classList.remove('open');
+      document.body.style.overflow = '';
+      pendingVote = null;
+    });
+  }
+
+  // 確認ダイアログ（OKボタン）
+  if (confirmOkBtn && confirmDialog) {
+    confirmOkBtn.addEventListener('click', async () => {
+      if (!pendingVote) return;
+
+      const { postId, voteType, card } = pendingVote;
+
+      confirmDialog.classList.remove('open');
+      document.body.style.overflow = '';
+
+      await executeVote(postId, voteType, card);
+      pendingVote = null;
     });
   }
 
@@ -117,6 +136,9 @@ function setupModalHandlers() {
         if (e.target === modal) {
           modal.classList.remove('open');
           document.body.style.overflow = '';
+          if (modal === confirmDialog) {
+            pendingVote = null;
+          }
         }
       });
     }
@@ -475,9 +497,21 @@ function createPost(title, content) {
   });
 }
 
-async function handleVote(postId, voteType, card) {
+function handleVote(postId, voteType, card) {
   if (!currentUser) return;
 
+  // 投票情報を一時保存
+  pendingVote = { postId, voteType, card };
+
+  // 確認ダイアログを表示
+  const confirmDialog = document.getElementById('confirm-dialog');
+  if (confirmDialog) {
+    confirmDialog.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+async function executeVote(postId, voteType, card) {
   const feedback = card.querySelector(`[data-feedback-for="${postId}"]`);
   feedback.textContent = '';
   feedback.classList.remove('error');
@@ -626,4 +660,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
