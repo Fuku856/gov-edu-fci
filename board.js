@@ -154,6 +154,26 @@ function setupModalHandlers() {
       document.body.style.overflow = '';
     });
   }
+
+  // 投稿詳細モーダル
+  const detailModal = document.getElementById('post-detail-modal');
+  const closeDetailBtn = document.getElementById('close-detail-modal');
+
+  if (closeDetailBtn && detailModal) {
+    closeDetailBtn.addEventListener('click', () => {
+      detailModal.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  }
+
+  if (detailModal) {
+    detailModal.addEventListener('click', (e) => {
+      if (e.target === detailModal) {
+        detailModal.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  }
 }
 
 function setupSortDropdown() {
@@ -326,6 +346,12 @@ function createPostCard(postId, data) {
   const authorName = data.authorName || '匿名';
   const authorInitial = authorName.charAt(0).toUpperCase();
 
+  // 本文の処理
+  const content = data.content || '';
+  const isLongText = content.length > 150;
+  const displayContent = isLongText ? content.substring(0, 150) + '...' : content;
+  const showMoreHtml = isLongText ? '<button class="show-more-btn">さらに表示</button>' : '';
+
   card.innerHTML = `
     <div class="post-avatar">
       ${escapeHtml(authorInitial)}
@@ -336,7 +362,10 @@ function createPostCard(postId, data) {
         <span class="post-meta">・${createdText}</span>
       </div>
       <div class="post-title">${escapeHtml(data.title || '無題の投稿')}</div>
-      <div class="post-content">${escapeHtml(data.content || '')}</div>
+      <div class="post-content">
+        <span class="content-text">${escapeHtml(displayContent)}</span>
+        ${showMoreHtml}
+      </div>
       
       <div class="post-actions" data-post-id="${postId}">
         <button class="action-item agree" data-action="agree" data-post-id="${postId}" aria-label="賛成">
@@ -365,11 +394,114 @@ function createPostCard(postId, data) {
     </div>
   `;
 
+  // イベントリスナーの設定
+
+  // 「さらに表示」ボタン
+  const showMoreBtn = card.querySelector('.show-more-btn');
+  if (showMoreBtn) {
+    showMoreBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // カードのクリックイベントを阻止
+      const contentEl = card.querySelector('.post-content .content-text');
+      contentEl.textContent = content; // 全文を表示
+      showMoreBtn.style.display = 'none'; // ボタンを隠す
+    });
+  }
+
+  // アクションボタン（投票）
   card.querySelectorAll('.action-item').forEach((button) => {
-    button.addEventListener('click', () => handleVote(postId, button.dataset.action, card));
+    button.addEventListener('click', (e) => {
+      e.stopPropagation(); // カードのクリックイベントを阻止
+      handleVote(postId, button.dataset.action, card);
+    });
+  });
+
+  // カード全体のクリック（詳細表示）
+  card.addEventListener('click', (e) => {
+    // テキスト選択中は反応しないようにする（オプション）
+    const selection = window.getSelection();
+    if (selection.toString().length > 0) return;
+
+    openPostDetail(postId, data, card); // cardを渡して現在の投票状態などを引き継げるようにする（今回はデータ再利用）
   });
 
   return card;
+}
+
+function openPostDetail(postId, data, originalCard) {
+  const modal = document.getElementById('post-detail-modal');
+  const container = document.getElementById('post-detail-container');
+
+  if (!modal || !container) return;
+
+  // 詳細表示用のカードを作成（既存のcreatePostCardを再利用しつつ、全文表示にする）
+  // ただし、createPostCardはイベントリスナーもつけてしまうので、
+  // ここではシンプルにHTMLを構築するか、createPostCardで作ったものを調整する。
+  // 今回はシンプルにHTMLを再構築する（イベントは不要、閲覧専用とするため）
+
+  const createdAt = data.createdAt ? data.createdAt.toDate() : null;
+  const createdText = createdAt
+    ? createdAt.toLocaleString('ja-JP', { dateStyle: 'medium', timeStyle: 'short' })
+    : '投稿日時を取得中';
+  const authorName = data.authorName || '匿名';
+  const authorInitial = authorName.charAt(0).toUpperCase();
+
+  // 元のカードから現在の投票数を取得（リアルタイム性を保つため）
+  let counts = { agree: 0, neutral: 0, disagree: 0 };
+  if (originalCard) {
+    const agreeEl = originalCard.querySelector('[data-vote="agree"]');
+    const neutralEl = originalCard.querySelector('[data-vote="neutral"]');
+    const disagreeEl = originalCard.querySelector('[data-vote="disagree"]');
+    if (agreeEl) counts.agree = agreeEl.textContent;
+    if (neutralEl) counts.neutral = neutralEl.textContent;
+    if (disagreeEl) counts.disagree = disagreeEl.textContent;
+  } else {
+    counts.agree = data.agreeCount || 0;
+    counts.neutral = data.neutralCount || 0;
+    counts.disagree = data.disagreeCount || 0;
+  }
+
+  container.innerHTML = `
+    <article class="post-card" style="cursor: default;">
+      <div class="post-avatar">
+        ${escapeHtml(authorInitial)}
+      </div>
+      <div class="post-body">
+        <div class="post-header">
+          <span class="post-author-name">${escapeHtml(authorName)}</span>
+          <span class="post-meta">・${createdText}</span>
+        </div>
+        <div class="post-title">${escapeHtml(data.title || '無題の投稿')}</div>
+        <div class="post-content" style="white-space: pre-wrap;">${escapeHtml(data.content || '')}</div>
+        
+        <div class="post-actions">
+          <div class="action-item agree">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 19V5M5 12l7-7 7 7"/>
+            </svg>
+            <span class="vote-count-text">${counts.agree}</span>
+          </div>
+
+          <div class="action-item neutral">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span class="vote-count-text">${counts.neutral}</span>
+          </div>
+
+          <div class="action-item disagree">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+            <span class="vote-count-text">${counts.disagree}</span>
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
 function updateVoteDisplay(card, counts, userVoteType) {

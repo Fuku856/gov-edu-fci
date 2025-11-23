@@ -93,39 +93,25 @@
                     <div id="user-info" style="display: none;"></div>
                     <button class="hamburger" aria-label="メニューを開く" aria-expanded="false">
                         <span class="hamburger-line"></span>
-                        <span class="hamburger-line"></span>
-                        <span class="hamburger-line"></span>
-                    </button>
+                        <li id="mobile-user-info"
+                            style="display: none; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                        </li>
+                        </ul>
                 </div>
-            </nav>
-            <div class="mobile-menu-overlay">
-                <ul class="mobile-nav-links">
-                    <li><a href="features.html" class="mobile-nav-link">特徴</a></li>
-                    <li><a href="goals.html" class="mobile-nav-link">目標</a></li>
-                    <li><a href="members.html" class="mobile-nav-link">メンバー紹介</a></li>
-                    <li><a href="board.html" class="mobile-nav-link active">掲示板</a></li>
-                    <li><a href="index.html#dashboard" class="mobile-nav-link">ダッシュボード</a></li>
-                    <li id="mobile-user-info"
-                        style="display: none; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.2);">
-                    </li>
-                </ul>
-            </div>
         </header>
 
         <!-- ボードレイアウト -->
         <div class="board-layout">
             <main class="main-feed">
-                <!-- フィードヘッダー -->
                 <div class="feed-header">
                     <h1 class="feed-title">ホーム</h1>
                     <div class="feed-controls">
-                        <!-- 情報ボタン -->
-                        <button id="info-menu-btn" class="info-menu-btn" aria-label="掲示板情報" style="margin-right: 8px;">
+                        <button id="info-menu-btn" class="info-menu-btn" aria-label="情報">
                             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="16" x2="12" y2="12" />
-                                <circle cx="12" cy="8" r="1" fill="currentColor" stroke="none" />
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
                             </svg>
                         </button>
 
@@ -179,93 +165,105 @@
                 </div>
             </main>
         </div>
+    </div>
 
-        <!-- フローティング投稿ボタン (FAB) -->
-        <button id="fab-post" class="fab-post" aria-label="新規投稿">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-        </button>
+    <!-- フローティング投稿ボタン (FAB) -->
+    <button id="fab-post" class="fab-post" aria-label="新規投稿">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </button>
 
-        <!-- 新規投稿モーダル -->
-        <div id="post-modal" class="modal-overlay">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button id="close-post-modal" class="modal-close-btn">×</button>
-                </div>
-                <form id="post-form">
-                    <div style="display: flex; gap: 12px;">
-                        <div class="post-avatar">
-                            <span id="current-user-initial">?</span>
-                        </div>
-                        <div style="flex: 1;">
-                            <input type="text" id="post-title" name="post-title" placeholder="タイトル"
-                                style="width: 100%; border: none; font-weight: 700; font-size: 18px; outline: none; margin-bottom: 8px;">
-                            <textarea id="post-content" name="post-content" class="post-form-textarea"
-                                placeholder="あなたの目指す学校は？"></textarea>
-                        </div>
-                    </div>
-                    <div class="post-form-actions">
-                        <span id="post-feedback" style="margin-right: auto; font-size: 12px; color: red;"></span>
-                        <button type="submit" class="btn-tweet">投稿する</button>
-                    </div>
-                </form>
+    <!-- 新規投稿モーダル -->
+    <div id="post-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button id="close-post-modal" class="modal-close-btn">×</button>
             </div>
+            <form id="post-form">
+                <div style="display: flex; gap: 12px;">
+                    <div class="post-avatar">
+                        <span id="current-user-initial">?</span>
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="text" id="post-title" name="post-title" placeholder="タイトル"
+                            style="width: 100%; border: none; font-weight: 700; font-size: 18px; outline: none; margin-bottom: 8px;">
+                        <textarea id="post-content" name="post-content" class="post-form-textarea"
+                            placeholder="あなたの目指す学校は？"></textarea>
+                    </div>
+                </div>
+                <div class="post-form-actions">
+                    <span id="post-feedback" style="margin-right: auto; font-size: 12px; color: red;"></span>
+                    <button type="submit" class="btn-tweet">投稿する</button>
+                </div>
+            </form>
         </div>
+    </div>
 
-        <!-- 情報メニューモーダル -->
-        <div id="info-modal" class="modal-overlay">
-            <div class="modal-content info-modal-content">
-                <div class="modal-header">
-                    <h2 style="font-size: 20px; font-weight: 700; margin: 0;">掲示板情報</h2>
-                    <button id="close-info-modal" class="modal-close-btn">×</button>
-                </div>
-                <div class="info-stats">
-                    <div class="info-stat-item">
-                        <span>本日の投稿数</span>
-                        <span id="daily-post-count">Loading...</span>
-                    </div>
-                    <div class="info-stat-item">
-                        <span>本日の投票数</span>
-                        <span id="daily-vote-count">Loading...</span>
-                    </div>
-                    <div style="margin-top: 16px; font-size: 14px; color: var(--theme-medium-gray);">
-                        <p>1日あたりの制限: 投稿 30件 / 投票 3,000票</p>
-                        <p>管理者が承認した投稿のみ公開されます。</p>
-                    </div>
-                </div>
+    <!-- 情報メニューモーダル -->
+    <div id="info-modal" class="modal-overlay">
+        <div class="modal-content info-modal-content">
+            <div class="modal-header">
+                <h2 style="font-size: 20px; font-weight: 700; margin: 0;">掲示板情報</h2>
+                <button id="close-info-modal" class="modal-close-btn">×</button>
             </div>
-        </div>
-
-        <!-- 独自確認ダイアログ -->
-        <div id="confirm-dialog" class="modal-overlay" style="z-index: 4000;">
-            <div class="modal-content confirm-dialog-content">
-                <h3 class="confirm-title">投票しますか？</h3>
-                <p class="confirm-message">一度投票すると変更できません。</p>
-                <div class="confirm-actions">
-                    <button id="confirm-ok-btn" class="btn-confirm-primary">投票する</button>
-                    <button id="confirm-cancel-btn" class="btn-confirm-secondary">キャンセル</button>
+            <div class="info-stats">
+                <div class="info-stat-item">
+                    <span>本日の投稿数</span>
+                    <span id="daily-post-count">Loading...</span>
+                </div>
+                <div class="info-stat-item">
+                    <span>本日の投票数</span>
+                    <span id="daily-vote-count">Loading...</span>
+                </div>
+                <div style="margin-top: 16px; font-size: 14px; color: var(--theme-medium-gray);">
+                    <p>1日あたりの制限: 投稿 30件 / 投票 3,000票</p>
+                    <p>管理者が承認した投稿のみ公開されます。</p>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- 投稿完了モーダル -->
-        <div id="success-modal" class="modal-overlay" style="z-index: 4000;">
-            <div class="modal-content confirm-dialog-content">
-                <div style="text-align: center; margin-bottom: 16px;">
-                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#00ba7c" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                </div>
-                <h3 class="confirm-title">投稿完了</h3>
-                <p class="confirm-message">投稿を受け付けました。<br>承認されるまでしばらくお待ちください。</p>
-                <div class="confirm-actions">
-                    <button id="success-ok-btn" class="btn-confirm-primary">OK</button>
-                </div>
+    <!-- 独自確認ダイアログ -->
+    <div id="confirm-dialog" class="modal-overlay" style="z-index: 4000;">
+        <div class="modal-content confirm-dialog-content">
+            <h3 class="confirm-title">投票しますか？</h3>
+            <p class="confirm-message">一度投票すると変更できません。</p>
+            <div class="confirm-actions">
+                <button id="confirm-ok-btn" class="btn-confirm-primary">投票する</button>
+                <button id="confirm-cancel-btn" class="btn-confirm-secondary">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 投稿完了モーダル -->
+    <div id="success-modal" class="modal-overlay" style="z-index: 4000;">
+        <div class="modal-content confirm-dialog-content">
+            <div style="text-align: center; margin-bottom: 16px;">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#00ba7c" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+            <h3 class="confirm-title">投稿完了</h3>
+            <p class="confirm-message">投稿を受け付けました。<br>承認されるまでしばらくお待ちください。</p>
+            <div class="confirm-actions">
+                <button id="success-ok-btn" class="btn-confirm-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 投稿詳細モーダル -->
+    <div id="post-detail-modal" class="modal-overlay" style="z-index: 3500;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <button id="close-post-detail-modal" class="modal-close-btn">×</button>
+            </div>
+            <div id="post-detail-container">
+                <!-- 詳細内容がここに動的に追加されます -->
             </div>
         </div>
     </div>

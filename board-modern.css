@@ -12,22 +12,19 @@
 
     /* アクションカラー */
     --vote-agree: #f91880;
-    /* 賛成: ピンク */
     --vote-neutral: #00ba7c;
-    /* 中立: 緑 */
     --vote-disagree: #1d9bf0;
-    /* 反対: 青 */
 }
 
 body {
-    background-color: var(--theme-white) !important;
+    /* background-color: var(--theme-white) !important; */
     color: var(--theme-dark-gray);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 0;
 }
 
-/* レイアウト構造 - サイドバー削除、中央寄せ */
+/* レイアウト構造 - 中央寄せ */
 .board-layout {
     display: flex;
     justify-content: center;
@@ -35,7 +32,6 @@ body {
     max-width: 100%;
     margin: 0 auto;
     padding-top: 0;
-    /* ヘッダーの高さ分はJSまたはHTMLで調整 */
 }
 
 /* メインフィード */
@@ -48,17 +44,16 @@ body {
     position: relative;
     padding-bottom: 80px;
     margin-top: 0;
+    background-color: var(--theme-white);
 }
 
 /* フィードヘッダー (サブヘッダー) */
 .feed-header {
     position: sticky;
     top: 70px;
-    /* 共通ヘッダーの高さに合わせて調整 (style.cssのheader高さ依存) */
     background-color: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     z-index: 90;
-    /* 共通ヘッダー(100)より低く */
     border-bottom: 1px solid var(--theme-border);
     padding: 0 16px;
     height: 53px;
@@ -67,11 +62,9 @@ body {
     justify-content: space-between;
 }
 
-/* モバイルなど画面幅が狭い時の調整 */
 @media (max-width: 768px) {
     .feed-header {
         top: 60px;
-        /* モバイルヘッダーの高さに合わせる */
     }
 }
 
@@ -85,7 +78,6 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    /* ボタン間の隙間 */
 }
 
 /* 情報メニューボタン & ソートボタン */
@@ -484,4 +476,37 @@ body {
 .sort-option svg {
     width: 18px;
     height: 18px;
+}
+
+/* さらに表示ボタン */
+.show-more-btn {
+    color: var(--theme-blue);
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 4px;
+    display: inline-block;
+}
+
+.show-more-btn:hover {
+    text-decoration: underline;
+}
+
+/* 投稿詳細モーダル内のスタイル調整 */
+#post-detail-container .post-card {
+    border-bottom: none;
+    padding: 0;
+    cursor: default;
+}
+
+#post-detail-container .post-card:hover {
+    background-color: transparent;
+}
+
+#post-detail-container .post-content {
+    font-size: 18px;
+    /* 詳細表示時は少し大きく */
+    line-height: 1.6;
 }
