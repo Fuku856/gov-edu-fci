@@ -53,55 +53,111 @@ function setupBoardPage() {
     postForm.addEventListener('submit', handlePostSubmit);
   }
 
-  // カスタムドロップダウンの制御
-  const sortDropdown = document.getElementById('sort-dropdown');
-  if (sortDropdown) {
-    const trigger = sortDropdown.querySelector('.custom-select-trigger');
-    const options = sortDropdown.querySelectorAll('.custom-options li');
-    const valueSpan = sortDropdown.querySelector('.current-value');
+  setupModalHandlers();
+  setupSortDropdown();
+}
 
-    // ドロップダウンの開閉
-    trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
-      trigger.setAttribute('aria-expanded', !isExpanded);
-      sortDropdown.classList.toggle('open');
-    });
+function setupModalHandlers() {
+  // モーダル要素
+  const postModal = document.getElementById('post-modal');
+  const infoModal = document.getElementById('info-modal');
+  const confirmDialog = document.getElementById('confirm-dialog');
 
-    // オプション選択
-    options.forEach(option => {
-      option.addEventListener('click', () => {
-        // 選択状態の更新
-        options.forEach(opt => opt.classList.remove('selected'));
-        option.classList.add('selected');
+  // 開くボタン
+  const fabPost = document.getElementById('fab-post');
+  const infoBtn = document.getElementById('info-menu-btn');
 
-        // 表示の更新 (テキストとアイコン)
-        const text = option.querySelector('span:last-child').textContent;
-        const iconHtml = option.querySelector('.option-icon').innerHTML;
+  // 閉じるボタン
+  const closePostBtn = document.getElementById('close-post-modal');
+  const closeInfoBtn = document.getElementById('close-info-modal');
+  const cancelConfirmBtn = document.getElementById('confirm-cancel-btn');
 
-        valueSpan.textContent = text;
-        const triggerIcon = trigger.querySelector('.selected-icon');
-        if (triggerIcon) {
-          triggerIcon.innerHTML = iconHtml;
-        }
-
-        // ドロップダウンを閉じる
-        trigger.setAttribute('aria-expanded', 'false');
-        sortDropdown.classList.remove('open');
-
-        // データの再取得
-        refreshBoardData(option.dataset.value);
-      });
-    });
-
-    // 外側クリックで閉じる
-    document.addEventListener('click', (e) => {
-      if (!sortDropdown.contains(e.target)) {
-        trigger.setAttribute('aria-expanded', 'false');
-        sortDropdown.classList.remove('open');
-      }
+  // 新規投稿モーダル
+  if (fabPost && postModal) {
+    fabPost.addEventListener('click', () => {
+      postModal.classList.add('open');
+      document.body.style.overflow = 'hidden'; // 背景スクロール防止
     });
   }
+
+  if (closePostBtn && postModal) {
+    closePostBtn.addEventListener('click', () => {
+      postModal.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  }
+
+  // 情報モーダル
+  if (infoBtn && infoModal) {
+    infoBtn.addEventListener('click', () => {
+      infoModal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      updateDailyUsage(); // 開くときに情報を更新
+    });
+  }
+
+  if (closeInfoBtn && infoModal) {
+    closeInfoBtn.addEventListener('click', () => {
+      infoModal.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  }
+
+  // 確認ダイアログ（キャンセルボタン）
+  if (cancelConfirmBtn && confirmDialog) {
+    cancelConfirmBtn.addEventListener('click', () => {
+      confirmDialog.classList.remove('open');
+    });
+  }
+
+  // モーダル外側クリックで閉じる
+  [postModal, infoModal, confirmDialog].forEach(modal => {
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.classList.remove('open');
+          document.body.style.overflow = '';
+        }
+      });
+    }
+  });
+}
+
+function setupSortDropdown() {
+  const trigger = document.getElementById('sort-trigger');
+  const menu = document.getElementById('sort-menu');
+
+  if (!trigger || !menu) return;
+
+  // ドロップダウンの開閉
+  trigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.classList.toggle('show');
+  });
+
+  // オプション選択
+  const options = menu.querySelectorAll('.sort-option');
+  options.forEach(option => {
+    option.addEventListener('click', () => {
+      // 選択状態の更新
+      options.forEach(opt => opt.classList.remove('selected'));
+      option.classList.add('selected');
+
+      // メニューを閉じる
+      menu.classList.remove('show');
+
+      // データの再取得
+      const sortType = option.dataset.sort;
+      refreshBoardData(sortType);
+    });
+  });
+
+  // 外側クリックで閉じる
+  document.addEventListener('click', (e) => {
+    if (!trigger.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.remove('show');
+    }
+  });
 }
 
 async function refreshBoardData(sortBy = 'newest') {
