@@ -186,22 +186,19 @@ function cleanupSubscriptions() {
 }
 
 function updateDailyUsage() {
-  const usageEl = document.getElementById('daily-usage');
-  if (!usageEl || !currentUser) return;
+  const postCountEl = document.getElementById('daily-post-count');
+  const voteCountEl = document.getElementById('daily-vote-count');
+
+  if (!postCountEl || !voteCountEl || !currentUser) return;
 
   // 認証状態を確認
   const authUser = firebase.auth().currentUser;
   if (!authUser) {
     console.error('updateDailyUsage: ユーザーが認証されていません');
-    usageEl.textContent = '認証されていません';
+    postCountEl.textContent = '-';
+    voteCountEl.textContent = '-';
     return;
   }
-
-  console.log('updateDailyUsage: ユーザー情報', {
-    uid: authUser.uid,
-    email: authUser.email,
-    emailVerified: authUser.emailVerified
-  });
 
   const today = getTodayKey();
   return db
@@ -212,20 +209,14 @@ function updateDailyUsage() {
       const data = doc.exists ? doc.data() : {};
       const postCount = data.postCount || 0;
       const voteCount = data.voteCount || 0;
-      usageEl.innerHTML = `
-        投稿: ${postCount} / ${DAILY_POST_LIMIT} 件<br>
-        投票: ${voteCount} / ${DAILY_VOTE_LIMIT} 票
-      `;
+
+      postCountEl.textContent = `${postCount} / ${DAILY_POST_LIMIT}`;
+      voteCountEl.textContent = `${voteCount} / ${DAILY_VOTE_LIMIT}`;
     })
     .catch((error) => {
       console.error('日次カウンターの取得に失敗しました', error);
-      console.error('エラー詳細:', {
-        code: error.code,
-        message: error.message,
-        userEmail: authUser?.email,
-        userUid: authUser?.uid
-      });
-      usageEl.textContent = '利用状況を取得できませんでした';
+      postCountEl.textContent = 'Error';
+      voteCountEl.textContent = 'Error';
     });
 }
 
