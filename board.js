@@ -464,6 +464,12 @@ async function handleVote(postId, voteType, card) {
   feedback.textContent = '';
   feedback.classList.remove('error');
 
+  // 既存のタイマーがあればクリア
+  if (feedback.dataset.timerId) {
+    clearTimeout(parseInt(feedback.dataset.timerId));
+    delete feedback.dataset.timerId;
+  }
+
   try {
     await submitVote(postId, voteType);
     await updateDailyUsage();
@@ -473,6 +479,15 @@ async function handleVote(postId, voteType, card) {
     feedback.textContent = error.message || '投票に失敗しました。すでに投票済みの可能性があります。';
     feedback.classList.add('error');
   }
+
+  // 5秒後にメッセージを消去
+  const timerId = setTimeout(() => {
+    feedback.textContent = '';
+    feedback.classList.remove('error');
+    delete feedback.dataset.timerId;
+  }, 5000);
+
+  feedback.dataset.timerId = timerId;
 }
 
 function submitVote(postId, voteType) {
