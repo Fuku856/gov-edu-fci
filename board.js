@@ -380,7 +380,8 @@ function subscribeToVotes(postId, card) {
       if (vote.voteType && counts[vote.voteType] !== undefined) {
         counts[vote.voteType] += 1;
       }
-      if (currentUser && doc.id === currentUser.uid) {
+
+      if (currentUser && (doc.id === currentUser.uid || vote.userId === currentUser.uid)) {
         userVoteType = vote.voteType;
       }
     });
