@@ -500,6 +500,14 @@ function createPost(title, content) {
 function handleVote(postId, voteType, card) {
   if (!currentUser) return;
 
+  // 既に投票済みかチェック
+  const hasVoted = card.querySelector('.action-item.active');
+  if (hasVoted) {
+    // 既に投票済みの場合は確認ダイアログを出さずに処理を実行（エラーメッセージが表示される）
+    executeVote(postId, voteType, card);
+    return;
+  }
+
   // 投票情報を一時保存
   pendingVote = { postId, voteType, card };
 
