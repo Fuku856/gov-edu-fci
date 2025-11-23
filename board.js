@@ -121,6 +121,17 @@ function setupModalHandlers() {
       });
     }
   });
+
+  // 投稿完了モーダル
+  const successModal = document.getElementById('success-modal');
+  const successOkBtn = document.getElementById('success-ok-btn');
+
+  if (successOkBtn && successModal) {
+    successOkBtn.addEventListener('click', () => {
+      successModal.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  }
 }
 
 function setupSortDropdown() {
@@ -412,9 +423,24 @@ async function handlePostSubmit(event) {
 
   try {
     await createPost(title, content);
-    feedback.textContent = '投稿を受け付けました。承認までしばらくお待ちください。';
-    feedback.classList.remove('error');
+
+    // 投稿フォームをリセット
     form.reset();
+    feedback.textContent = '';
+    feedback.classList.remove('error');
+
+    // 投稿モーダルを閉じる
+    const postModal = document.getElementById('post-modal');
+    if (postModal) {
+      postModal.classList.remove('open');
+    }
+
+    // 完了モーダルを表示
+    const successModal = document.getElementById('success-modal');
+    if (successModal) {
+      successModal.classList.add('open');
+    }
+
     await updateDailyUsage();
   } catch (error) {
     console.error('投稿に失敗しました', error);
