@@ -174,6 +174,44 @@ function setupModalHandlers() {
       }
     });
   }
+
+  // ESCキーでモーダルを閉じる（PC用）
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      // 優先順位の高い順にチェック（z-indexの高い順）
+      // 確認ダイアログ
+      if (confirmDialog && confirmDialog.classList.contains('open')) {
+        confirmDialog.classList.remove('open');
+        document.body.style.overflow = '';
+        pendingVote = null;
+        return;
+      }
+      // 投稿完了モーダル
+      if (successModal && successModal.classList.contains('open')) {
+        successModal.classList.remove('open');
+        document.body.style.overflow = '';
+        return;
+      }
+      // 投稿詳細モーダル
+      if (detailModal && detailModal.classList.contains('open')) {
+        detailModal.classList.remove('open');
+        document.body.style.overflow = '';
+        return;
+      }
+      // 新規投稿モーダル
+      if (postModal && postModal.classList.contains('open')) {
+        postModal.classList.remove('open');
+        document.body.style.overflow = '';
+        return;
+      }
+      // 情報モーダル
+      if (infoModal && infoModal.classList.contains('open')) {
+        infoModal.classList.remove('open');
+        document.body.style.overflow = '';
+        return;
+      }
+    }
+  });
 }
 
 function setupSortDropdown() {
