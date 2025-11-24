@@ -362,10 +362,7 @@ function createPostCard(postId, data) {
         <span class="post-meta">・${createdText}</span>
       </div>
       <div class="post-title">${escapeHtml(data.title || '無題の投稿')}</div>
-      <div class="post-content">
-        <span class="content-text">${escapeHtml(displayContent)}</span>
-        ${showMoreHtml}
-      </div>
+      <div class="post-content"><span class="content-text">${escapeHtml(displayContent)}</span>${showMoreHtml}</div>
       
       <div class="post-actions" data-post-id="${postId}">
         <button class="action-item agree" data-action="agree" data-post-id="${postId}" aria-label="賛成">
