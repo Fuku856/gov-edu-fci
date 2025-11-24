@@ -122,6 +122,12 @@ async function handleAuthStateChange(user, forceIsLoginPage) {
       console.log('GitHubユーザーチェック結果:', isGitHubUser);
       console.log('メールドメインチェック結果:', isAllowed);
       
+      // 許可されたメールドメイン（学校ドメインまたはテスト用ドメイン）の場合、allowed_usersコレクションに自動追加を試みる
+      const isSchoolDomain = userEmail && (
+        userEmail.toLowerCase().endsWith('@fcihs-satoyama.ed.jp') ||
+        userEmail.toLowerCase().endsWith('@fcidux.dpdns.org')
+      );
+      
       // GitHub認証でログインし、許可されたGitHubユーザー名の場合、allowed_usersコレクションに自動追加を試みる
       if (isGitHubUser) {
         const isGitHubProvider = user.providerData.some(
@@ -170,14 +176,52 @@ async function handleAuthStateChange(user, forceIsLoginPage) {
         }
       }
       
+      // Google認証でログインし、許可されたメールドメインの場合、allowed_usersコレクションに自動追加を試みる
+      if (isSchoolDomain) {
+        const isGoogleProvider = user.providerData.some(
+          provider => provider.providerId === 'google.com'
+        );
+        
+        if (isGoogleProvider) {
+          try {
+            // allowed_usersコレクションに追加を試みる（既に存在する場合はスキップ）
+            const allowedUserRef = firebase.firestore()
+              .collection('allowed_users')
+              .doc(user.uid);
+            
+            const allowedUserDoc = await allowedUserRef.get();
+            
+            if (!allowedUserDoc.exists) {
+              // まだ登録されていない場合、追加を試みる
+              try {
+                await allowedUserRef.set({
+                  userId: user.uid,
+                  email: user.email || '',
+                  displayName: user.displayName || (user.email ? user.email.split('@')[0] : '匿名'),
+                  provider: 'google.com',
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  autoAdded: true
+                }, { merge: true });
+                console.log('Googleユーザーをallowed_usersコレクションに追加しました:', user.email);
+              } catch (addError) {
+                // 権限エラーの場合、管理者が手動で追加する必要がある
+                if (addError.code === 'permission-denied') {
+                  console.warn('allowed_usersコレクションへの追加に権限がありません。管理者に連絡してください。');
+                } else {
+                  console.error('allowed_usersコレクションへの追加エラー:', addError);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Googleユーザー情報の取得エラー:', error);
+          }
+        }
+      }
+      
       // サーバー側（Firestore）での認証チェックを試行
       // これにより、クライアント側のチェックを回避してもFirestoreへのアクセスが拒否される
       // メールドメインチェックとFirestoreチェックを並列化して高速化
       let isServerAllowed = false;
-      const isSchoolDomain = userEmail && (
-        userEmail.toLowerCase().endsWith('@fcihs-satoyama.ed.jp') ||
-        userEmail.toLowerCase().endsWith('@fcidux.dpdns.org')
-      );
       
       try {
         // Firestoreのallowed_usersコレクションにアクセスを試みる
@@ -205,9 +249,10 @@ async function handleAuthStateChange(user, forceIsLoginPage) {
         }
       }
       
-      // GitHub認証の場合、自動登録処理が実行されているため、少し待ってから再チェック
-      if (!isServerAllowed && isGitHubUser) {
-        console.log('GitHubユーザーの自動登録を待機中...');
+      // GitHub認証またはGoogle認証の場合、自動登録処理が実行されているため、少し待ってから再チェック
+      if (!isServerAllowed && (isGitHubUser || isSchoolDomain)) {
+        const userType = isGitHubUser ? 'GitHub' : 'Google';
+        console.log(`${userType}ユーザーの自動登録を待機中...`);
         // 自動登録処理が完了するまで最大3秒待機（500ms間隔で6回チェック）
         for (let i = 0; i < 6; i++) {
           await new Promise(resolve => setTimeout(resolve, 500));
@@ -217,16 +262,16 @@ async function handleAuthStateChange(user, forceIsLoginPage) {
               .doc(user.uid)
               .get();
             if (allowedUserDoc.exists) {
-              console.log('GitHubユーザーがallowed_usersコレクションに登録されました');
+              console.log(`${userType}ユーザーがallowed_usersコレクションに登録されました`);
               isServerAllowed = true;
               break;
             }
           } catch (error) {
-            console.error('GitHub認証後の再チェックエラー:', error);
+            console.error(`${userType}認証後の再チェックエラー:`, error);
           }
         }
         if (!isServerAllowed) {
-          console.warn('GitHubユーザーの自動登録が完了しませんでした');
+          console.warn(`${userType}ユーザーの自動登録が完了しませんでした`);
         }
       }
       

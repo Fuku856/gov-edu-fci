@@ -23,19 +23,20 @@ service cloud.firestore {
     }
     
     // 認証済みかつ許可されたユーザーかチェック
+    // トランザクション内でも確実に動作するように、メールドメインチェックを優先
     function isAuthenticatedAndAllowed() {
-      return request.auth != null && 
-             (isAllowedEmail(request.auth.token.email) || isAllowedUser());
+      return request.auth != null && (
+        (request.auth.token.email != null && isAllowedEmail(request.auth.token.email)) ||
+        isAllowedUser()
+      );
     }
 
     // 許可されたユーザーのリスト
-    // 読み取り: メールドメインが許可されているユーザー、または管理者、または自分自身のレコード
+    // 読み取り: 認証済みユーザーは自分自身のレコードを読み取れる、管理者はすべて読み取れる
+    // また、isAllowedUser()関数内でexists()を評価するために、認証済みユーザーは読み取り可能
     // 書き込み: 管理者、または自分自身のレコードを追加（GitHub認証でログインしたユーザーが自動登録するため）
     match /allowed_users/{userId} {
-      allow read: if request.auth != null && 
-                    (isAllowedEmail(request.auth.token.email) || 
-                     isAdmin() || 
-                     request.auth.uid == userId);
+      allow read: if request.auth != null;
       // 書き込み: 管理者、または自分自身のレコードを追加（初回のみ）
       allow create: if request.auth != null && 
                       (isAdmin() || 
@@ -71,9 +72,23 @@ service cloud.firestore {
                       request.resource.data.authorId == request.auth.uid &&
                       request.resource.data.status == 'pending';
 
+      // 管理者のみがstatusを更新できる
       allow update: if isAuthenticatedAndAllowed() &&
                       isAdmin() &&
                       (request.resource.data.status == 'approved' || request.resource.data.status == 'rejected');
+      
+      // 一般ユーザーは投票カウントのみ更新できる（投票時に自動更新される）
+      // transaction.set()でmerge: trueを使用している場合、request.resource.dataには指定したフィールドのみが含まれる
+      // したがって、存在するフィールドのみをチェックする
+      allow update: if isAuthenticatedAndAllowed() &&
+                      // statusフィールドが変更されていない、または存在しない（merge: trueの場合）
+                      (!('status' in request.resource.data) || request.resource.data.status == resource.data.status) &&
+                      // 他の重要なフィールドが変更されていない、または存在しない（merge: trueの場合）
+                      (!('authorId' in request.resource.data) || request.resource.data.authorId == resource.data.authorId) &&
+                      (!('title' in request.resource.data) || request.resource.data.title == resource.data.title) &&
+                      (!('content' in request.resource.data) || request.resource.data.content == resource.data.content) &&
+                      (!('authorName' in request.resource.data) || request.resource.data.authorName == resource.data.authorName) &&
+                      (!('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
 
       allow delete: if isAuthenticatedAndAllowed() &&
                       (resource.data.authorId == request.auth.uid || isAdmin());
