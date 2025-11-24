@@ -66,6 +66,18 @@ body {
     .feed-header {
         top: 60px;
     }
+    
+    /* モバイル向けの調整 */
+    .main-feed {
+        max-width: 100%;
+        border-left: none;
+        border-right: none;
+        width: 100%;
+    }
+    
+    .board-layout {
+        display: block;
+    }
 }
 
 .feed-title {
@@ -339,10 +351,11 @@ body {
 
 @media (max-width: 600px) {
     .modal-content {
-        height: 100%;
-        max-height: 100%;
-        border-radius: 0;
-        padding-top: 50px;
+        width: 90%;
+        height: auto;
+        max-height: 85vh;
+        border-radius: 16px;
+        padding: 16px;
     }
 }
 
@@ -380,7 +393,7 @@ body {
     font-size: 18px;
     font-family: inherit;
     outline: none;
-    min-height: 150px;
+    min-height: 250px;
     padding: 8px 0;
 }
 

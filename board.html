@@ -93,11 +93,23 @@
                     <div id="user-info" style="display: none;"></div>
                     <button class="hamburger" aria-label="メニューを開く" aria-expanded="false">
                         <span class="hamburger-line"></span>
-                        <li id="mobile-user-info"
-                            style="display: none; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.2);">
-                        </li>
-                        </ul>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </button>
                 </div>
+            </nav>
+            <!-- モバイルメニューオーバーレイ -->
+            <div class="mobile-menu-overlay">
+                <ul class="mobile-nav-links">
+                    <li><a href="features.html" class="mobile-nav-link">特徴</a></li>
+                    <li><a href="goals.html" class="mobile-nav-link">目標</a></li>
+                    <li><a href="members.html" class="mobile-nav-link">メンバー紹介</a></li>
+                    <li><a href="board.html" class="mobile-nav-link active">掲示板</a></li>
+                    <li><a href="index.html#dashboard" class="mobile-nav-link">ダッシュボード</a></li>
+                    <!-- モバイルメニューにユーザー情報を表示（ログイン中のみ） -->
+                    <li id="mobile-user-info" style="display: none; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.2);"></li>
+                </ul>
+            </div>
         </header>
 
         <!-- ボードレイアウト -->
@@ -188,7 +200,7 @@
                         <span id="current-user-initial">?</span>
                     </div>
                     <div style="flex: 1;">
-                        <input type="text" id="post-title" name="post-title" placeholder="タイトル"
+                        <input type="text" id="post-title" name="post-title" placeholder="タイトル" autocomplete="off"
                             style="width: 100%; border: none; font-weight: 700; font-size: 18px; outline: none; margin-bottom: 8px;">
                         <textarea id="post-content" name="post-content" class="post-form-textarea"
                             placeholder="あなたの目指す学校は？"></textarea>
