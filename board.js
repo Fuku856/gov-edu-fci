@@ -157,7 +157,7 @@ function setupModalHandlers() {
 
   // 投稿詳細モーダル
   const detailModal = document.getElementById('post-detail-modal');
-  const closeDetailBtn = document.getElementById('close-detail-modal');
+  const closeDetailBtn = document.getElementById('close-post-detail-modal');
 
   if (closeDetailBtn && detailModal) {
     closeDetailBtn.addEventListener('click', () => {

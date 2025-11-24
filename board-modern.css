@@ -353,6 +353,11 @@ body {
     margin-bottom: 16px;
 }
 
+/* バツボタンのみの場合は右寄せ */
+.modal-header.only-close-btn {
+    justify-content: flex-end;
+}
+
 .modal-close-btn {
     background: none;
     border: none;
@@ -360,6 +365,7 @@ body {
     cursor: pointer;
     padding: 8px;
     border-radius: 50%;
+    margin-left: auto;
 }
 
 .modal-close-btn:hover {
