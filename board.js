@@ -77,6 +77,8 @@ function setupModalHandlers() {
   // 新規投稿モーダル
   if (fabPost && postModal) {
     fabPost.addEventListener('click', () => {
+      // ユーザーアイコンの初期文字を更新
+      updateUserInitial();
       postModal.classList.add('open');
       document.body.style.overflow = 'hidden'; // 背景スクロール防止
     });
@@ -625,6 +627,20 @@ async function handlePostSubmit(event) {
     feedback.textContent = error.message || '投稿に失敗しました。時間をおいて再度お試しください。';
     feedback.classList.add('error');
   }
+}
+
+function updateUserInitial() {
+  const userInitialEl = document.getElementById('current-user-initial');
+  if (!userInitialEl) return;
+
+  if (!currentUser) {
+    userInitialEl.textContent = '?';
+    return;
+  }
+
+  const authorName = currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : '匿名');
+  const authorInitial = authorName.charAt(0).toUpperCase();
+  userInitialEl.textContent = authorInitial;
 }
 
 function createPost(title, content) {
