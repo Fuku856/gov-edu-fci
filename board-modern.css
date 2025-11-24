@@ -144,6 +144,30 @@ body {
     white-space: pre-wrap;
 }
 
+.post-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.post-content {
+    font-size: 14px;
+    line-height: 1.6;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    color: var(--theme-dark-gray);
+}
+
+.post-meta {
+    color: var(--theme-medium-gray);
+    white-space: nowrap;
+}
+
+
 /* アクションバー (投票ボタン) */
 .post-actions {
     display: flex;
