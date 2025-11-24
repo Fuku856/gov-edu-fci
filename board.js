@@ -398,9 +398,7 @@ function createPostCard(postId, data) {
   if (showMoreBtn) {
     showMoreBtn.addEventListener('click', (e) => {
       e.stopPropagation(); // カードのクリックイベントを阻止
-      const contentEl = card.querySelector('.post-content .content-text');
-      contentEl.textContent = content; // 全文を表示
-      showMoreBtn.style.display = 'none'; // ボタンを隠す
+      openPostDetail(postId, data, card);
     });
   }
 
@@ -458,7 +456,7 @@ function openPostDetail(postId, data, originalCard) {
   }
 
   container.innerHTML = `
-    <article class="post-card" style="cursor: default;">
+    <article class="post-card">
       <div class="post-avatar">
         ${escapeHtml(authorInitial)}
       </div>

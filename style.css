@@ -1763,13 +1763,7 @@ body.toc-open .grecaptcha-badge {
     gap: 1.5rem;
 }
 
-.post-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1.75rem;
-    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
-    border: 1px solid rgba(15, 23, 42, 0.05);
-}
+/* .post-card style removed */
 
 .post-card-header {
     margin-bottom: 1rem;
@@ -1859,6 +1853,7 @@ body.toc-open .grecaptcha-badge {
     max-width: 960px;
     margin: 0 auto;
     padding: 4rem 1.5rem;
+    background: rgba(99, 102, 241, 0.1) !important;
 }
 
 .admin-intro h1 {
@@ -2534,4 +2529,31 @@ body.toc-open .grecaptcha-badge {
 
 .custom-select-trigger:hover .selected-icon {
     color: var(--secondary-blue);
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.dashboard-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.08);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #333;
 }

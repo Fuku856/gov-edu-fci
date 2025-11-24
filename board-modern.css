@@ -101,15 +101,9 @@ body {
 /* 投稿カード */
 .post-card {
     padding: 12px 16px;
-    border-bottom: 1px solid var(--theme-border);
     display: flex;
     gap: 12px;
     cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.post-card:hover {
-    background-color: rgba(0, 0, 0, 0.03);
 }
 
 .post-avatar {
@@ -145,7 +139,7 @@ body {
 }
 
 .post-title {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
     margin-top: 4px;
     margin-bottom: 8px;
@@ -155,7 +149,7 @@ body {
 }
 
 .post-content {
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.6;
     word-wrap: break-word;
     white-space: pre-wrap;
@@ -520,17 +514,29 @@ body {
 
 /* 投稿詳細モーダル内のスタイル調整 */
 #post-detail-container .post-card {
-    border-bottom: none;
-    padding: 0;
+    border: none;
+    padding: 0 16px 0 0;
     cursor: default;
+    transition: none;
+    background-color: transparent; /* 背景は子要素で制御 */
+    outline: none;
+    box-shadow: none;
 }
 
-#post-detail-container .post-card:hover {
-    background-color: transparent;
+#post-detail-container .post-body {
+    background-color: var(--theme-white);
+    outline: none;
+    box-shadow: none;
+}
+
+#post-detail-container .post-title {
+    font-size: 21px;
+    font-weight: 700;
+    margin-bottom: 12px;
 }
 
 #post-detail-container .post-content {
-    font-size: 18px;
+    font-size: 16px;
     /* 詳細表示時は少し大きく */
-    line-height: 1.6;
+    line-height: 1.7;
 }
