@@ -47,54 +47,22 @@ document.addEventListener('DOMContentLoaded', () => {
     await new Promise(resolve => setTimeout(resolve, 100));
     await refreshBoardData();
   });
-  
-  setupReloadTrigger();
 });
-
-function setupReloadTrigger() {
-  const trigger = document.getElementById('reload-trigger');
-  if (!trigger) return;
-
-  trigger.addEventListener('click', (e) => {
-    e.preventDefault(); // デフォルトの挙動をキャンセル
-
-    // 1. まずページ上部へスムーズスクロール
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-
-    // 2. スクロール動作がある程度完了してからDOMを操作する
-    // (スクロール中にDOMを変えると位置がずれたりスクロールが止まるため)
-    setTimeout(() => {
-      const container = document.getElementById('posts-container');
-      if (container) {
-        // 既存のローダーがあれば削除（重複防止）
-        const existingLoader = container.querySelector('.loading-spinner-container');
-        if (existingLoader) existingLoader.remove();
-
-        // リロードアニメーションを先頭に追加（既存の投稿は残したまま）
-        const loader = document.createElement('div');
-        loader.className = 'loading-spinner-container';
-        loader.style.paddingTop = '20px';
-        loader.style.paddingBottom = '20px';
-        loader.innerHTML = '<div class="twitter-loader"></div>';
-        
-        container.insertBefore(loader, container.firstChild);
-        
-        // 3. アニメーションを見せてからデータを再取得
-        setTimeout(() => {
-          refreshBoardData();
-        }, 600);
-      }
-    }, 500); // スクロール時間として0.5秒待機
-  });
-}
 
 function setupBoardPage() {
   const postForm = document.getElementById('post-form');
   if (postForm) {
     postForm.addEventListener('submit', handlePostSubmit);
+  }
+
+  const reloadTrigger = document.getElementById('reload-trigger');
+  if (reloadTrigger) {
+    reloadTrigger.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
   }
 
   setupModalHandlers();
