@@ -69,12 +69,18 @@ function setupReloadTrigger() {
     setTimeout(() => {
       const container = document.getElementById('posts-container');
       if (container) {
-        // リロードアニメーション表示
-        container.innerHTML = `
-          <div class="loading-spinner-container" style="padding-top: 40px; padding-bottom: 40px;">
-            <div class="twitter-loader"></div>
-          </div>
-        `;
+        // 既存のローダーがあれば削除（重複防止）
+        const existingLoader = container.querySelector('.loading-spinner-container');
+        if (existingLoader) existingLoader.remove();
+
+        // リロードアニメーションを先頭に追加（既存の投稿は残したまま）
+        const loader = document.createElement('div');
+        loader.className = 'loading-spinner-container';
+        loader.style.paddingTop = '20px';
+        loader.style.paddingBottom = '20px';
+        loader.innerHTML = '<div class="twitter-loader"></div>';
+        
+        container.insertBefore(loader, container.firstChild);
         
         // 3. アニメーションを見せてからデータを再取得
         setTimeout(() => {
