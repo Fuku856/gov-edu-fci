@@ -47,7 +47,43 @@ document.addEventListener('DOMContentLoaded', () => {
     await new Promise(resolve => setTimeout(resolve, 100));
     await refreshBoardData();
   });
+  
+  setupReloadTrigger();
 });
+
+function setupReloadTrigger() {
+  const trigger = document.getElementById('reload-trigger');
+  if (!trigger) return;
+
+  trigger.addEventListener('click', (e) => {
+    e.preventDefault(); // デフォルトの挙動をキャンセル
+
+    // 1. まずページ上部へスムーズスクロール
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+
+    // 2. スクロール動作がある程度完了してからDOMを操作する
+    // (スクロール中にDOMを変えると位置がずれたりスクロールが止まるため)
+    setTimeout(() => {
+      const container = document.getElementById('posts-container');
+      if (container) {
+        // リロードアニメーション表示
+        container.innerHTML = `
+          <div class="loading-spinner-container" style="padding-top: 40px; padding-bottom: 40px;">
+            <div class="twitter-loader"></div>
+          </div>
+        `;
+        
+        // 3. アニメーションを見せてからデータを再取得
+        setTimeout(() => {
+          refreshBoardData();
+        }, 600);
+      }
+    }, 500); // スクロール時間として0.5秒待機
+  });
+}
 
 function setupBoardPage() {
   const postForm = document.getElementById('post-form');
