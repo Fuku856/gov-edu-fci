@@ -6,6 +6,7 @@ let currentUser = null;
 let boardInitialized = false;
 let unsubscribePosts = null;
 let pendingVote = null; // 投票保留用
+let unsubscribeDetailVotes = null; // 詳細モーダル用の購読解除関数
 const voteSubscriptions = new Map();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -165,6 +166,10 @@ function setupModalHandlers() {
     closeDetailBtn.addEventListener('click', () => {
       detailModal.classList.remove('open');
       document.body.style.overflow = '';
+      if (unsubscribeDetailVotes) {
+        unsubscribeDetailVotes();
+        unsubscribeDetailVotes = null;
+      }
     });
   }
 
@@ -173,6 +178,10 @@ function setupModalHandlers() {
       if (e.target === detailModal) {
         detailModal.classList.remove('open');
         document.body.style.overflow = '';
+        if (unsubscribeDetailVotes) {
+          unsubscribeDetailVotes();
+          unsubscribeDetailVotes = null;
+        }
       }
     });
   }
@@ -198,6 +207,10 @@ function setupModalHandlers() {
       if (detailModal && detailModal.classList.contains('open')) {
         detailModal.classList.remove('open');
         document.body.style.overflow = '';
+        if (unsubscribeDetailVotes) {
+          unsubscribeDetailVotes();
+          unsubscribeDetailVotes = null;
+        }
         return;
       }
       // 新規投稿モーダル
@@ -262,6 +275,10 @@ function cleanupSubscriptions() {
   if (unsubscribePosts) {
     unsubscribePosts();
     unsubscribePosts = null;
+  }
+  if (unsubscribeDetailVotes) {
+    unsubscribeDetailVotes();
+    unsubscribeDetailVotes = null;
   }
   voteSubscriptions.forEach((unsubscribe) => unsubscribe());
   voteSubscriptions.clear();
@@ -508,32 +525,50 @@ function openPostDetail(postId, data, originalCard) {
         <div class="post-title">${escapeHtml(data.title || '無題の投稿')}</div>
         <div class="post-content" style="white-space: pre-wrap;">${escapeHtml(data.content || '')}</div>
         
-        <div class="post-actions">
-          <div class="action-item agree">
+        <div class="post-actions" data-post-id="${postId}">
+          <button class="action-item agree" data-action="agree" data-post-id="${postId}" aria-label="賛成">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 19V5M5 12l7-7 7 7"/>
             </svg>
-            <span class="vote-count-text">${counts.agree}</span>
-          </div>
+            <span class="vote-count-text" data-vote="agree">${counts.agree}</span>
+          </button>
 
-          <div class="action-item neutral">
+          <button class="action-item neutral" data-action="neutral" data-post-id="${postId}" aria-label="中立">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/>
               <line x1="8" y1="12" x2="16" y2="12"/>
             </svg>
-            <span class="vote-count-text">${counts.neutral}</span>
-          </div>
+            <span class="vote-count-text" data-vote="neutral">${counts.neutral}</span>
+          </button>
 
-          <div class="action-item disagree">
+          <button class="action-item disagree" data-action="disagree" data-post-id="${postId}" aria-label="反対">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12 5v14M5 12l7 7 7-7"/>
             </svg>
-            <span class="vote-count-text">${counts.disagree}</span>
-          </div>
+            <span class="vote-count-text" data-vote="disagree">${counts.disagree}</span>
+          </button>
         </div>
+        <p class="feedback-message" data-feedback-for="${postId}"></p>
       </div>
     </article>
   `;
+
+  // イベントリスナーの設定
+  const detailCard = container.querySelector('.post-card');
+  
+  // アクションボタン（投票）
+  detailCard.querySelectorAll('.action-item').forEach((button) => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleVote(postId, button.dataset.action, detailCard);
+    });
+  });
+
+  // リアルタイム更新の購読
+  if (unsubscribeDetailVotes) {
+    unsubscribeDetailVotes();
+  }
+  unsubscribeDetailVotes = subscribeToVotes(postId, detailCard);
 
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
