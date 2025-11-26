@@ -410,7 +410,14 @@ function createPostCard(postId, data) {
     ? createdAt.toLocaleString('ja-JP', { dateStyle: 'medium', timeStyle: 'short' })
     : '投稿日時を取得中';
 
-  const authorName = data.authorName || '匿名';
+  let authorName = data.authorName || '匿名';
+
+  // 自分の投稿であれば、現在のユーザー情報に基づいて表示名を更新して表示する
+  // (過去に投稿した記事も、現在のGitHub ID等で表示されるようにする)
+  if (currentUser && data.authorId === currentUser.uid) {
+    authorName = getUserDisplayName(currentUser);
+  }
+
   const authorInitial = authorName.charAt(0).toUpperCase();
 
   // 本文の処理
@@ -495,16 +502,17 @@ function openPostDetail(postId, data, originalCard) {
 
   if (!modal || !container) return;
 
-  // 詳細表示用のカードを作成（既存のcreatePostCardを再利用しつつ、全文表示にする）
-  // ただし、createPostCardはイベントリスナーもつけてしまうので、
-  // ここではシンプルにHTMLを構築するか、createPostCardで作ったものを調整する。
-  // 今回はシンプルにHTMLを再構築する（イベントは不要、閲覧専用とするため）
-
   const createdAt = data.createdAt ? data.createdAt.toDate() : null;
   const createdText = createdAt
     ? createdAt.toLocaleString('ja-JP', { dateStyle: 'medium', timeStyle: 'short' })
     : '投稿日時を取得中';
-  const authorName = data.authorName || '匿名';
+  
+  let authorName = data.authorName || '匿名';
+  // 詳細表示でも自分の投稿なら名前を最新化
+  if (currentUser && data.authorId === currentUser.uid) {
+    authorName = getUserDisplayName(currentUser);
+  }
+  
   const authorInitial = authorName.charAt(0).toUpperCase();
 
   // 元のカードから現在の投票数を取得（リアルタイム性を保つため）
@@ -683,7 +691,7 @@ function updateUserInitial() {
     return;
   }
 
-  const authorName = currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : '匿名');
+  const authorName = getUserDisplayName(currentUser);
   const authorInitial = authorName.charAt(0).toUpperCase();
   userInitialEl.textContent = authorInitial;
 }
@@ -694,7 +702,7 @@ function createPost(title, content) {
   const counterRef = db.collection('daily_counters').doc(today);
   const postsRef = db.collection('posts').doc();
 
-  const authorName = user.displayName || (user.email ? user.email.split('@')[0] : '匿名');
+  const authorName = getUserDisplayName(user);
 
   return db.runTransaction(async (transaction) => {
     const counterSnap = await transaction.get(counterRef);
@@ -824,6 +832,27 @@ function getTodayKey() {
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * ユーザーの表示名を取得するヘルパー関数
+ * GitHub認証の場合はユーザーID(screenName)を優先する
+ */
+function getUserDisplayName(user) {
+  if (!user) return '匿名';
+  
+  // GitHub認証の場合、reloadUserInfo.screenNameを優先 (これがFuku856などのID)
+  if (user.reloadUserInfo && user.reloadUserInfo.screenName) {
+    return user.reloadUserInfo.screenName;
+  }
+  
+  // sessionStorageも確認 (auth.jsとの連携)
+  const githubUsername = sessionStorage.getItem('github_username');
+  if (githubUsername) {
+     return githubUsername;
+  }
+
+  return user.displayName || (user.email ? user.email.split('@')[0] : '匿名');
 }
 
 function escapeHtml(text) {

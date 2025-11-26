@@ -865,6 +865,12 @@ async function getGitHubAccessToken(user) {
  * GitHubユーザー名を取得（複数の方法を試す）
  */
 async function getGitHubUsernameFromUser(user) {
+  // 方法0: reloadUserInfo から screenName を取得 (これが最も確実で高速)
+  if (user.reloadUserInfo && user.reloadUserInfo.screenName) {
+      console.log('getGitHubUsernameFromUser: reloadUserInfoから取得:', user.reloadUserInfo.screenName);
+      return user.reloadUserInfo.screenName;
+  }
+
   // 方法1: sessionStorageから取得（ログイン時に保存されたもの）
   let username = sessionStorage.getItem('github_username');
   if (username) {
@@ -1287,27 +1293,35 @@ async function updateUserInfo(user) {
   const userInfo = document.getElementById('user-info');
   const mobileUserInfo = document.getElementById('mobile-user-info');
   
-  // 認証プロバイダーを取得（最初のプロバイダーを使用）
-  const providerId = user.providerData && user.providerData.length > 0 
-    ? user.providerData[0].providerId 
-    : 'google.com'; // デフォルトはGoogle
+  // GitHubプロバイダーが含まれているかチェック
+  const isGitHubUser = user.providerData.some(
+    provider => provider.providerId === 'github.com'
+  );
   
-  // GitHubプロバイダーの場合はGitHubユーザー名を取得
+  // 表示に使用するプロバイダーIDを決定（GitHub優先）
+  const displayProviderId = isGitHubUser ? 'github.com' : (
+    user.providerData && user.providerData.length > 0 
+      ? user.providerData[0].providerId 
+      : 'google.com'
+  );
+  
+  // ユーザー名の決定
   let userName;
-  if (providerId === 'github.com') {
+  if (isGitHubUser) {
+    // GitHubユーザーの場合、ID(screenName)を優先取得
     const githubUsername = await getGitHubUsernameFromUser(user);
     if (githubUsername) {
       userName = githubUsername;
     } else {
-      // GitHubユーザー名が取得できない場合は、メールアドレスのローカル部分を使用
-      userName = user.displayName || user.email.split('@')[0];
+      // 取得できない場合はdisplayNameまたはメールアドレス
+      userName = user.displayName || (user.email ? user.email.split('@')[0] : '匿名');
     }
   } else {
-    // Googleなどの他のプロバイダーの場合は従来通り
-    userName = user.displayName || user.email.split('@')[0];
+    // その他のプロバイダー
+    userName = user.displayName || (user.email ? user.email.split('@')[0] : '匿名');
   }
   
-  const providerIcon = getProviderIcon(providerId);
+  const providerIcon = getProviderIcon(displayProviderId);
   
   // モバイル表示用（モバイルメニュー内に表示）
   // モバイルでは常にモバイルメニュー内に表示
